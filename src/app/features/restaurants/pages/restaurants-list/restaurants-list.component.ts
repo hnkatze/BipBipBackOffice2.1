@@ -20,7 +20,8 @@ import { TagModule } from 'primeng/tag';
 import { PaginatorModule } from 'primeng/paginator';
 import { ToastModule } from 'primeng/toast';
 import { PopoverModule } from 'primeng/popover';
-import { MessageService } from 'primeng/api';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { MessageService, MenuItem } from 'primeng/api';
 import { DividerModule } from 'primeng/divider';
 
 import { RestaurantService } from '../../services/restaurant.service';
@@ -42,6 +43,7 @@ import type { RestaurantFilters } from '../../models/restaurant.model';
     PaginatorModule,
     ToastModule,
     PopoverModule,
+    BreadcrumbModule,
     DividerModule,
     RestaurantFiltersComponent
   ],
@@ -53,6 +55,12 @@ export class RestaurantsListComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly restaurantService = inject(RestaurantService);
   private readonly messageService = inject(MessageService);
+
+  // Breadcrumb
+  readonly breadcrumbItems: MenuItem[] = [
+    { label: 'Restaurantes' }
+  ];
+  readonly home: MenuItem = { icon: 'pi pi-home', routerLink: '/' };
 
   // Local signals
   readonly searchTerm = signal<string>('');

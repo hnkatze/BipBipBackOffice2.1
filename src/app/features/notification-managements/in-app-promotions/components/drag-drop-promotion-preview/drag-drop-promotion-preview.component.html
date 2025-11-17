@@ -1,0 +1,227 @@
+<div class="preview-container" style="height: 500px; background-color: #D2D5DA; padding: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+
+  <!-- Card Container -->
+  <div class="bg-white border border-[#e2e2e2] rounded-[16px] overflow-hidden"
+       [style.width]="cardWidth()"
+       [style.height]="cardHeight()">
+
+    <!-- Layout: Bottom (Producto arriba, banner abajo) -->
+    @if (isLayoutBottom()) {
+      <div class="flex flex-col h-full">
+        <!-- Producto (60%) -->
+        <div class="relative" style="flex: 0 0 60%;">
+          @if (previewData().productImage) {
+            <img [src]="previewData().productImage" alt="Product"
+                 class="absolute inset-0 w-full h-full object-contain" />
+          } @else {
+            <div class="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
+              Sin producto
+            </div>
+          }
+
+          <!-- Logo (arriba izquierda) -->
+          @if (previewData().brandLogo) {
+            <img [src]="previewData().brandLogo" alt="Brand"
+                 class="absolute top-2 left-2 w-12 h-12 object-contain" />
+          }
+
+          <!-- Badge (arriba derecha) -->
+          <div [class]="badgeClass() + ' absolute top-2 right-2 px-2 py-1 rounded-full text-[10px] font-normal uppercase'">
+            {{ badgeText() }}
+          </div>
+        </div>
+
+        <!-- Banner Rojo (40%) -->
+        <div class="bg-[#FB0021] p-2.5 flex flex-col gap-2 items-center" style="flex: 0 0 40%;">
+          <p class="text-white text-center font-bold text-base leading-normal">
+            {{ previewData().title || 'Título' }}
+          </p>
+          @if (formattedBanner()) {
+            <div class="bg-white px-2 py-1 rounded-full flex gap-1 items-center">
+              @if (previewData().prefixBanner) {
+                <span class="text-black text-xs font-normal">{{ previewData().prefixBanner }}</span>
+              }
+              <span class="text-black text-sm font-bold">{{ formattedBanner() }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Layout: Left (Banner rojo izquierda, producto derecha) -->
+    @if (isLayoutLeft()) {
+      <div class="flex h-full">
+        <!-- Banner Rojo (Izquierda - 40%) -->
+        <div class="bg-[#FB0021] p-4 flex flex-col gap-2 items-center justify-center" style="flex: 0 0 40%;">
+          <!-- Badge -->
+          <div [class]="badgeClass() + ' px-2 py-1 rounded-full text-[10px] font-normal uppercase'">
+            {{ badgeText() }}
+          </div>
+
+          <!-- Título -->
+          <p class="text-white text-center font-bold text-2xl leading-9">
+            {{ previewData().title || 'Título de la promoción' }}
+          </p>
+
+          <!-- Precio -->
+          @if (formattedBanner()) {
+            <div class="bg-white px-2 py-1 rounded-full flex gap-1 items-center">
+              @if (previewData().prefixBanner) {
+                <span class="text-black text-xs font-normal">{{ previewData().prefixBanner }}</span>
+              }
+              <span class="text-black text-sm font-bold">{{ formattedBanner() }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Producto (Derecha - 60%) -->
+        <div class="relative border border-[#D2D5DA] rounded-lg" style="flex: 0 0 60%;">
+          @if (previewData().productImage) {
+            <img [src]="previewData().productImage" alt="Product"
+                 class="absolute inset-0 w-full h-full object-contain rounded-lg" />
+          } @else {
+            <div class="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
+              Sin producto
+            </div>
+          }
+
+          <!-- Logo (arriba del producto) -->
+          @if (previewData().brandLogo) {
+            <img [src]="previewData().brandLogo" alt="Brand"
+                 class="absolute top-2 left-2 w-12 h-12 object-contain" />
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Layout: Right (Producto izquierda, banner rojo derecha) -->
+    @if (isLayoutRight()) {
+      <div class="flex h-full">
+        <!-- Producto (Izquierda - 60%) -->
+        <div class="relative border border-[#D2D5DA] rounded-lg" style="flex: 0 0 60%;">
+          @if (previewData().productImage) {
+            <img [src]="previewData().productImage" alt="Product"
+                 class="absolute inset-0 w-full h-full object-contain rounded-lg" />
+          } @else {
+            <div class="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
+              Sin producto
+            </div>
+          }
+
+          <!-- Logo (arriba del producto) -->
+          @if (previewData().brandLogo) {
+            <img [src]="previewData().brandLogo" alt="Brand"
+                 class="absolute top-2 left-2 w-12 h-12 object-contain" />
+          }
+        </div>
+
+        <!-- Banner Rojo (Derecha - 40%) -->
+        <div class="bg-[#FB0021] p-4 flex flex-col gap-2 items-center justify-center" style="flex: 0 0 40%;">
+          <!-- Badge -->
+          <div [class]="badgeClass() + ' px-2 py-1 rounded-full text-[10px] font-normal uppercase'">
+            {{ badgeText() }}
+          </div>
+
+          <!-- Título -->
+          <p class="text-white text-center font-bold text-2xl leading-9">
+            {{ previewData().title || 'Título de la promoción' }}
+          </p>
+
+          <!-- Precio -->
+          @if (formattedBanner()) {
+            <div class="bg-white px-2 py-1 rounded-full flex gap-1 items-center">
+              @if (previewData().prefixBanner) {
+                <span class="text-black text-xs font-normal">{{ previewData().prefixBanner }}</span>
+              }
+              <span class="text-black text-sm font-bold">{{ formattedBanner() }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Layout: Top (Banner arriba, producto abajo) -->
+    @if (isLayoutTop()) {
+      <div class="flex flex-col h-full">
+        <!-- Banner Rojo (40%) -->
+        <div class="bg-[#FB0021] p-2.5 flex flex-col gap-2 items-center" style="flex: 0 0 40%;">
+          <p class="text-white text-center font-bold text-base leading-normal">
+            {{ previewData().title || 'Título' }}
+          </p>
+          @if (formattedBanner()) {
+            <div class="bg-white px-2 py-1 rounded-full flex gap-1 items-center">
+              @if (previewData().prefixBanner) {
+                <span class="text-black text-xs font-normal">{{ previewData().prefixBanner }}</span>
+              }
+              <span class="text-black text-sm font-bold">{{ formattedBanner() }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Producto (60%) -->
+        <div class="relative" style="flex: 0 0 60%;">
+          @if (previewData().productImage) {
+            <img [src]="previewData().productImage" alt="Product"
+                 class="absolute inset-0 w-full h-full object-contain" />
+          } @else {
+            <div class="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
+              Sin producto
+            </div>
+          }
+
+          <!-- Logo (arriba izquierda) -->
+          @if (previewData().brandLogo) {
+            <img [src]="previewData().brandLogo" alt="Brand"
+                 class="absolute top-2 left-2 w-12 h-12 object-contain" />
+          }
+
+          <!-- Badge (arriba derecha) -->
+          <div [class]="badgeClass() + ' absolute top-2 right-2 px-2 py-1 rounded-full text-[10px] font-normal uppercase'">
+            {{ badgeText() }}
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Layout: Full (Producto ocupa todo) -->
+    @if (isLayoutFull()) {
+      <div class="relative h-full">
+        @if (previewData().productImage) {
+          <img [src]="previewData().productImage" alt="Product"
+               class="w-full h-full object-contain" />
+        } @else {
+          <div class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+            Sin producto
+          </div>
+        }
+
+        <!-- Overlay con información -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-4">
+          @if (previewData().brandLogo) {
+            <img [src]="previewData().brandLogo" alt="Brand"
+                 class="w-12 h-12 object-contain mb-2" />
+          }
+
+          <div [class]="badgeClass() + ' self-start px-2 py-1 rounded-full text-[10px] font-normal uppercase mb-2'">
+            {{ badgeText() }}
+          </div>
+
+          <p class="text-white text-xl font-bold mb-1">
+            {{ previewData().title || 'Título' }}
+          </p>
+
+          @if (formattedBanner()) {
+            <div class="bg-yellow-400 self-start px-3 py-1.5 rounded-lg flex gap-1 items-center">
+              @if (previewData().prefixBanner) {
+                <span class="text-black text-xs font-normal">{{ previewData().prefixBanner }}</span>
+              }
+              <span class="text-black text-sm font-bold">{{ formattedBanner() }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  </div>
+
+</div>

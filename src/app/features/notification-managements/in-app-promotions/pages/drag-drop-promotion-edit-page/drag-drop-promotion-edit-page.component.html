@@ -1,0 +1,297 @@
+<!-- Loading State -->
+@if (isLoading()) {
+  <div class="flex justify-center items-center h-64">
+    <i class="pi pi-spin pi-spinner text-4xl text-primary-500"></i>
+  </div>
+} @else {
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white m-0">Editar Promoción Drag & Drop</h1>
+    <p class="text-gray-600 dark:text-gray-400 mt-2">
+      Modifica los detalles de la promoción de tipo banner o video
+    </p>
+  </div>
+
+  <!-- Layout: Form + Preview -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Columna Izquierda: Formulario -->
+    <div class="flex flex-col gap-6">
+      <form [formGroup]="form" class="flex flex-col gap-6">
+
+      <!-- Sección: Información Básica -->
+      <p-card header="Información Básica">
+        <div class="grid grid-cols-1 gap-4">
+          <!-- Title -->
+          <div class="flex flex-col gap-2">
+            <label for="title" class="font-medium text-gray-900 dark:text-white">
+              Título <span class="text-danger-500">*</span>
+            </label>
+            <input pInputText id="title" formControlName="title"
+              placeholder="Ej: Promo especial 2x1" />
+            @if (hasError('title')) {
+              <small class="text-danger-500">{{ getErrorMessage('title') }}</small>
+            }
+          </div>
+
+          <!-- Description -->
+          <div class="flex flex-col gap-2">
+            <label for="description" class="font-medium text-gray-900 dark:text-white">
+              Descripción
+            </label>
+            <textarea pTextarea id="description" formControlName="description"
+              rows="3" placeholder="Descripción opcional de la promoción"></textarea>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Sección: Configuración Visual -->
+      <p-card header="Configuración Visual">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Banner URL -->
+          <div class="flex flex-col gap-2">
+            <label for="banner" class="font-medium text-gray-900 dark:text-white">
+              Banner URL <span class="text-danger-500">*</span>
+            </label>
+            <input pInputText id="banner" formControlName="banner"
+              placeholder="https://example.com/banner.jpg" />
+            @if (hasError('banner')) {
+              <small class="text-danger-500">{{ getErrorMessage('banner') }}</small>
+            }
+          </div>
+
+          <!-- Prefix Banner -->
+          <div class="flex flex-col gap-2">
+            <label for="prefixBanner" class="font-medium text-gray-900 dark:text-white">
+              Prefijo del Banner
+            </label>
+            <p-select id="prefixBanner" formControlName="prefixBanner"
+              [options]="prefixBannerOptions" optionLabel="label" optionValue="value"
+              placeholder="Seleccione prefijo" />
+          </div>
+
+          <!-- Media URL (Video) -->
+          <!-- <div class="flex flex-col gap-2">
+            <label for="mediaUrl" class="font-medium text-gray-900 dark:text-white">
+              Video URL (Opcional)
+            </label>
+            <input pInputText id="mediaUrl" formControlName="mediaUrl"
+              placeholder="https://example.com/video.mp4" />
+          </div> -->
+
+          <!-- Promotion Type -->
+          <div class="flex flex-col gap-2">
+            <label for="promotionType" class="font-medium text-gray-900 dark:text-white">
+              Tipo de Promoción <span class="text-danger-500">*</span>
+            </label>
+            <p-select id="promotionType" formControlName="promotionType"
+              [options]="promotionTypeOptions" optionLabel="label" optionValue="value"
+              placeholder="Seleccione tipo" />
+            @if (hasError('promotionType')) {
+              <small class="text-danger-500">{{ getErrorMessage('promotionType') }}</small>
+            }
+          </div>
+
+          <!-- Media Position -->
+          <div class="flex flex-col gap-2">
+            <label for="mediaPosition" class="font-medium text-gray-900 dark:text-white">
+              Posición del Media <span class="text-danger-500">*</span>
+            </label>
+            <p-select id="mediaPosition" formControlName="mediaPosition"
+              [options]="availableMediaPositions()" optionLabel="label" optionValue="value"
+              placeholder="Seleccione posición" />
+            @if (hasError('mediaPosition')) {
+              <small class="text-danger-500">{{ getErrorMessage('mediaPosition') }}</small>
+            }
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Sección: Imagen del Producto -->
+      <p-card header="Imagen del Producto">
+        <div class="flex flex-col gap-4">
+          <!-- Upload Area -->
+          @if (!productImagePreview()) {
+            <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/jpg"
+                (change)="onProductImageSelected($event)"
+                #fileInput
+                style="display: none;"
+              />
+              <div class="flex flex-col items-center gap-3">
+                <i class="pi pi-cloud-upload text-6xl text-gray-400"></i>
+                <div>
+                  <p class="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Subir imagen del producto
+                  </p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    PNG, JPG o JPEG (máx. 5MB)
+                  </p>
+                </div>
+                <p-button
+                  label="Seleccionar Archivo"
+                  icon="pi pi-upload"
+                  (onClick)="fileInput.click()"
+                  [loading]="isUploadingImage()"
+                />
+              </div>
+            </div>
+          } @else {
+            <div class="relative">
+              <!-- Preview de la imagen -->
+              <div class="border border-gray-300 dark:border-gray-600 rounded-lg p-4 flex items-center justify-center bg-gray-50 dark:bg-gray-800" style="min-height: 200px;">
+                <img [src]="productImagePreview()" alt="Product preview" class="max-h-64 object-contain rounded" />
+              </div>
+              <!-- Botón para remover -->
+              <div class="absolute top-2 right-2">
+                <p-button
+                  icon="pi pi-times"
+                  severity="danger"
+                  [rounded]="true"
+                  (onClick)="onRemoveProductImage()"
+                  [disabled]="isUploadingImage()"
+                />
+              </div>
+            </div>
+          }
+          @if (hasError('mediaUrl')) {
+            <small class="text-danger-500">{{ getErrorMessage('mediaUrl') }}</small>
+          }
+        </div>
+      </p-card>
+
+      <!-- Sección: Acción y Comportamiento -->
+      <p-card header="Acción y Comportamiento">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Action Type -->
+          <div class="flex flex-col gap-2">
+            <label for="actionType" class="font-medium text-gray-900 dark:text-white">
+              Tipo de Acción <span class="text-danger-500">*</span>
+            </label>
+            <p-select id="actionType" formControlName="actionType"
+              [options]="actionTypeOptions" optionLabel="label" optionValue="value"
+              placeholder="Seleccione tipo de acción" />
+            @if (hasError('actionType')) {
+              <small class="text-danger-500">{{ getErrorMessage('actionType') }}</small>
+            }
+          </div>
+
+          <!-- Product ID (Condicional: si actionType = redirect) -->
+          @if (isActionTypeRedirect()) {
+            <div class="flex flex-col gap-2">
+              <label for="productId" class="font-medium text-gray-900 dark:text-white">
+                ID del Producto <span class="text-danger-500">*</span>
+              </label>
+              <input pInputText id="productId" formControlName="productId"
+                placeholder="Ej: PROD123" />
+              @if (hasError('productId')) {
+                <small class="text-danger-500">{{ getErrorMessage('productId') }}</small>
+              }
+            </div>
+          }
+
+          <!-- Promo Code (Condicional: si actionType = clipboard) -->
+          @if (isActionTypeClipboard()) {
+            <div class="flex flex-col gap-2">
+              <label for="promoCode" class="font-medium text-gray-900 dark:text-white">
+                Código Promocional <span class="text-danger-500">*</span>
+              </label>
+              <input pInputText id="promoCode" formControlName="promoCode"
+                placeholder="Ej: PROMO2024" />
+              @if (hasError('promoCode')) {
+                <small class="text-danger-500">{{ getErrorMessage('promoCode') }}</small>
+              }
+            </div>
+          }
+        </div>
+      </p-card>
+
+      <!-- Sección: Fechas y Disponibilidad -->
+      <p-card header="Fechas y Disponibilidad">
+        <div class="grid grid-cols-1 gap-4">
+          <!-- Fechas -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Start Date -->
+            <div class="flex flex-col gap-2">
+              <label for="promoStartDate" class="font-medium text-gray-900 dark:text-white">
+                Fecha de Inicio <span class="text-danger-500">*</span>
+              </label>
+              <p-datepicker id="promoStartDate" formControlName="promoStartDate"
+                dateFormat="dd/mm/yy" [showIcon]="true" />
+              @if (hasError('promoStartDate')) {
+                <small class="text-danger-500">{{ getErrorMessage('promoStartDate') }}</small>
+              }
+            </div>
+
+            <!-- End Date -->
+            <div class="flex flex-col gap-2">
+              <label for="promoEndDate" class="font-medium text-gray-900 dark:text-white">
+                Fecha de Fin <span class="text-danger-500">*</span>
+              </label>
+              <p-datepicker id="promoEndDate" formControlName="promoEndDate"
+                dateFormat="dd/mm/yy" [showIcon]="true" />
+              @if (hasError('promoEndDate')) {
+                <small class="text-danger-500">{{ getErrorMessage('promoEndDate') }}</small>
+              }
+            </div>
+          </div>
+
+          <!-- Brands -->
+          <div class="flex flex-col gap-2">
+            <label for="availableBrands" class="font-medium text-gray-900 dark:text-white">
+              Marcas Disponibles <span class="text-danger-500">*</span>
+            </label>
+            <p-multiselect id="availableBrands" formControlName="availableBrands"
+              [options]="brandsOptions()" optionLabel="name" optionValue="id"
+              placeholder="Seleccione marcas" display="chip" [filter]="true"
+              filterPlaceholder="Buscar marca..." />
+            @if (hasError('availableBrands')) {
+              <small class="text-danger-500">{{ getErrorMessage('availableBrands') }}</small>
+            }
+          </div>
+
+          <!-- Channels (Opcional) -->
+          <div class="flex flex-col gap-2">
+            <label for="availableChannels" class="font-medium text-gray-900 dark:text-white">
+              Canales Disponibles (Opcional)
+            </label>
+            <p-multiselect id="availableChannels" formControlName="availableChannels"
+              [options]="channelsOptions()" optionLabel="description" optionValue="id"
+              placeholder="Seleccione canales" display="chip" [filter]="true"
+              filterPlaceholder="Buscar canal..." />
+          </div>
+
+          <!-- Recently Added Toggle -->
+          <div class="flex items-center gap-3">
+            <p-toggleswitch formControlName="recentlyAdded" inputId="recentlyAdded" />
+            <label for="recentlyAdded" class="font-medium cursor-pointer text-gray-900 dark:text-white">
+              Promoción Reciente
+            </label>
+          </div>
+        </div>
+      </p-card>
+
+        <!-- Botones de Acción -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <p-button label="Cancelar" [outlined]="true" severity="secondary"
+            (onClick)="onCancel()" [disabled]="isSaving()" />
+          <p-button label="Guardar Cambios" icon="pi pi-check"
+            (onClick)="onSubmit()" [loading]="isSaving()" [disabled]="form.invalid" />
+        </div>
+      </form>
+    </div>
+
+    <!-- Columna Derecha: Vista Previa -->
+    <div class="lg:sticky lg:top-6 lg:self-start">
+      <p-card header="Vista Previa">
+        <app-drag-drop-promotion-preview [previewData]="previewData()" />
+      </p-card>
+    </div>
+
+  </div>
+}
+
+<!-- Toast para notificaciones -->
+<p-toast />

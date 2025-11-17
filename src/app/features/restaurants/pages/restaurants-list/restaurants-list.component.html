@@ -1,7 +1,20 @@
-<div class="card">
+<div class="p-6">
+  <!-- Breadcrumb -->
+  <div class="mb-4">
+    <p-breadcrumb [model]="breadcrumbItems" [home]="home" />
+  </div>
+
   <!-- Header -->
-  <div class="flex justify-between items-center mb-4">
-    <h2 class="text-2xl font-semibold m-0">Gestión de Restaurantes</h2>
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+        Gestión de Restaurantes
+      </h1>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        Administra todos los restaurantes, sus estados y configuraciones
+      </p>
+    </div>
+
     <p-button
       label="Nuevo Restaurante"
       icon="pi pi-plus"
@@ -9,8 +22,10 @@
     />
   </div>
 
-  <!-- Search and Filters Bar -->
-  <div class="flex gap-3 mb-4 flex-wrap">
+  <!-- Filtros -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5 mb-6">
+    <!-- Search and Filters Bar -->
+    <div class="flex gap-3 mb-4 flex-wrap">
     <!-- Search with IconField -->
     <p-iconfield iconPosition="left" class="flex-1" style="min-width: 250px">
       <p-inputicon styleClass="pi pi-search" />
@@ -46,20 +61,22 @@
     }
   </div>
 
-  <!-- Status Filters -->
-  <div class="flex gap-2 mb-4">
-    @for (filter of statusFilters(); track filter.idStatus) {
-      <p-button
-        [label]="filter.label + ' (' + filter.qty + ')'"
-        [outlined]="selectedStatusId() !== filter.idStatus"
-        [severity]="selectedStatusId() === filter.idStatus ? 'primary' : 'secondary'"
-        (onClick)="onStatusFilterChange(filter.idStatus)"
-      />
-    }
+    <!-- Status Filters -->
+    <div class="flex gap-2">
+      @for (filter of statusFilters(); track filter.idStatus) {
+        <p-button
+          [label]="filter.label + ' (' + filter.qty + ')'"
+          [outlined]="selectedStatusId() !== filter.idStatus"
+          [severity]="selectedStatusId() === filter.idStatus ? 'primary' : 'secondary'"
+          (onClick)="onStatusFilterChange(filter.idStatus)"
+        />
+      }
+    </div>
   </div>
 
-  <!-- Table -->
-  <p-table
+  <!-- Tabla -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+    <p-table
     [value]="restaurants()"
     [loading]="isLoading()"
     [tableStyle]="{ 'min-width': '60rem' }"
@@ -185,6 +202,7 @@
       </tr>
     </ng-template>
   </p-table>
+  </div>
 
   <!-- Paginator -->
   @if (totalRecords() > 0) {

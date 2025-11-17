@@ -111,14 +111,21 @@ export interface DragDropPromotionResponse {
   id: number;
   title: string;
   description: string;
-  productId: string | null;
-  promotionType: PromotionType;
-  actionType: ActionType;
+  banner: string;                   // Precio o texto según actionType
+  prefixBanner: string;              // "Desde", "Hasta"
+  productId: string;
+  mediaUrl: string;                  // URL de la imagen del producto
+  mediaPosition: string;             // top, bottom, left, right, full
+  promotionType: string;             // 6x4, 5x8, 7x8
+  actionType: string;                // redirect, clipboard
   recentlyAdded: boolean;
   promoStartDate: string;
   promoEndDate: string;
   isActive: boolean;
-  mediaUrl?: string;
+  availableBrands: number[];
+  availableChannels: number[];
+  availableStores: number[];
+  promoCode: string;
 }
 
 /**
@@ -127,14 +134,20 @@ export interface DragDropPromotionResponse {
 export interface CreateDragDropPromotion {
   title: string;
   description: string;
-  productId: string | null;
-  promotionType: PromotionType;
-  actionType: ActionType;
+  banner: string;
+  prefixBanner: string;
+  mediaUrl: string;
+  mediaPosition: string;
+  promotionType: string;
+  actionType: string;
   recentlyAdded: boolean;
   promoStartDate: string;
   promoEndDate: string;
-  isActive: boolean;
-  mediaUrl?: string;
+  availableBrands: number[];
+  availableChannels: number[];
+  availableStores: number[];
+  productId: string;
+  promoCode: string;
 }
 
 /**
@@ -143,14 +156,20 @@ export interface CreateDragDropPromotion {
 export interface UpdateDragDropPromotion {
   title: string;
   description: string;
-  productId: string | null;
-  promotionType: PromotionType;
-  actionType: ActionType;
+  banner: string;
+  prefixBanner: string;
+  mediaUrl: string;
+  mediaPosition: string;
+  promotionType: string;
+  actionType: string;
   recentlyAdded: boolean;
   promoStartDate: string;
   promoEndDate: string;
-  isActive: boolean;
-  mediaUrl?: string;
+  availableBrands: number[];
+  availableChannels: number[];
+  availableStores: number[];
+  productId: string;
+  promoCode: string;
 }
 
 // ============================================================================

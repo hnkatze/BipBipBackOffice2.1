@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 import { DriverStatus } from '../../models/saao.model';
 import { SaaoService } from '../../services/saao.service';
 import { DriverLocationService, DriverLocation } from '../../services/driver-location.service';
-import { MapComponent, MapMarker } from '../../../../../shared/components/map/map.component';
+import { MapComponent, MapMarker } from '@shared/components';
 
 @Component({
   selector: 'app-driver-detail-drawer',

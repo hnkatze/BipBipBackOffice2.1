@@ -1,1 +1,48 @@
-<div #mapContainer class="w-full h-full"></div>
+<form class="w-full h-full flex flex-col items-center justify-center gap-2" [formGroup]="form">
+  @if (showSearch()) {
+    <div class="w-full relative">
+      <p-iconfield iconPosition="left" class="w-full">
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+          pInputText
+          type="text"
+          placeholder="Busca un lugar e.g.: Estadio"
+          formControlName="search"
+          (focus)="showSuggestions.set(true)"
+          (blur)="onBlur()"
+          class="w-full"
+        />
+      </p-iconfield>
+
+      <!-- Lista de sugerencias -->
+      @if (showSuggestions() && datasSuggestions().length) {
+        <div class="absolute top-full left-0 w-full z-50 mt-1">
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+            @if (datasSuggestions().length === 0) {
+              <div class="p-2 text-gray-400 dark:text-gray-500 text-sm">
+                No se encontraron resultados
+              </div>
+            }
+
+            <div class="divide-y divide-gray-100 dark:divide-gray-700">
+              @for (item of datasSuggestions(); track item.id) {
+                <div
+                  class="px-4 py-3 hover:bg-blue-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                  (mousedown)="handleSelectSuggestion(item)"
+                >
+                  <div class="font-medium text-gray-800 dark:text-gray-200">{{ item.name }}</div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">{{ item.address }}</div>
+                  <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    {{ item.place_formatted }}
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <div id="map" class="map-container rounded-lg shadow-lg"></div>
+</form>
