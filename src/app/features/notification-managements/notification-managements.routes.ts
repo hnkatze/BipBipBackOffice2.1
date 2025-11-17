@@ -13,6 +13,8 @@ import { Routes } from '@angular/router';
  * - Personalized Alerts (Alertas Personalizadas) ✅
  * - App Link (Enlaces Dinámicos) ✅
  * - Products in Promotions (Productos en Promoción) ✅
+ * - Push In App (Notificaciones Push In App) ✅
+ * - In-App Promotions (Promociones en App) 🚧
  */
 export const NOTIFICATION_MANAGEMENTS_ROUTES: Routes = [
   {
@@ -49,5 +51,15 @@ export const NOTIFICATION_MANAGEMENTS_ROUTES: Routes = [
     path: 'products-in-promotions',
     loadChildren: () => import('./products-in-promotions/products-in-promotions.routes').then(m => m.PRODUCTS_IN_PROMOTIONS_ROUTES),
     title: 'Productos en Promoción'
+  },
+  {
+    path: 'push-in-app',
+    loadChildren: () => import('./push-in-app/push-in-app.routes').then(m => m.PUSH_IN_APP_ROUTES),
+    title: 'Push In App'
+  },
+  {
+    path: 'in-app-promotions',
+    loadChildren: () => import('./in-app-promotions/in-app-promotions.routes').then(m => m.IN_APP_PROMOTIONS_ROUTES),
+    title: 'Promociones en App'
   }
 ];

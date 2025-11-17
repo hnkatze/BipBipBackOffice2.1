@@ -1,0 +1,246 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+        Regalías por Producto
+      </h1>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        Gestiona las recompensas automáticas por compra de productos
+      </p>
+    </div>
+
+    <p-button
+      label="Crear Regalía"
+      icon="pi pi-plus"
+      (onClick)="goToCreate()"
+    />
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
+    <div class="flex flex-col md:flex-row gap-4">
+      <!-- Búsqueda -->
+      <div class="flex-1">
+        <p-iconfield iconPosition="left">
+          <p-inputicon styleClass="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar por código de producto..."
+            [value]="searchTermSignal()"
+            (input)="onSearchChange($any($event.target).value)"
+            class="w-full"
+          />
+        </p-iconfield>
+      </div>
+
+      <!-- Botón limpiar -->
+      <p-button
+        label="Limpiar Filtros"
+        icon="pi pi-filter-slash"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="clearFilters()"
+      />
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+    <p-table
+      [value]="productRewards()"
+      [loading]="isLoading()"
+      [paginator]="true"
+      [rows]="pageSizeSignal()"
+      [totalRecords]="metadata().totalCount"
+      [lazy]="true"
+      [first]="0"
+      (onLazyLoad)="onPageChange($event)"
+      [rowsPerPageOptions]="[5, 10, 25, 50]"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} regalías"
+      styleClass="p-datatable-sm"
+      [tableStyle]="{ 'min-width': '80rem' }"
+    >
+      <!-- Empty state -->
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center py-8">
+            <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+              <i class="pi pi-inbox text-4xl mb-3"></i>
+              <p class="text-lg font-medium">No hay regalías por producto</p>
+              <p class="text-sm">Crea tu primera regalía por producto</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <!-- Header -->
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 5%">ID</th>
+          <th style="width: 20%">Tipo de Recompensa</th>
+          <th style="width: 30%">Producto / Marca / Canal</th>
+          <th style="width: 18%">Fechas</th>
+          <th style="width: 10%">Estado</th>
+          <th style="width: 17%">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <!-- Body -->
+      <ng-template pTemplate="body" let-reward>
+        <tr>
+          <!-- ID -->
+          <td>{{ reward.id }}</td>
+
+          <!-- Tipo de Recompensa -->
+          <td>
+            <div class="flex items-center gap-2">
+              <i [class]="getRewardTypeIcon(reward.rewardType) + ' text-purple-600 dark:text-purple-400'"></i>
+              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {{ getRewardTypeLabel(reward.rewardType) }}
+              </span>
+            </div>
+          </td>
+
+          <!-- Producto / Marca / Canal (según triggerId) -->
+          <td>
+            <!-- triggerId = 1: Por Producto -->
+            @if (reward.triggerId === 1) {
+              <div class="flex items-center gap-3">
+                @if (reward.productImage) {
+                  <img
+                    [src]="reward.productImage"
+                    [alt]="reward.productName || reward.productCode"
+                    class="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-gray-700"
+                  />
+                }
+                <div class="flex flex-col gap-1">
+                  <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {{ reward.productName || reward.productCode }}
+                  </span>
+                  <span class="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                    {{ reward.productCode }}
+                  </span>
+                </div>
+              </div>
+            }
+
+            <!-- triggerId = 2: Por Marca y Canal -->
+            @if (reward.triggerId === 2) {
+              <div class="flex flex-col gap-2">
+                <!-- Marca -->
+                <div class="flex items-center gap-2">
+                  @if (getBrandLogo(reward.brandId)) {
+                    <img
+                      [src]="getBrandLogo(reward.brandId)"
+                      [alt]="getBrandName(reward.brandId)"
+                      class="w-6 h-6 rounded-full object-cover"
+                    />
+                  }
+                  <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                    {{ getBrandName(reward.brandId) }}
+                  </span>
+                </div>
+                <!-- Canal -->
+                @if (reward.channelId) {
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-building text-purple-600 dark:text-purple-400"></i>
+                    <span class="text-sm text-gray-700 dark:text-gray-300">
+                      {{ getChannelName(reward.channelId) }}
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- triggerId = 3: Por Marca -->
+            @if (reward.triggerId === 3) {
+              <div class="flex items-center gap-2">
+                @if (getBrandLogo(reward.brandId)) {
+                  <img
+                    [src]="getBrandLogo(reward.brandId)"
+                    [alt]="getBrandName(reward.brandId)"
+                    class="w-6 h-6 rounded-full object-cover"
+                  />
+                }
+                <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                  {{ getBrandName(reward.brandId) }}
+                </span>
+              </div>
+            }
+          </td>
+
+          <!-- Fechas (Inicio y Fin agrupadas) -->
+          <td>
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-2 text-sm">
+                <i class="pi pi-calendar-plus text-green-600 dark:text-green-400"></i>
+                <span class="text-gray-600 dark:text-gray-400">
+                  {{ formatDate(reward.startTime) }}
+                </span>
+              </div>
+              <div class="flex items-center gap-2 text-sm">
+                <i class="pi pi-calendar-minus text-red-600 dark:text-red-400"></i>
+                <span class="text-gray-600 dark:text-gray-400">
+                  {{ formatDate(reward.endTime) }}
+                </span>
+              </div>
+            </div>
+          </td>
+
+          <!-- Estado -->
+          <td>
+            <p-tag
+              [value]="getStatusLabel(reward.isActive || false)"
+              [severity]="getStatusSeverity(reward.isActive || false)"
+            />
+          </td>
+
+          <!-- Acciones -->
+          <td>
+            <div class="flex items-center gap-2">
+              <!-- Menú de acciones -->
+              <p-button
+                icon="pi pi-ellipsis-v"
+                [text]="true"
+                [rounded]="true"
+                severity="secondary"
+                (click)="selectedRewardIdSignal.set(reward.id); actionsMenu.toggle($event)"
+              />
+
+              <p-popover #actionsMenu>
+                <div class="flex flex-col gap-1 p-2 min-w-[160px]">
+                  <button
+                    class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full text-left"
+                    (click)="goToEdit(reward.id); actionsMenu.hide()"
+                  >
+                    <i class="pi pi-pencil text-blue-600"></i>
+                    <span>Editar</span>
+                  </button>
+
+                  <button
+                    class="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full text-left"
+                    [class.text-red-600]="reward.isActive"
+                    [class.text-green-600]="!reward.isActive"
+                    (click)="toggleStatus(reward); actionsMenu.hide()"
+                  >
+                    <i [class]="reward.isActive ? 'pi pi-times-circle' : 'pi pi-check-circle'"></i>
+                    <span>{{ reward.isActive ? 'Desactivar' : 'Activar' }}</span>
+                  </button>
+                </div>
+              </p-popover>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- Toast -->
+<p-toast />
+
+<!-- Confirm Dialog -->
+<p-confirmDialog />

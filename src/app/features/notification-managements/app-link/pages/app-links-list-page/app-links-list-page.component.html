@@ -1,53 +1,63 @@
 <div class="p-6">
   <!-- Breadcrumb -->
-  <p-breadcrumb [model]="breadcrumbItems" [home]="home" styleClass="mb-4" />
+  <div class="mb-4">
+    <p-breadcrumb [model]="breadcrumbItems" [home]="home" />
+  </div>
 
-  <div class="w-full flex justify-center items-center">
-    <p-card class="w-full flex justify-center items-center">
-      <ng-template pTemplate="header">
-        <div class="flex justify-between items-center p-4">
-          <h2 class="text-2xl font-bold m-0">App Links</h2>
-          <p-button
-            label="Nuevo App Link"
-            icon="pi pi-plus"
-            (onClick)="onCreateAppLink()"
-          />
-        </div>
-      </ng-template>
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+        App Links
+      </h1>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        Gestiona los enlaces dinámicos que redirigen a productos específicos en la app
+      </p>
+    </div>
 
-      <!-- Filters -->
-      <div class="flex flex-col md:flex-row gap-4 mb-4">
-        <!-- Search -->
-        <div class="flex-1">
-          <p-iconfield iconPosition="left" class="w-full">
-            <p-inputicon styleClass="pi pi-search" />
-            <input
-              type="text"
-              pInputText
-              placeholder="Buscar por título o producto..."
-              class="w-full"
-              [value]="searchTerm()"
-              (input)="onSearch($event)"
-            />
-          </p-iconfield>
-        </div>
+    <p-button
+      label="Nuevo App Link"
+      icon="pi pi-plus"
+      (onClick)="onCreateAppLink()"
+    />
+  </div>
 
-        <!-- Status Filter -->
-        <div class="w-full md:w-64">
-          <p-select
-            [options]="statusFilterOptions"
-            [(ngModel)]="statusFilter"
-            (onChange)="onStatusFilterChange()"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Estado"
+  <!-- Filtros -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5 mb-6">
+    <div class="flex flex-col md:flex-row gap-4">
+      <!-- Search -->
+      <div class="flex-1">
+        <p-iconfield iconPosition="left" class="w-full">
+          <p-inputicon styleClass="pi pi-search" />
+          <input
+            type="text"
+            pInputText
+            placeholder="Buscar por campaña o producto..."
             class="w-full"
+            [value]="searchTerm()"
+            (input)="onSearch($event)"
           />
-        </div>
+        </p-iconfield>
       </div>
 
-      <!-- Table -->
-      <p-table
+      <!-- Status Filter -->
+      <div class="w-full md:w-64">
+        <p-select
+          [options]="statusFilterOptions"
+          [(ngModel)]="statusFilter"
+          (onChange)="onStatusFilterChange()"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Estado"
+          class="w-full"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+    <p-table
         [value]="appLinks()"
         [loading]="isLoading()"
         [lazy]="true"
@@ -171,7 +181,6 @@
           </tr>
         </ng-template>
       </p-table>
-    </p-card>
   </div>
 </div>
 

@@ -1,14 +1,14 @@
 <div class="flex flex-col items-center gap-4 p-6">
-  <h2 class="text-2xl font-bold text-surface-900 text-center">Vista Previa</h2>
-  <p class="text-base text-surface-600 text-center">Así se verá el enlace en la aplicación móvil</p>
+  <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 text-center">Vista Previa</h2>
+  <p class="text-base text-gray-600 dark:text-gray-400 text-center">Así se verá el enlace en la aplicación móvil</p>
 
   <!-- Mobile Frame Container (90% width with phone bezel) -->
-  <div class="w-[90%] max-w-[420px] bg-surface-900 rounded-[3rem] shadow-2xl p-3 relative">
+  <div class="w-[90%] max-w-[420px] bg-gray-900 dark:bg-gray-950 rounded-[3rem] shadow-2xl p-3 relative">
     <!-- Phone Notch/Status Bar -->
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-surface-900 rounded-b-3xl z-10"></div>
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 dark:bg-gray-950 rounded-b-3xl z-10"></div>
 
     <!-- Screen Content -->
-    <div class="bg-white rounded-[2.5rem] overflow-hidden shadow-inner">
+    <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] overflow-hidden shadow-inner">
       <!-- Mobile Header -->
       <div class="bg-primary px-4 py-3 flex items-center justify-between">
         <div class="flex items-center gap-2">
@@ -19,7 +19,7 @@
       </div>
 
       <!-- App Link Content -->
-      <div class="bg-white">
+      <div class="bg-white dark:bg-gray-800">
         <!-- Brand Badge (if brand selected) -->
         @if (brandName()) {
           <div class="absolute top-16 right-6 z-10">
@@ -34,7 +34,7 @@
 
         <!-- Image Section -->
         @if (image()) {
-          <div class="relative w-full h-72 bg-surface-100">
+          <div class="relative w-full h-72 bg-gray-100 dark:bg-gray-700">
             <img
               [src]="image()"
               [alt]="title()"
@@ -51,8 +51,8 @@
             </div>
           </div>
         } @else {
-          <div class="w-full h-72 bg-surface-100 flex items-center justify-center">
-            <div class="text-center text-surface-400">
+          <div class="w-full h-72 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+            <div class="text-center text-gray-400 dark:text-gray-500">
               <i class="pi pi-image text-6xl mb-3"></i>
               <p class="text-sm">Sin imagen</p>
             </div>
@@ -61,10 +61,10 @@
 
         <!-- Content Section -->
         <div class="p-6">
-          <h3 class="text-xl font-bold mb-3 text-surface-900 leading-tight">
+          <h3 class="text-xl font-bold mb-3 text-gray-900 dark:text-gray-100 leading-tight">
             {{ title() }}
           </h3>
-          <p class="text-base text-surface-600 leading-relaxed mb-6">
+          <p class="text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
             {{ description() }}
           </p>
 
@@ -78,14 +78,14 @@
         </div>
 
         <!-- Footer: Form Status -->
-        <div class="border-t border-surface-200 px-6 py-4 bg-surface-50">
+        <div class="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-900">
           <div class="flex items-center justify-center gap-2">
             @if (pendingFields() === 0) {
-              <i class="pi pi-check-circle text-green-600"></i>
-              <span class="text-sm font-medium text-green-600">{{ pendingMessage() }}</span>
+              <i class="pi pi-check-circle text-green-600 dark:text-green-400"></i>
+              <span class="text-sm font-medium text-green-600 dark:text-green-400">{{ pendingMessage() }}</span>
             } @else {
-              <i class="pi pi-info-circle text-orange-600"></i>
-              <span class="text-sm font-medium text-orange-600">{{ pendingMessage() }}</span>
+              <i class="pi pi-info-circle text-orange-600 dark:text-orange-400"></i>
+              <span class="text-sm font-medium text-orange-600 dark:text-orange-400">{{ pendingMessage() }}</span>
             }
           </div>
         </div>

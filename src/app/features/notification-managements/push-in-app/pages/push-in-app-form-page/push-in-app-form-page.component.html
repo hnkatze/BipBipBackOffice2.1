@@ -1,0 +1,310 @@
+<div class="p-6">
+  <!-- Breadcrumb -->
+  <div class="mb-4">
+    <p-breadcrumb
+      [model]="breadcrumbItems()"
+      [home]="home"
+    />
+  </div>
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+        {{ isEditMode() ? 'Editar Push In App' : 'Nuevo Push In App' }}
+      </h1>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        {{ isEditMode() ? 'Actualiza los datos de la notificación' : 'Crea una nueva notificación push in app' }}
+      </p>
+    </div>
+
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="goBack()"
+    />
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="flex items-center justify-center py-12">
+      <i class="pi pi-spin pi-spinner text-4xl text-blue-500"></i>
+    </div>
+  } @else {
+    <!-- Form -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+      <form [formGroup]="pushInAppForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Nombre del Banner -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Nombre del Banner <span class="text-red-500">*</span>
+          </label>
+          <input
+            pInputText
+            type="text"
+            formControlName="bannerName"
+            placeholder="Ej: Promoción de Verano 2024"
+            class="w-full"
+            maxlength="255"
+          />
+          @if (pushInAppForm.get('bannerName')?.invalid && pushInAppForm.get('bannerName')?.touched) {
+            <small class="text-red-500 mt-1 block">El nombre del banner es requerido</small>
+          }
+          <small class="text-gray-500 mt-1 block">
+            {{ pushInAppForm.get('bannerName')?.value?.length || 0 }}/255
+          </small>
+        </div>
+
+        <!-- Imagen del Banner -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Imagen del Banner <span class="text-red-500">*</span>
+          </label>
+
+          @if (!bannerImagePreviewSignal()) {
+            <!-- Upload Area -->
+            <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
+              <p-fileUpload
+                mode="basic"
+                chooseLabel="Seleccionar Imagen"
+                chooseIcon="pi pi-upload"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                [maxFileSize]="10485760"
+                [auto]="true"
+                (onSelect)="onImageSelect($event)"
+                [disabled]="isOptimizingImageSignal()"
+              />
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Formatos permitidos: JPG, PNG, WebP (Máx. 10MB)
+              </p>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                La imagen se optimizará automáticamente a 1200x800px en formato WebP
+              </p>
+              @if (isOptimizingImageSignal()) {
+                <div class="flex items-center gap-2 mt-3 text-blue-600">
+                  <i class="pi pi-spin pi-spinner"></i>
+                  <span class="text-sm">Optimizando imagen...</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <!-- Image Preview -->
+            <div class="border border-gray-300 dark:border-gray-600 rounded-lg p-4">
+              <div class="relative">
+                <img
+                  [src]="bannerImagePreviewSignal()"
+                  alt="Preview"
+                  class="w-full h-64 object-contain rounded"
+                />
+                <div class="flex gap-2 mt-3">
+                  <p-button
+                    label="Cambiar Imagen"
+                    icon="pi pi-refresh"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="removeImage()"
+                    type="button"
+                  />
+                  <p-button
+                    label="Eliminar"
+                    icon="pi pi-trash"
+                    severity="danger"
+                    [outlined]="true"
+                    (onClick)="removeImage()"
+                    type="button"
+                  />
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Fechas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Fecha Inicio -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Fecha de Inicio <span class="text-red-500">*</span>
+            </label>
+            <p-datepicker
+              formControlName="startDate"
+              [showTime]="true"
+              [showIcon]="true"
+              [iconDisplay]="'input'"
+              placeholder="Selecciona fecha y hora"
+              dateFormat="dd/mm/yy"
+              class="w-full"
+            />
+            @if (pushInAppForm.get('startDate')?.invalid && pushInAppForm.get('startDate')?.touched) {
+              <small class="text-red-500 mt-1 block">La fecha de inicio es requerida</small>
+            }
+          </div>
+
+          <!-- Fecha Fin -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Fecha de Fin <span class="text-red-500">*</span>
+            </label>
+            <p-datepicker
+              formControlName="endDate"
+              [showTime]="true"
+              [showIcon]="true"
+              [iconDisplay]="'input'"
+              placeholder="Selecciona fecha y hora"
+              dateFormat="dd/mm/yy"
+              class="w-full"
+            />
+            @if (pushInAppForm.get('endDate')?.invalid && pushInAppForm.get('endDate')?.touched) {
+              <small class="text-red-500 mt-1 block">La fecha de fin es requerida</small>
+            }
+          </div>
+        </div>
+
+        <!-- Intervalo -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Intervalo de Aparición <span class="text-red-500">*</span>
+          </label>
+          <p-select
+            formControlName="interval"
+            [options]="intervalOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Selecciona un intervalo"
+            class="w-full"
+          />
+          <small class="text-gray-500 mt-1 block">
+            Define con qué frecuencia se mostrará la notificación al usuario
+          </small>
+        </div>
+
+        <!-- Marcas -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Marcas Disponibles <span class="text-red-500">*</span>
+          </label>
+          <p-multiselect
+            formControlName="availableBrands"
+            [options]="brandsOptions()"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Selecciona las marcas"
+            [filter]="true"
+            filterPlaceholder="Buscar marca..."
+            display="chip"
+            class="w-full"
+            [showToggleAll]="true"
+            selectAllLabel="Seleccionar todas"
+          >
+            <ng-template pTemplate="item" let-option>
+              <div class="flex items-center gap-2">
+                @if (option.image) {
+                  <img
+                    [src]="option.image"
+                    [alt]="option.label"
+                    class="w-6 h-6 rounded-full object-cover"
+                  />
+                }
+                <span>{{ option.label }}</span>
+              </div>
+            </ng-template>
+          </p-multiselect>
+          @if (pushInAppForm.get('availableBrands')?.invalid && pushInAppForm.get('availableBrands')?.touched) {
+            <small class="text-red-500 mt-1 block">Debe seleccionar al menos una marca</small>
+          }
+          <small class="text-gray-500 mt-1 block">
+            Selecciona las marcas donde se mostrará esta notificación
+          </small>
+        </div>
+
+        <!-- Ciudades -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Ciudades Disponibles <span class="text-red-500">*</span>
+          </label>
+          <p-multiselect
+            formControlName="availableCities"
+            [options]="citiesOptions()"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Selecciona las ciudades"
+            [filter]="true"
+            filterPlaceholder="Buscar ciudad..."
+            display="chip"
+            class="w-full"
+            [showToggleAll]="true"
+            selectAllLabel="Seleccionar todas"
+          />
+          @if (pushInAppForm.get('availableCities')?.invalid && pushInAppForm.get('availableCities')?.touched) {
+            <small class="text-red-500 mt-1 block">Debe seleccionar al menos una ciudad</small>
+          }
+          <small class="text-gray-500 mt-1 block">
+            Selecciona las ciudades donde se mostrará esta notificación
+          </small>
+        </div>
+
+        <!-- Estado Activo -->
+        <div class="flex items-center gap-3">
+          <p-toggleSwitch formControlName="isActive" />
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Notificación activa
+          </label>
+        </div>
+
+        <!-- Info Box -->
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 mt-0.5"></i>
+            <div class="text-sm text-gray-700 dark:text-gray-300">
+              <p class="font-semibold mb-2">Información importante:</p>
+              <ul class="space-y-1 text-xs list-disc list-inside">
+                <li>La imagen se optimizará automáticamente para mobile y tablet</li>
+                <li>El intervalo define cada cuánto tiempo se mostrará la notificación al usuario</li>
+                <li>Puedes activar/desactivar la notificación en cualquier momento</li>
+                <li>La fecha de fin debe ser posterior a la fecha de inicio</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upload Progress -->
+        @if (isUploadingImageSignal()) {
+          <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-spin pi-spinner text-yellow-600"></i>
+              <span class="text-sm text-yellow-800 dark:text-yellow-200">
+                Subiendo imagen...
+              </span>
+            </div>
+          </div>
+        }
+
+        <!-- Botones -->
+        <div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <p-button
+            label="Cancelar"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="goBack()"
+            type="button"
+            [disabled]="isSaving()"
+            class="flex-1"
+          />
+          <p-button
+            [label]="isEditMode() ? 'Actualizar' : 'Crear'"
+            icon="pi pi-check"
+            type="submit"
+            [loading]="isSaving()"
+            [disabled]="!formIsValid()"
+            class="flex-1"
+          />
+        </div>
+      </form>
+    </div>
+  }
+</div>
+
+<!-- Toast -->
+<p-toast />

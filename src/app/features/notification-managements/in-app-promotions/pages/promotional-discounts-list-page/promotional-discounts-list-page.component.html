@@ -1,0 +1,245 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+        Descuentos Promocionales
+      </h1>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        Gestiona los descuentos automáticos aplicados globalmente
+      </p>
+    </div>
+
+    <p-button
+      label="Crear Descuento"
+      icon="pi pi-plus"
+      (onClick)="goToCreate()"
+    />
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
+    <div class="flex flex-col md:flex-row gap-4">
+      <!-- Búsqueda -->
+      <div class="flex-1">
+        <p-iconfield iconPosition="left">
+          <p-inputicon styleClass="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar descuentos..."
+            [value]="searchTermSignal()"
+            (input)="onSearchChange($any($event.target).value)"
+            class="w-full"
+          />
+        </p-iconfield>
+      </div>
+
+      <!-- Botón limpiar -->
+      <p-button
+        label="Limpiar Filtros"
+        icon="pi pi-filter-slash"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="clearFilters()"
+      />
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+    <p-table
+      [value]="promotionalDiscounts()"
+      [loading]="isLoading()"
+      [paginator]="true"
+      [rows]="pageSizeSignal()"
+      [totalRecords]="metadata().totalCount"
+      [lazy]="true"
+      [first]="0"
+      (onLazyLoad)="onPageChange($event)"
+      [rowsPerPageOptions]="[5, 10, 25, 50]"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} descuentos"
+      styleClass="p-datatable-sm"
+      [tableStyle]="{ 'min-width': '80rem' }"
+    >
+      <!-- Empty state -->
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8" class="text-center py-8">
+            <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+              <i class="pi pi-inbox text-4xl mb-3"></i>
+              <p class="text-lg font-medium">No hay descuentos promocionales</p>
+              <p class="text-sm">Crea tu primer descuento promocional</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <!-- Header -->
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 5%">ID</th>
+          <th style="width: 15%">Tipo</th>
+          <th style="width: 10%">Valor</th>
+          <th style="width: 15%">Fechas</th>
+          <th style="width: 18%">Marcas</th>
+          <th style="width: 15%">Canales</th>
+          <th style="width: 15%">Ciudades</th>
+          <th style="width: 7%">Estado</th>
+        </tr>
+      </ng-template>
+
+      <!-- Body -->
+      <ng-template pTemplate="body" let-discount>
+        <tr>
+          <!-- ID -->
+          <td>{{ discount.id }}</td>
+
+          <!-- Tipo -->
+          <td>
+            <div class="flex items-center gap-2">
+              <i [class]="getDiscountTypeIcon(discount.discountType) + ' text-blue-600 dark:text-blue-400'"></i>
+              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {{ getDiscountTypeLabel(discount.discountType) }}
+              </span>
+            </div>
+          </td>
+
+          <!-- Valor -->
+          <td>
+            <span class="text-sm font-semibold text-green-600 dark:text-green-400">
+              {{ getFormattedValue(discount) }}
+            </span>
+          </td>
+
+          <!-- Fechas (Inicio y Fin agrupadas) -->
+          <td>
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-2 text-sm">
+                <i class="pi pi-calendar-plus text-green-600 dark:text-green-400"></i>
+                <span class="text-gray-600 dark:text-gray-400">
+                  {{ formatDate(discount.startDate) }}
+                </span>
+              </div>
+              <div class="flex items-center gap-2 text-sm">
+                <i class="pi pi-calendar-minus text-red-600 dark:text-red-400"></i>
+                <span class="text-gray-600 dark:text-gray-400">
+                  {{ formatDate(discount.endDate) }}
+                </span>
+              </div>
+            </div>
+          </td>
+
+          <!-- Marcas -->
+          <td>
+            <div class="flex flex-wrap gap-1">
+              @if (discount.availableBrands.length === 0) {
+                <div class="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-2 py-1 rounded-full text-xs">
+                  Todas las marcas
+                </div>
+              } @else {
+                @for (brandId of getVisibleItems(discount.availableBrands); track brandId) {
+                  <div class="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full text-xs">
+                    {{ getBrandName(brandId) }}
+                  </div>
+                }
+                @if (getRemainingCount(discount.availableBrands) > 0) {
+                  <div
+                    class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs cursor-help"
+                    [pTooltip]="getAllBrandsTooltip(discount.availableBrands)"
+                    tooltipPosition="top"
+                  >
+                    +{{ getRemainingCount(discount.availableBrands) }} más
+                  </div>
+                }
+              }
+            </div>
+          </td>
+
+          <!-- Canales -->
+          <td>
+            <div class="flex flex-wrap gap-1">
+              @if (discount.availableChannels.length === 0) {
+                <div class="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-2 py-1 rounded-full text-xs">
+                  Todos los canales
+                </div>
+              } @else {
+                @for (channelId of getVisibleItems(discount.availableChannels); track channelId) {
+                  <div class="bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full text-xs">
+                    {{ getChannelName(channelId) }}
+                  </div>
+                }
+                @if (getRemainingCount(discount.availableChannels) > 0) {
+                  <div
+                    class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs cursor-help"
+                    [pTooltip]="getAllChannelsTooltip(discount.availableChannels)"
+                    tooltipPosition="top"
+                  >
+                    +{{ getRemainingCount(discount.availableChannels) }} más
+                  </div>
+                }
+              }
+            </div>
+          </td>
+
+          <!-- Ciudades -->
+          <td>
+            <div class="flex flex-wrap gap-1">
+              @if (discount.availableCities.length === 0) {
+                <div class="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-2 py-1 rounded-full text-xs">
+                  Todas las ciudades
+                </div>
+              } @else {
+                @for (cityId of getVisibleItems(discount.availableCities); track cityId) {
+                  <div class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs">
+                    {{ getCityName(cityId) }}
+                  </div>
+                }
+                @if (getRemainingCount(discount.availableCities) > 0) {
+                  <div
+                    class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs cursor-help"
+                    [pTooltip]="getAllCitiesTooltip(discount.availableCities)"
+                    tooltipPosition="top"
+                  >
+                    +{{ getRemainingCount(discount.availableCities) }} más
+                  </div>
+                }
+              }
+            </div>
+          </td>
+
+          <!-- Estado + Acciones -->
+          <td>
+            <div class="flex items-center gap-3">
+              <!-- Toggle Estado -->
+              <p-toggleswitch
+                [(ngModel)]="discount.isActive"
+                (onChange)="onStatusChange(discount, $event.checked)"
+                [pTooltip]="discount.isActive ? 'Activo' : 'Inactivo'"
+                tooltipPosition="top"
+              />
+
+              <!-- Botón Editar -->
+              <p-button
+                icon="pi pi-pencil"
+                [text]="true"
+                [rounded]="true"
+                severity="warn"
+                pTooltip="Editar"
+                tooltipPosition="top"
+                (click)="goToEdit(discount.id)"
+              />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- Toast -->
+<p-toast />
+
+<!-- Confirm Dialog -->
+<p-confirmDialog />

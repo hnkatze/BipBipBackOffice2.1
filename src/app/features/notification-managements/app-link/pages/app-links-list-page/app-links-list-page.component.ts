@@ -13,7 +13,6 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ButtonModule } from 'primeng/button';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
-import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -37,7 +36,6 @@ import { AppLinkFormComponent } from '../../components';
     FormsModule,
     ButtonModule,
     TableModule,
-    CardModule,
     InputTextModule,
     IconFieldModule,
     InputIconModule,

@@ -1,0 +1,54 @@
+<div class="card">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white m-0">Promociones en App</h1>
+    <p class="text-gray-600 dark:text-gray-400 mt-2">
+      Gestiona todos los tipos de promociones e incentivos para la aplicación móvil
+    </p>
+  </div>
+
+  <!-- Tabs -->
+  <p-tabs [value]="activeTabSignal()" (onChange)="onTabChange($event)">
+    <p-tablist>
+      <p-tab [value]="0">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-image"></i>
+          <span>Promociones en App</span>
+        </div>
+      </p-tab>
+      <p-tab [value]="1">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-ticket"></i>
+          <span>Códigos Promocionales</span>
+        </div>
+      </p-tab>
+      <p-tab [value]="2">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-gift"></i>
+          <span>Regalías por Producto</span>
+        </div>
+      </p-tab>
+      <p-tab [value]="3">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-percentage"></i>
+          <span>Descuentos Promocionales</span>
+        </div>
+      </p-tab>
+    </p-tablist>
+
+    <p-tabpanels>
+      <p-tabpanel [value]="0">
+        <app-drag-drop-promotions-list-page />
+      </p-tabpanel>
+      <p-tabpanel [value]="1">
+        <app-promo-codes-list-page />
+      </p-tabpanel>
+      <p-tabpanel [value]="2">
+        <app-product-rewards-list-page />
+      </p-tabpanel>
+      <p-tabpanel [value]="3">
+        <app-promotional-discounts-list-page />
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
+</div>

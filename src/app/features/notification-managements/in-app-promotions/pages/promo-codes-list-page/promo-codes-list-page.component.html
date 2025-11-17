@@ -1,0 +1,180 @@
+<div class="card">
+  <!-- Header -->
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white m-0">Códigos Promocionales</h2>
+      <p class="text-gray-600 dark:text-gray-400 mt-1">Gestiona códigos de descuento para usuarios</p>
+    </div>
+    <button
+      pButton
+      label="Nuevo Código"
+      icon="pi pi-plus"
+      class="p-button-primary"
+      (click)="goToCreate()">
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex flex-wrap gap-3 mb-4">
+    <!-- Búsqueda -->
+    <div class="flex-1 min-w-[250px]">
+      <p-iconfield iconPosition="left">
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+          pInputText
+          type="text"
+          placeholder="Buscar por código..."
+          [value]="searchTermSignal()"
+          (input)="onSearchChange($any($event.target).value)"
+          class="w-full"
+        />
+      </p-iconfield>
+    </div>
+
+    <!-- Botón limpiar -->
+    @if (searchTermSignal()) {
+      <button
+        pButton
+        label="Limpiar"
+        icon="pi pi-filter-slash"
+        class="p-button-outlined"
+        (click)="clearFilters()">
+      </button>
+    }
+  </div>
+
+  <!-- Tabla -->
+  <p-table
+    [value]="promoCodes()"
+    [loading]="isLoading()"
+    [lazy]="true"
+    [paginator]="true"
+    [rows]="pageSizeSignal()"
+    [totalRecords]="metadata().totalCount"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [first]="0"
+    (onLazyLoad)="onPageChange($event)"
+    styleClass="p-datatable-striped"
+    [tableStyle]="{ 'min-width': '75rem' }">
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 8%">ID</th>
+        <th style="width: 18%">Tipo</th>
+        <th style="width: 28%">Código Promocional</th>
+        <th style="width: 20%">Fechas</th>
+        <th style="width: 10%">Estado</th>
+        <th style="width: 16%">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-promoCode>
+      <tr>
+        <!-- ID -->
+        <td>{{ promoCode.id }}</td>
+
+        <!-- Tipo de Descuento -->
+        <td>
+          <div class="flex items-center gap-2">
+            <i [class]="getDiscountTypeIcon(promoCode.discountType) + ' text-blue-600 dark:text-blue-400'"></i>
+            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {{ getDiscountTypeLabel(promoCode.discountType) }}
+            </span>
+          </div>
+        </td>
+
+        <!-- Código + Descripción -->
+        <td>
+          <div class="flex flex-col gap-1">
+            <span class="font-bold text-lg text-primary">{{ promoCode.code }}</span>
+            @if (promoCode.description) {
+              <span class="text-xs text-gray-600 dark:text-gray-400">{{ promoCode.description }}</span>
+            }
+          </div>
+        </td>
+
+        <!-- Fechas (Inicio y Fin agrupadas) -->
+        <td>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2 text-sm">
+              <i class="pi pi-calendar-plus text-green-600 dark:text-green-400"></i>
+              <span class="text-gray-600 dark:text-gray-400">
+                {{ formatDate(promoCode.startDate) }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 text-sm">
+              <i class="pi pi-calendar-minus text-red-600 dark:text-red-400"></i>
+              <span class="text-gray-600 dark:text-gray-400">
+                {{ formatDate(promoCode.endDate) }}
+              </span>
+            </div>
+          </div>
+        </td>
+
+        <!-- Estado -->
+        <td>
+          <p-tag
+            [value]="getStatusLabel(promoCode.isActive)"
+            [severity]="getStatusSeverity(promoCode.isActive)">
+          </p-tag>
+        </td>
+
+        <!-- Acciones -->
+        <td>
+          <div class="flex items-center gap-2">
+            <!-- Menú de acciones -->
+            <p-button
+              icon="pi pi-ellipsis-v"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              (click)="selectedPromoCodeIdSignal.set(promoCode.id); actionsMenu.toggle($event)"
+            />
+
+            <p-popover #actionsMenu>
+              <div class="flex flex-col gap-1 p-2 min-w-[160px]">
+                <button
+                  class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full text-left"
+                  (click)="goToEdit(promoCode.id); actionsMenu.hide()"
+                >
+                  <i class="pi pi-pencil text-blue-600"></i>
+                  <span>Editar</span>
+                </button>
+
+                <button
+                  class="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full text-left"
+                  [class.text-red-600]="promoCode.isActive"
+                  [class.text-green-600]="!promoCode.isActive"
+                  (click)="toggleStatus(promoCode); actionsMenu.hide()"
+                >
+                  <i [class]="promoCode.isActive ? 'pi pi-times-circle' : 'pi pi-check-circle'"></i>
+                  <span>{{ promoCode.isActive ? 'Desactivar' : 'Activar' }}</span>
+                </button>
+              </div>
+            </p-popover>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <!-- Empty State -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center py-8">
+          <div class="flex flex-col items-center gap-3">
+            <i class="pi pi-inbox text-6xl text-gray-400"></i>
+            <p class="text-gray-600 dark:text-gray-400 text-lg">
+              No se encontraron códigos promocionales
+            </p>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Toast para notificaciones -->
+<p-toast />
+
+<!-- Confirm Dialog -->
+<p-confirmDialog />

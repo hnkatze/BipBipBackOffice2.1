@@ -1,0 +1,169 @@
+<div class="card">
+  <!-- Header -->
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white m-0">Promociones Drag & Drop</h2>
+      <p class="text-gray-600 dark:text-gray-400 mt-1">Gestiona banners y videos promocionales</p>
+    </div>
+    <button
+      pButton
+      label="Nueva Promoción"
+      icon="pi pi-plus"
+      class="p-button-primary"
+      (click)="goToCreate()">
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex flex-wrap gap-3 mb-4">
+    <!-- Búsqueda -->
+    <div class="flex-1 min-w-[250px]">
+      <p-iconfield iconPosition="left">
+        <p-inputicon styleClass="pi pi-search" />
+        <input
+          pInputText
+          type="text"
+          placeholder="Buscar promociones..."
+          [value]="searchTermSignal()"
+          (input)="onSearchChange($any($event.target).value)"
+          class="w-full"
+        />
+      </p-iconfield>
+    </div>
+
+    <!-- Botón limpiar -->
+    @if (searchTermSignal()) {
+      <button
+        pButton
+        label="Limpiar"
+        icon="pi pi-filter-slash"
+        class="p-button-outlined"
+        (click)="clearFilters()">
+      </button>
+    }
+  </div>
+
+  <!-- Tabla -->
+  <p-table
+    [value]="dragDropPromotions()"
+    [loading]="isLoading()"
+    [lazy]="true"
+    [paginator]="true"
+    [rows]="pageSizeSignal()"
+    [totalRecords]="metadata().totalCount"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [first]="0"
+    (onLazyLoad)="onPageChange($event)"
+    styleClass="p-datatable-striped"
+    [tableStyle]="{ 'min-width': '60rem' }">
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 8%">ID</th>
+        <th style="width: 40%">Nombre</th>
+        <th style="width: 22%">Fechas</th>
+        <th style="width: 12%">Estado</th>
+        <th style="width: 18%">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-promotion>
+      <tr>
+        <!-- ID -->
+        <td>{{ promotion.id }}</td>
+
+        <!-- Nombre (Título + Descripción) -->
+        <td>
+          <div class="flex flex-col gap-1">
+            <span class="font-semibold text-gray-900 dark:text-white">{{ promotion.title }}</span>
+            @if (promotion.description) {
+              <span class="text-sm text-gray-600 dark:text-gray-400">{{ promotion.description }}</span>
+            }
+          </div>
+        </td>
+
+        <!-- Fechas (Inicio y Fin agrupadas) -->
+        <td>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2 text-sm">
+              <i class="pi pi-calendar-plus text-green-600 dark:text-green-400"></i>
+              <span class="text-gray-600 dark:text-gray-400">
+                {{ formatDate(promotion.promoStartDate) }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 text-sm">
+              <i class="pi pi-calendar-minus text-red-600 dark:text-red-400"></i>
+              <span class="text-gray-600 dark:text-gray-400">
+                {{ formatDate(promotion.promoEndDate) }}
+              </span>
+            </div>
+          </div>
+        </td>
+
+        <!-- Estado -->
+        <td>
+          <p-tag
+            [value]="getStatusLabel(promotion.isActive)"
+            [severity]="getStatusSeverity(promotion.isActive)">
+          </p-tag>
+        </td>
+
+        <!-- Acciones -->
+        <td>
+          <div class="flex items-center gap-2">
+            <!-- Menú de acciones -->
+            <p-button
+              icon="pi pi-ellipsis-v"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              (click)="selectedPromotionIdSignal.set(promotion.id); actionsMenu.toggle($event)"
+            />
+
+            <p-popover #actionsMenu>
+              <div class="flex flex-col gap-1 p-2 min-w-[160px]">
+                <button
+                  class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full text-left"
+                  (click)="goToEdit(promotion.id); actionsMenu.hide()"
+                >
+                  <i class="pi pi-pencil text-blue-600"></i>
+                  <span>Editar</span>
+                </button>
+
+                <button
+                  class="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors w-full text-left"
+                  [class.text-red-600]="promotion.isActive"
+                  [class.text-green-600]="!promotion.isActive"
+                  (click)="toggleStatus(promotion); actionsMenu.hide()"
+                >
+                  <i [class]="promotion.isActive ? 'pi pi-times-circle' : 'pi pi-check-circle'"></i>
+                  <span>{{ promotion.isActive ? 'Desactivar' : 'Activar' }}</span>
+                </button>
+              </div>
+            </p-popover>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <!-- Empty State -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center py-8">
+          <div class="flex flex-col items-center gap-3">
+            <i class="pi pi-inbox text-6xl text-gray-400"></i>
+            <p class="text-gray-600 dark:text-gray-400 text-lg">
+              No se encontraron promociones
+            </p>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Toast para notificaciones -->
+<p-toast />
+
+<!-- Confirm Dialog -->
+<p-confirmDialog />
