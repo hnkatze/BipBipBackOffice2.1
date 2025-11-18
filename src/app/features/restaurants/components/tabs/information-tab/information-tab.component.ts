@@ -27,6 +27,7 @@ import type {
   CreateRestaurantRequest,
   UpdateRestaurantRequest
 } from '../../../models/restaurant.model';
+import { GoogleMapComponent, type Coordinates } from '@shared/components';
 
 @Component({
   selector: 'app-information-tab',
@@ -38,7 +39,8 @@ import type {
     InputNumberModule,
     SelectModule,
     CheckboxModule,
-    MessageModule
+    MessageModule,
+    GoogleMapComponent
   ],
   templateUrl: './information-tab.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -276,12 +278,26 @@ export class InformationTabComponent implements OnInit {
   }
 
   /**
-   * Set location from map (will be implemented with Google Maps integration)
+   * Set location from map
    */
-  onMapLocationSelected(lat: number, lng: number): void {
+  onMapLocationSelected(coords: Coordinates): void {
     this.form.patchValue({
-      restLat: lat,
-      restLon: lng
+      restLat: coords.lat,
+      restLon: coords.lng
     });
+  }
+
+  /**
+   * Get initial coordinates for the map (when editing)
+   */
+  getInitialCoordinates(): Coordinates | undefined {
+    const lat = this.form.get('restLat')?.value;
+    const lon = this.form.get('restLon')?.value;
+
+    if (lat && lon && lat !== 0 && lon !== 0) {
+      return { lat, lng: lon };
+    }
+
+    return undefined;
   }
 }

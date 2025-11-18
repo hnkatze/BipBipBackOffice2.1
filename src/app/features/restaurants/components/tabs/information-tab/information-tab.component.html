@@ -223,18 +223,20 @@
       <div class="mb-6 pt-4 border-t border-gray-200 dark:border-gray-700">
         <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Ubicación</h3>
 
-        <!-- Google Maps Placeholder -->
-        <div class="mb-4">
-          <div class="border border-gray-300 rounded-lg p-8 bg-gray-50 dark:bg-gray-800 text-center">
-            <i class="pi pi-map-marker text-4xl text-gray-400 mb-3"></i>
-            <p class="text-gray-600 dark:text-gray-400 mb-2">
-              Google Maps Integration - Coming Soon
-            </p>
-            <p class="text-sm text-gray-500">
-              Haga clic en el mapa para seleccionar la ubicación del restaurante
-            </p>
-          </div>
+        <!-- Google Map Component -->
+        <div class="mb-4" style="height: 400px; width: calc(100% + 2rem); margin-left: -1rem;">
+          <app-google-map
+            [showSearch]="true"
+            [initialCoordinates]="getInitialCoordinates()"
+            [markerIconUrl]="form.get('restUrllogo')?.value"
+            (coordinatesSelected)="onMapLocationSelected($event)"
+          />
         </div>
+
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+          <i class="pi pi-info-circle mr-1"></i>
+          Haga clic en el mapa o busque un lugar para seleccionar la ubicación del restaurante
+        </p>
 
         <!-- Coordenadas (readonly) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

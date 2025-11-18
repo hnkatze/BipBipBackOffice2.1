@@ -394,6 +394,7 @@
                 <p-toggleswitch
                   [ngModel]="config.active"
                   (ngModelChange)="toggleScheduleConfigActive(rowIndex, $event)"
+                  [ngModelOptions]="{standalone: true}"
                 />
               </td>
               <td>

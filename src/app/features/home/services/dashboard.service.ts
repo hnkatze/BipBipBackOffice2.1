@@ -12,7 +12,11 @@ import type {
   HomeByPaymentMethodDto,
   HomeByChannelDto,
   HomeTotalOrdersByStatusDto,
-  ShippingCostsStatisticsDto
+  ShippingCostsStatisticsDto,
+  AvgTicketGlobalDto,
+  BrandSalesSummaryItemDto,
+  PercentageDto,
+  AvgValueDto
 } from '../models/dashboard.model';
 import { environment } from '@environments/environment';
 
@@ -154,6 +158,68 @@ export class DashboardService {
   }
 
   /**
+   * Obtiene el ticket promedio global
+   */
+  getAvgTicketGlobal(filters: DashboardFilters): Observable<number> {
+    const params = this.buildParams(filters);
+    return this.http.get<ApiResponse<AvgTicketGlobalDto>>(`${this.apiUrl}orders/avg-ticket/global`, { params })
+      .pipe(
+        map(response => response.data?.avgSubTotal || 0),
+        catchError(error => {
+          console.error('Error al obtener ticket promedio global:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  /**
+   * Obtiene el resumen de ventas por marca (ingresos)
+   */
+  getBrandSalesSummary(filters: DashboardFilters, topN: number = 100): Observable<BrandSalesSummaryItemDto[]> {
+    let params = this.buildParams(filters);
+    params = params.set('TopN', topN.toString());
+
+    return this.http.get<ApiResponse<BrandSalesSummaryItemDto[]>>(`${this.apiUrl}orders/brand-sales/summary`, { params })
+      .pipe(
+        map(response => response.data || []),
+        catchError(error => {
+          console.error('Error al obtener resumen de ventas por marca:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  /**
+   * Obtiene el porcentaje de clientes recurrentes
+   */
+  getRecurrentCustomersPercentage(filters: DashboardFilters): Observable<number> {
+    const params = this.buildParams(filters);
+    return this.http.get<ApiResponse<PercentageDto>>(`${this.apiUrl}orders/recurrent-customers/percentage`, { params })
+      .pipe(
+        map(response => response.data?.percent || 0),
+        catchError(error => {
+          console.error('Error al obtener porcentaje de clientes recurrentes:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  /**
+   * Obtiene el promedio de órdenes procesadas por día
+   */
+  getAvgOrdersPerDay(filters: DashboardFilters): Observable<number> {
+    const params = this.buildParams(filters);
+    return this.http.get<ApiResponse<AvgValueDto>>(`${this.apiUrl}orders/avg-per-day`, { params })
+      .pipe(
+        map(response => response.data?.value || 0),
+        catchError(error => {
+          console.error('Error al obtener promedio de órdenes por día:', error);
+          return throwError(() => error);
+        })
+      );
+  }
+
+  /**
    * Obtiene todos los datos del dashboard en una sola llamada
    * Combina múltiples endpoints para construir DashboardData completo
    */
@@ -192,6 +258,12 @@ export class DashboardService {
     const ordersByCity$ = this.getOrdersByCity(filters);
     const shippingCostsStats$ = this.getShippingCostsStatistics(filters);
 
+    // Nuevos endpoints
+    const avgTicket$ = this.getAvgTicketGlobal(filters);
+    const brandSales$ = this.getBrandSalesSummary(filters);
+    const recurrentCustomers$ = this.getRecurrentCustomersPercentage(filters);
+    const avgOrdersPerDay$ = this.getAvgOrdersPerDay(filters);
+
     // Combinar todas las llamadas
     return forkJoin({
       deliveredOrders: deliveredOrders$,
@@ -200,7 +272,11 @@ export class DashboardService {
       ordersByChannel: ordersByChannel$,
       ordersByBrand: ordersByBrand$,
       ordersByCity: ordersByCity$,
-      shippingCosts: shippingCostsStats$
+      shippingCosts: shippingCostsStats$,
+      avgTicket: avgTicket$,
+      brandSales: brandSales$,
+      recurrentCustomersPercentage: recurrentCustomers$,
+      avgOrdersPerDay: avgOrdersPerDay$
     }).pipe(
       map(data => {
         // Transformar datos de la API al formato del dashboard
@@ -208,6 +284,11 @@ export class DashboardService {
 
         // Total de órdenes = Entregadas + En Proceso
         const totalOrders = data.deliveredOrders + data.ordersInProgress;
+
+        // Combinar datos de órdenes por marca con datos de ventas (ingresos)
+        const brandSalesMap = new Map(
+          data.brandSales.map(sale => [sale.brandShortName, sale])
+        );
 
         return {
           totalOrders,
@@ -224,12 +305,17 @@ export class DashboardService {
               ? Math.round((item.totalOrders / totalChannelOrders) * 100)
               : 0
           })),
-          ordersByBrand: data.ordersByBrand.map(item => ({
-            brandId: 0, // No viene en la API, pero podríamos mapearlo
-            brandName: item.brandName,
-            logo: item.brandLogoUrl,
-            total: item.totalOrders
-          })),
+          ordersByBrand: data.ordersByBrand.map(item => {
+            const salesData = brandSalesMap.get(item.brandName);
+            return {
+              brandId: 0, // No viene en la API, pero podríamos mapearlo
+              brandName: item.brandName,
+              logo: item.brandLogoUrl,
+              total: item.totalOrders,
+              totalRevenue: salesData?.totalMoney,
+              totalSalesDelivered: salesData?.totalSalesDelivered
+            };
+          }),
           ordersByCity: data.ordersByCity.map(item => ({
             cityId: 0, // No viene en la API, pero podríamos mapearlo
             cityName: item.cityName,
@@ -241,7 +327,10 @@ export class DashboardService {
             maxShippingCost: data.shippingCosts.costoMaximoEnvio,
             totalShippingCosts: data.shippingCosts.totalCostosEnvio,
             totalShippingPayments: data.shippingCosts.totalPagosEnvio
-          }
+          },
+          avgTicket: data.avgTicket,
+          avgOrdersPerDay: data.avgOrdersPerDay,
+          recurrentCustomersPercentage: data.recurrentCustomersPercentage
         };
       }),
       catchError(error => {

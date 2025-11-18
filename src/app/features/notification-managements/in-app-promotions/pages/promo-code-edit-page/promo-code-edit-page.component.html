@@ -1,0 +1,277 @@
+<!-- Loading State -->
+@if (isLoading()) {
+  <div class="flex justify-center items-center h-64">
+    <i class="pi pi-spin pi-spinner text-4xl text-primary-500"></i>
+  </div>
+} @else {
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-3 mb-2">
+      <p-button
+        icon="pi pi-arrow-left"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        (onClick)="onCancel()"
+        pTooltip="Regresar"
+        tooltipPosition="bottom" />
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white m-0">Editar Código Promocional</h1>
+    </div>
+    <p class="text-gray-600 dark:text-gray-400">
+      Modifica los detalles del código promocional
+    </p>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="form" class="flex flex-col gap-6">
+
+    <!-- Sección: Información Básica -->
+    <p-card header="Información Básica">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Name -->
+        <div class="flex flex-col gap-2">
+          <label for="name" class="font-medium text-gray-900 dark:text-white">
+            Nombre <span class="text-danger-500">*</span>
+          </label>
+          <input pInputText id="name" formControlName="name"
+            placeholder="Ej: Promo Verano 2024" />
+          @if (hasError('name')) {
+            <small class="text-danger-500">{{ getErrorMessage('name') }}</small>
+          }
+        </div>
+
+        <!-- Code -->
+        <div class="flex flex-col gap-2">
+          <label for="code" class="font-medium text-gray-900 dark:text-white">
+            Código <span class="text-danger-500">*</span>
+          </label>
+          <input pInputText id="code" formControlName="code"
+            placeholder="Ej: VERANO2024"
+            style="text-transform: uppercase;" />
+          @if (hasError('code')) {
+            <small class="text-danger-500">{{ getErrorMessage('code') }}</small>
+          }
+          <small class="text-gray-500">El código se convertirá a mayúsculas automáticamente</small>
+        </div>
+
+        <!-- Description (span 2 columns) -->
+        <div class="flex flex-col gap-2 md:col-span-2">
+          <label for="description" class="font-medium text-gray-900 dark:text-white">
+            Descripción <span class="text-danger-500">*</span>
+          </label>
+          <textarea pTextarea id="description" formControlName="description"
+            rows="3" placeholder="Descripción del código promocional"></textarea>
+          @if (hasError('description')) {
+            <small class="text-danger-500">{{ getErrorMessage('description') }}</small>
+          }
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Sección: Tipo y Descuento -->
+    <p-card header="Tipo de Promoción y Descuento">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Type -->
+        <div class="flex flex-col gap-2 md:col-span-2">
+          <label for="type" class="font-medium text-gray-900 dark:text-white">
+            Tipo de Código Promocional <span class="text-danger-500">*</span>
+          </label>
+          <p-select id="type" formControlName="type"
+            [options]="promoCodeTypeOptions" optionLabel="label" optionValue="value"
+            placeholder="Seleccione tipo" />
+          @if (hasError('type')) {
+            <small class="text-danger-500">{{ getErrorMessage('type') }}</small>
+          }
+        </div>
+
+        <!-- Discount Value (Condicional: si type = 1 o 2) -->
+        @if (showDiscountValue()) {
+          <div class="flex flex-col gap-2">
+            <label for="discountValue" class="font-medium text-gray-900 dark:text-white">
+              @if (isPercentage()) {
+                Porcentaje de Descuento <span class="text-danger-500">*</span>
+              } @else if (isFixedDiscount()) {
+                Valor de Descuento <span class="text-danger-500">*</span>
+              }
+            </label>
+            <p-inputnumber id="discountValue" formControlName="discountValue"
+              [min]="0"
+              [max]="isPercentage() ? 100 : 999999"
+              [suffix]="isPercentage() ? '%' : ' L'"
+              [showButtons]="true"
+              [step]="isPercentage() ? 1 : 10"
+              placeholder="0" />
+            @if (hasError('discountValue')) {
+              <small class="text-danger-500">{{ getErrorMessage('discountValue') }}</small>
+            }
+            @if (isPercentage()) {
+              <small class="text-gray-500">Ingrese el porcentaje (1-100)</small>
+            } @else if (isFixedDiscount()) {
+              <small class="text-gray-500">Debe ser menor que el monto mínimo</small>
+            }
+          </div>
+        }
+
+        <!-- Minimum Amount -->
+        <div class="flex flex-col gap-2">
+          <label for="minimumAmount" class="font-medium text-gray-900 dark:text-white">
+            Monto Mínimo de Compra <span class="text-danger-500">*</span>
+          </label>
+          <p-inputnumber id="minimumAmount" formControlName="minimumAmount"
+            [min]="0"
+            suffix=" L"
+            [showButtons]="true"
+            [step]="10"
+            placeholder="0" />
+          @if (hasError('minimumAmount')) {
+            <small class="text-danger-500">{{ getErrorMessage('minimumAmount') }}</small>
+          }
+          <small class="text-gray-500">Puede ser 0 si no requiere monto mínimo</small>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Sección: Productos Gratis (Condicional: si type = 4) -->
+    @if (showProductSelection()) {
+      <p-card header="Productos Gratis">
+        <div class="flex flex-col gap-4">
+          <!-- Botón para agregar productos -->
+          <div>
+            <p-button
+              label="Seleccionar Productos"
+              icon="pi pi-plus"
+              (onClick)="onOpenProductSelector()"
+              [outlined]="true"
+            />
+          </div>
+
+          <!-- Tabla de productos seleccionados -->
+          @if (selectedProducts().length > 0) {
+            <p-table [value]="selectedProducts()" [tableStyle]="{'min-width': '50rem'}">
+              <ng-template #header>
+                <tr>
+                  <th>Marca</th>
+                  <th>Producto</th>
+                  <th>Cantidad</th>
+                  <th>Modificadores</th>
+                  <th style="width: 4rem">Acciones</th>
+                </tr>
+              </ng-template>
+              <ng-template #body let-product let-rowIndex="rowIndex">
+                <tr>
+                  <td>{{ product.brandId }}</td>
+                  <td>{{ product.productId }}</td>
+                  <td>{{ product.quantity }}</td>
+                  <td>{{ product.modifiers.length }}</td>
+                  <td>
+                    <p-button
+                      icon="pi pi-trash"
+                      severity="danger"
+                      [text]="true"
+                      [rounded]="true"
+                      (onClick)="onRemoveProduct(rowIndex)"
+                    />
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          } @else {
+            <div class="text-center py-6 text-gray-500">
+              No hay productos seleccionados
+            </div>
+          }
+        </div>
+      </p-card>
+    }
+
+    <!-- Sección: Fechas y Disponibilidad -->
+    <p-card header="Fechas y Disponibilidad">
+      <div class="grid grid-cols-1 gap-4">
+        <!-- Fechas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Start Date -->
+          <div class="flex flex-col gap-2">
+            <label for="startDate" class="font-medium text-gray-900 dark:text-white">
+              Fecha de Inicio <span class="text-danger-500">*</span>
+            </label>
+            <p-datepicker id="startDate" formControlName="startDate"
+              dateFormat="dd/mm/yy" [showIcon]="true" />
+            @if (hasError('startDate')) {
+              <small class="text-danger-500">{{ getErrorMessage('startDate') }}</small>
+            }
+          </div>
+
+          <!-- End Date -->
+          <div class="flex flex-col gap-2">
+            <label for="endDate" class="font-medium text-gray-900 dark:text-white">
+              Fecha de Fin <span class="text-danger-500">*</span>
+            </label>
+            <p-datepicker id="endDate" formControlName="endDate"
+              dateFormat="dd/mm/yy" [showIcon]="true" />
+            @if (hasError('endDate')) {
+              <small class="text-danger-500">{{ getErrorMessage('endDate') }}</small>
+            }
+          </div>
+        </div>
+
+        <!-- Brands -->
+        <div class="flex flex-col gap-2">
+          <label for="availableBrands" class="font-medium text-gray-900 dark:text-white">
+            Marcas Disponibles <span class="text-danger-500">*</span>
+          </label>
+          <p-multiselect id="availableBrands" formControlName="availableBrands"
+            [options]="brandsOptions()" optionLabel="name" optionValue="id"
+            placeholder="Seleccione marcas" display="chip" [filter]="true"
+            filterPlaceholder="Buscar marca..." />
+          @if (hasError('availableBrands')) {
+            <small class="text-danger-500">{{ getErrorMessage('availableBrands') }}</small>
+          }
+        </div>
+
+        <!-- Channels (Opcional) -->
+        <div class="flex flex-col gap-2">
+          <label for="availableChannels" class="font-medium text-gray-900 dark:text-white">
+            Canales Disponibles (Opcional)
+          </label>
+          <p-multiselect id="availableChannels" formControlName="availableChannels"
+            [options]="channelsOptions()" optionLabel="description" optionValue="id"
+            placeholder="Seleccione canales" display="chip" [filter]="true"
+            filterPlaceholder="Buscar canal..." />
+        </div>
+
+        <!-- Cities (Opcional) -->
+        <div class="flex flex-col gap-2">
+          <label for="availableCities" class="font-medium text-gray-900 dark:text-white">
+            Ciudades Disponibles (Opcional)
+          </label>
+          <p-multiselect id="availableCities" formControlName="availableCities"
+            [options]="citiesOptions()" optionLabel="name" optionValue="id"
+            placeholder="Seleccione ciudades" display="chip" [filter]="true"
+            filterPlaceholder="Buscar ciudad..." />
+        </div>
+
+        <!-- Require Turn On Toggle -->
+        <div class="flex items-center gap-3">
+          <p-toggleswitch formControlName="requireTurnOn" inputId="requireTurnOn" />
+          <label for="requireTurnOn" class="font-medium cursor-pointer text-gray-900 dark:text-white">
+            Requiere Activación Manual
+          </label>
+        </div>
+        <small class="text-gray-500 -mt-2">
+          Si está activado, el usuario debe activar el código antes de usarlo
+        </small>
+      </div>
+    </p-card>
+
+    <!-- Botones de Acción -->
+    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <p-button label="Cancelar" [outlined]="true" severity="secondary"
+        (onClick)="onCancel()" [disabled]="isSaving()" />
+      <p-button label="Guardar Cambios" icon="pi pi-check"
+        (onClick)="onSubmit()" [loading]="isSaving()" [disabled]="form.invalid" />
+    </div>
+  </form>
+}
+
+<!-- Toast para notificaciones -->
+<p-toast />

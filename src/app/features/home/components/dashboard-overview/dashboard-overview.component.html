@@ -146,6 +146,86 @@
     </div>
   </div>
 
+  <!-- KPIs de Ventas -->
+  <div class="kpis-section mb-4">
+    <h3 class="text-lg font-semibold mb-3">Métricas de Ventas</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      @if (isLoading()) {
+        @for (i of [1, 2]; track i) {
+          <p-card styleClass="kpi-card">
+            <div class="flex justify-between items-center">
+              <div class="flex-1">
+                <p-skeleton width="60%" height="1rem" styleClass="mb-2" />
+                <p-skeleton width="40%" height="2.5rem" />
+              </div>
+              <div class="kpi-icon">
+                <p-skeleton shape="circle" size="3rem" />
+              </div>
+            </div>
+          </p-card>
+        }
+      } @else {
+        @for (kpi of salesKpis(); track kpi.label) {
+          <p-card styleClass="kpi-card">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{{ kpi.label }}</p>
+                <p class="text-3xl font-bold">
+                  @if (kpi.label === 'Ticket Promedio') {
+                    {{ formatCurrency(kpi.value) }}
+                  } @else {
+                    {{ formatNumber(kpi.value) }}
+                  }
+                </p>
+              </div>
+              @if (kpi.icon) {
+                <div class="kpi-icon">
+                  <i [class]="kpi.icon + ' text-4xl text-primary-500'"></i>
+                </div>
+              }
+            </div>
+          </p-card>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- KPIs de Clientes -->
+  <div class="kpis-section mb-4">
+    <h3 class="text-lg font-semibold mb-3">Métricas de Clientes</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      @if (isLoading()) {
+        <p-card styleClass="kpi-card">
+          <div class="flex justify-between items-center">
+            <div class="flex-1">
+              <p-skeleton width="60%" height="1rem" styleClass="mb-2" />
+              <p-skeleton width="40%" height="2.5rem" />
+            </div>
+            <div class="kpi-icon">
+              <p-skeleton shape="circle" size="3rem" />
+            </div>
+          </div>
+        </p-card>
+      } @else {
+        @for (kpi of customerKpis(); track kpi.label) {
+          <p-card styleClass="kpi-card">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{{ kpi.label }}</p>
+                <p class="text-3xl font-bold">{{ formatPercentage(kpi.value) }}</p>
+              </div>
+              @if (kpi.icon) {
+                <div class="kpi-icon">
+                  <i [class]="kpi.icon + ' text-4xl text-primary-500'"></i>
+                </div>
+              }
+            </div>
+          </p-card>
+        }
+      }
+    </div>
+  </div>
+
   <!-- Tabla y Gráfico -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <!-- Tabla de Órdenes por Método de Pago -->
@@ -296,6 +376,7 @@
               <th class="font-semibold">Marca</th>
               <th class="font-semibold">Logo</th>
               <th class="text-right font-semibold">Total de pedidos</th>
+              <th class="text-right font-semibold">Ingresos</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-item>
@@ -307,6 +388,13 @@
                 }
               </td>
               <td class="text-right font-semibold">{{ formatNumber(item.total) }}</td>
+              <td class="text-right font-semibold">
+                @if (item.totalRevenue !== undefined) {
+                  {{ formatCurrency(item.totalRevenue) }}
+                } @else {
+                  <span class="text-gray-400">-</span>
+                }
+              </td>
             </tr>
           </ng-template>
           <ng-template pTemplate="footer">
@@ -314,6 +402,9 @@
               <td colspan="2" class="font-bold text-primary-600 dark:text-primary-400">Total</td>
               <td class="text-right font-bold text-primary-600 dark:text-primary-400">
                 {{ formatNumber(getTotalByBrand()) }}
+              </td>
+              <td class="text-right font-bold text-primary-600 dark:text-primary-400">
+                {{ formatCurrency(getTotalRevenueByBrand()) }}
               </td>
             </tr>
           </ng-template>

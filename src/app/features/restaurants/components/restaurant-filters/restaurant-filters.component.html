@@ -16,7 +16,8 @@
           </label>
           <p-multiSelect
             id="countries"
-            [(ngModel)]="localCountries"
+            [ngModel]="localCountries()"
+            (ngModelChange)="onCountriesChange($event)"
             [options]="countries()"
             optionLabel="countryName"
             optionValue="countryId"
@@ -26,7 +27,7 @@
             [showClear]="true"
             display="chip"
             styleClass="w-full"
-            (onChange)="onCountryChange($event.value)"
+            [ngModelOptions]="{standalone: true}"
           />
           @if (localCountries().length > 0) {
             <small class="block mt-2 text-xs text-gray-500">
@@ -43,7 +44,8 @@
           </label>
           <p-multiSelect
             id="cities"
-            [(ngModel)]="localCities"
+            [ngModel]="localCities()"
+            (ngModelChange)="onCitiesChange($event)"
             [options]="availableCities()"
             optionLabel="cityName"
             optionValue="cityId"
@@ -54,6 +56,7 @@
             [disabled]="localCountries().length === 0"
             display="chip"
             styleClass="w-full"
+            [ngModelOptions]="{standalone: true}"
           />
           @if (localCountries().length === 0) {
             <small class="block mt-2 text-xs text-amber-600">

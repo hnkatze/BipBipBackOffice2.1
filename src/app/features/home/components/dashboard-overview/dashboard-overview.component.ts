@@ -144,6 +144,39 @@ export class DashboardOverviewComponent implements OnInit {
     ];
   });
 
+  // Computed - KPIs de ventas
+  readonly salesKpis = computed<DashboardKPI[]>(() => {
+    const data = this.dashboardData();
+    if (!data) return [];
+
+    return [
+      {
+        label: 'Ticket Promedio',
+        value: data.avgTicket || 0,
+        icon: 'pi pi-dollar'
+      },
+      {
+        label: 'Promedio Órdenes/Día',
+        value: data.avgOrdersPerDay || 0,
+        icon: 'pi pi-chart-line'
+      }
+    ];
+  });
+
+  // Computed - KPIs de clientes
+  readonly customerKpis = computed<DashboardKPI[]>(() => {
+    const data = this.dashboardData();
+    if (!data) return [];
+
+    return [
+      {
+        label: 'Clientes Recurrentes',
+        value: data.recurrentCustomersPercentage || 0,
+        icon: 'pi pi-users'
+      }
+    ];
+  });
+
   // Computed - Chart data para el donut
   readonly chartData = computed(() => {
     const data = this.dashboardData();
@@ -482,12 +515,32 @@ export class DashboardOverviewComponent implements OnInit {
   }
 
   /**
+   * Formatea valores como porcentaje
+   */
+  formatPercentage(value: number): string {
+    return new Intl.NumberFormat('es-HN', {
+      style: 'percent',
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 2
+    }).format(value / 100);
+  }
+
+  /**
    * Calcula el total de órdenes por marca
    */
   getTotalByBrand(): number {
     const data = this.dashboardData();
     if (!data) return 0;
     return data.ordersByBrand.reduce((acc, item) => acc + item.total, 0);
+  }
+
+  /**
+   * Calcula el total de ingresos por marca
+   */
+  getTotalRevenueByBrand(): number {
+    const data = this.dashboardData();
+    if (!data) return 0;
+    return data.ordersByBrand.reduce((acc, item) => acc + (item.totalRevenue || 0), 0);
   }
 
   /**

@@ -1,0 +1,32 @@
+<div class="google-map-zone-editor-container">
+  @if (isLoading()) {
+    <div class="map-loading">
+      <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+      <p class="mt-2">Cargando mapa...</p>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="map-error">
+      <i class="pi pi-exclamation-triangle text-4xl text-red-500"></i>
+      <p class="mt-2 text-red-600">{{ errorMessage() }}</p>
+    </div>
+  }
+
+  <google-map
+    class="map-container"
+    [options]="mapOptions"
+    [width]="'100%'"
+    [height]="'100%'"
+    [center]="{ lat: restaurantCoords().lat, lng: restaurantCoords().lon }"
+  >
+    @if (circleCenter()) {
+      <map-circle
+        [center]="circleCenter()!"
+        [radius]="circleRadius()"
+        [options]="circleOptions"
+        (circleDragend)="onCircleDragEnd()"
+      />
+    }
+  </google-map>
+</div>

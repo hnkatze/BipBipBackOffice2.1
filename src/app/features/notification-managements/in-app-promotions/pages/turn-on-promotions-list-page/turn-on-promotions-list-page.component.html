@@ -1,0 +1,156 @@
+<!-- Header con botón de crear -->
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white m-0">Activaciones</h2>
+    <p class="text-gray-600 dark:text-gray-400 mt-1">
+      Promociones que se activan automáticamente para públicos objetivo específicos
+    </p>
+  </div>
+  <p-button
+    label="Nueva Activación"
+    icon="pi pi-plus"
+    (onClick)="onCreateNew()" />
+</div>
+
+<!-- Search Bar -->
+<div class="mb-4">
+  <p-iconfield iconPosition="left">
+    <p-inputicon styleClass="pi pi-search" />
+    <input
+      pInputText
+      type="text"
+      placeholder="Buscar por público objetivo, tipo o valor..."
+      [ngModel]="searchTerm()"
+      (input)="onSearch($event)"
+      class="w-full" />
+  </p-iconfield>
+</div>
+
+<!-- Tabla -->
+<p-table
+  [value]="filteredPromotions()"
+  [loading]="isLoading()"
+  [paginator]="true"
+  [rows]="10"
+  [rowsPerPageOptions]="[5, 10, 20, 50]"
+  [showCurrentPageReport]="true"
+  currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} activaciones"
+  [tableStyle]="{ 'min-width': '60rem' }"
+  styleClass="p-datatable-sm"
+  responsiveLayout="scroll">
+
+  <!-- Empty State -->
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="7" class="text-center py-8">
+        @if (!hasPromotions()) {
+          <div class="flex flex-col items-center gap-3">
+            <i class="pi pi-inbox text-4xl text-gray-400"></i>
+            <p class="text-gray-600 dark:text-gray-400 m-0">No hay activaciones creadas</p>
+            <p-button
+              label="Crear Primera Activación"
+              icon="pi pi-plus"
+              [outlined]="true"
+              (onClick)="onCreateNew()" />
+          </div>
+        } @else if (!hasFilteredResults()) {
+          <div class="flex flex-col items-center gap-3">
+            <i class="pi pi-search text-4xl text-gray-400"></i>
+            <p class="text-gray-600 dark:text-gray-400 m-0">No se encontraron activaciones con el término: <strong>{{ searchTerm() }}</strong></p>
+            <p-button
+              label="Limpiar Búsqueda"
+              icon="pi pi-times"
+              [outlined]="true"
+              (onClick)="clearSearch()" />
+          </div>
+        }
+      </td>
+    </tr>
+  </ng-template>
+
+  <!-- Header -->
+  <ng-template pTemplate="header">
+    <tr>
+      <th>ID</th>
+      <th>Público Objetivo</th>
+      <th>Tipo</th>
+      <th>Valor/Código</th>
+      <th>Compra Mínima</th>
+      <th>Estado</th>
+      <th style="width: 120px">Acciones</th>
+    </tr>
+  </ng-template>
+
+  <!-- Body -->
+  <ng-template pTemplate="body" let-promotion>
+    <tr>
+      <!-- ID -->
+      <td>{{ promotion.id }}</td>
+
+      <!-- Target Audience -->
+      <td>
+        <div class="flex items-center gap-2">
+          <i class="pi pi-users text-primary-500"></i>
+          <span class="font-medium">{{ promotion.criteriaName || 'N/A' }}</span>
+        </div>
+      </td>
+
+      <!-- Type -->
+      <td>
+        <div class="flex items-center gap-2">
+          @if (promotion.promocodeRequired !== null) {
+            <i class="pi pi-ticket text-blue-500"></i>
+          } @else if (promotion.type === TurnOnDiscountType.PercentageDiscount) {
+            <i class="pi pi-percentage text-green-500"></i>
+          } @else {
+            <i class="pi pi-dollar text-orange-500"></i>
+          }
+          <span>{{ getDiscountTypeLabel(promotion) }}</span>
+        </div>
+      </td>
+
+      <!-- Value/Code -->
+      <td>
+        <span class="font-semibold">{{ getDiscountValue(promotion) }}</span>
+      </td>
+
+      <!-- Minimum Purchase -->
+      <td>{{ getMinimumPurchase(promotion) }}</td>
+
+      <!-- Status -->
+      <td>
+        <p-tag
+          [value]="getStatusLabel(promotion.isActive)"
+          [severity]="getStatusSeverity(promotion.isActive)" />
+      </td>
+
+      <!-- Actions -->
+      <td>
+        <div class="flex gap-2">
+          <p-button
+            icon="pi pi-pencil"
+            [rounded]="true"
+            [text]="true"
+            severity="secondary"
+            (onClick)="onEdit(promotion)"
+            pTooltip="Editar"
+            tooltipPosition="top" />
+          <p-button
+            icon="pi pi-trash"
+            [rounded]="true"
+            [text]="true"
+            severity="danger"
+            (onClick)="onDelete(promotion)"
+            pTooltip="Eliminar"
+            tooltipPosition="top" />
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>
+
+<!-- Toast para notificaciones -->
+<p-toast />
+
+<!-- Confirm Dialog -->
+<p-confirmDialog />

@@ -1,0 +1,26 @@
+<div class="map-wrapper">
+  @if (isLoading()) {
+    <div class="map-loading">
+      <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+      <p class="mt-2">Cargando mapa...</p>
+    </div>
+  }
+
+  <google-map
+    class="map-container"
+    [options]="mapOptions"
+    [width]="'100%'"
+    [height]="'100%'"
+    [center]="{ lat: centerCoords().lat, lng: centerCoords().lon }"
+    [zoom]="initialZoom()"
+  >
+    @for (zone of zones(); track zone.id) {
+      <map-circle
+        [center]="{ lat: zone.lat, lng: zone.lon }"
+        [radius]="zone.radius"
+        [options]="getCircleOptions(zone)"
+        (circleClick)="handleCircleClick(zone)"
+      />
+    }
+  </google-map>
+</div>

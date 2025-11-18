@@ -92,6 +92,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private markers: mapboxgl.Marker[] = [];
   private searchMarker?: mapboxgl.Marker;
   private readonly sessionToken = '87a4cf67-7b81-4b0e-a2cd-4ad5b223e9b0';
+  private mapInitialized = false;
 
   // Form
   readonly form: FormGroup;
@@ -104,9 +105,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     // Effect to handle route config changes
     effect(() => {
       const config = this.routeConfig();
-      if (config && this.map) {
-        this.center = this.getMidpoint(config.sender, config.receptor);
-        this.initializeMap();
+      if (config && this.map && this.mapInitialized) {
+        this.handleRouteConfig();
       }
     });
 
@@ -265,8 +265,18 @@ export class MapComponent implements AfterViewInit, OnDestroy {
             this.map.flyTo({ center: [lng, lat], zoom: 16 });
           }
 
-          // Add marker
-          const marker = new mapboxgl.Marker({
+          // Remove previous search marker if exists
+          if (this.searchMarker) {
+            this.searchMarker.remove();
+            // Remove from markers array too
+            const index = this.markers.indexOf(this.searchMarker);
+            if (index > -1) {
+              this.markers.splice(index, 1);
+            }
+          }
+
+          // Create new marker
+          this.searchMarker = new mapboxgl.Marker({
             anchor: 'center',
             color: '#fb0021',
             scale: 1.5,
@@ -274,7 +284,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
             .setLngLat([lng, lat])
             .addTo(this.map);
 
-          this.markers.push(marker);
+          // Add to markers array for lifecycle management
+          this.markers.push(this.searchMarker);
 
           // Emit coordinates
           const coords = { lat, lng };
@@ -386,6 +397,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
    * Initialize Mapbox map instance
    */
   private initializeMap(): void {
+    // Prevent re-initialization
+    if (this.mapInitialized) {
+      return;
+    }
+
     const safeCenter = [
       isNaN(this.center[0]) ? 0 : this.center[0],
       isNaN(this.center[1]) ? 0 : this.center[1],
@@ -400,6 +416,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     });
 
     this.map.on('load', () => {
+      this.mapInitialized = true;
       this.handleRouteConfig();
       this.handleMapRadius();
       this.handleMapMarkers();
@@ -414,15 +431,24 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         // Remove previous search marker
         if (this.searchMarker) {
           this.searchMarker.remove();
+          // Remove from markers array too
+          const index = this.markers.indexOf(this.searchMarker);
+          if (index > -1) {
+            this.markers.splice(index, 1);
+          }
         }
 
         // Create new marker
         this.searchMarker = new mapboxgl.Marker({
+          anchor: 'center',
           color: '#fb0021',
           scale: 1.5,
         })
           .setLngLat([lng, lat])
           .addTo(this.map);
+
+        // Add to markers array for lifecycle management
+        this.markers.push(this.searchMarker);
 
         // Emit coordinates
         this.coordinatesSelected.emit({ lat, lng });
@@ -835,6 +861,13 @@ export class MapComponent implements AfterViewInit, OnDestroy {
    * Remove all markers from map
    */
   private removeAllMarkers(): void {
+    // Remove search marker if exists
+    if (this.searchMarker) {
+      this.searchMarker.remove();
+      this.searchMarker = undefined;
+    }
+
+    // Remove all other markers
     this.markers.forEach((marker) => marker.remove());
     this.markers = [];
   }

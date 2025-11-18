@@ -1,7 +1,17 @@
 <!-- Header -->
 <div class="mb-6">
-  <h1 class="text-3xl font-bold text-gray-900 dark:text-white m-0">Nueva Promoción Drag & Drop</h1>
-  <p class="text-gray-600 dark:text-gray-400 mt-2">
+  <div class="flex items-center gap-3 mb-2">
+    <p-button
+      icon="pi pi-arrow-left"
+      [rounded]="true"
+      [text]="true"
+      severity="secondary"
+      (onClick)="onCancel()"
+      pTooltip="Regresar"
+      tooltipPosition="bottom" />
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white m-0">Nueva Promoción Drag & Drop</h1>
+  </div>
+  <p class="text-gray-600 dark:text-gray-400">
     Crea una promoción de tipo banner o video que aparecerá en la app
   </p>
 </div>

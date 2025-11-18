@@ -9,6 +9,7 @@ import { PromotionalDiscountsListPageComponent } from '../promotional-discounts-
 import { ProductRewardsListPageComponent } from '../product-rewards-list-page/product-rewards-list-page.component';
 import { DragDropPromotionsListPageComponent } from '../drag-drop-promotions-list-page/drag-drop-promotions-list-page.component';
 import { PromoCodesListPageComponent } from '../promo-codes-list-page/promo-codes-list-page.component';
+import { TurnOnPromotionsListPageComponent } from '../turn-on-promotions-list-page/turn-on-promotions-list-page.component';
 
 @Component({
   selector: 'app-in-app-promotions-main-page',
@@ -18,7 +19,8 @@ import { PromoCodesListPageComponent } from '../promo-codes-list-page/promo-code
     PromotionalDiscountsListPageComponent,
     ProductRewardsListPageComponent,
     DragDropPromotionsListPageComponent,
-    PromoCodesListPageComponent
+    PromoCodesListPageComponent,
+    TurnOnPromotionsListPageComponent
   ],
   templateUrl: './in-app-promotions-main-page.component.html',
   styleUrl: './in-app-promotions-main-page.component.scss',

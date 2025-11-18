@@ -34,6 +34,12 @@
           <span>Descuentos Promocionales</span>
         </div>
       </p-tab>
+      <p-tab [value]="4">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-bolt"></i>
+          <span>Activaciones</span>
+        </div>
+      </p-tab>
     </p-tablist>
 
     <p-tabpanels>
@@ -48,6 +54,9 @@
       </p-tabpanel>
       <p-tabpanel [value]="3">
         <app-promotional-discounts-list-page />
+      </p-tabpanel>
+      <p-tabpanel [value]="4">
+        <app-turn-on-promotions-list-page />
       </p-tabpanel>
     </p-tabpanels>
   </p-tabs>

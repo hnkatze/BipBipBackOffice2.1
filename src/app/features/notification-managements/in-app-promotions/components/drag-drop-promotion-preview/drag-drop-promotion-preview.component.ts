@@ -91,32 +91,49 @@ export class DragDropPromotionPreviewComponent {
   });
 
   /**
-   * Calcula el ancho de la tarjeta basado en el tipo de promoción
-   * Mantiene una altura base de 400px y calcula el ancho según el aspect ratio
+   * Calcula el ancho y alto de la tarjeta basado en la posición del media
+   * Dimensiones fijas según el layout
    */
   readonly cardWidth = computed(() => {
-    const type = this.previewData().promotionType;
-    const baseHeight = 400; // altura base en px
+    const position = this.mediaPosition();
 
-    // Calcular ancho basado en la relación de aspecto
-    // formato: widthxheight (ej: 6x4 = 6/4 = 1.5 ratio)
-    switch (type) {
-      case '6x4':
-        // 6:4 = 1.5 ratio (más ancho que alto)
-        return `${baseHeight * (6 / 4)}px`;
-      case '5x8':
-        // 5:8 = 0.625 ratio (más alto que ancho)
-        return `${baseHeight * (5 / 8)}px`;
-      case '7x8':
-        // 7:8 = 0.875 ratio (casi cuadrado, un poco más alto)
-        return `${baseHeight * (7 / 8)}px`;
+    switch (position) {
+      case 'left':
+      case 'right':
+        // Layouts horizontales (5x8): 427.5px de ancho (del código old)
+        return '427.5px';
+      case 'top':
+      case 'bottom':
+        // Layouts verticales (6x4): 169px de ancho (10.5625rem del código old)
+        return '169px';
+      case 'full':
+        // Layout full (7x8): 427.5px de ancho (del código old)
+        return '427.5px';
       default:
-        return '350px';
+        return '427.5px';
     }
   });
 
   /**
-   * Altura fija para todas las tarjetas
+   * Altura de la tarjeta basada en la posición del media
    */
-  readonly cardHeight = computed(() => '400px');
+  readonly cardHeight = computed(() => {
+    const position = this.mediaPosition();
+
+    switch (position) {
+      case 'left':
+      case 'right':
+        // Layouts horizontales (5x8): 292px de alto (del código old)
+        return '292px';
+      case 'top':
+      case 'bottom':
+        // Layouts verticales (6x4): altura mínima para que se vea bien (del código old: ~260px aprox)
+        return '260px';
+      case 'full':
+        // Layout full (7x8): 335px de alto (20.9375rem del código old)
+        return '335px';
+      default:
+        return '335px';
+    }
+  });
 }

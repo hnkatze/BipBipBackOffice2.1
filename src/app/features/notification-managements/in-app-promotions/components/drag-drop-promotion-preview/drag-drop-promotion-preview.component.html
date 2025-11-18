@@ -12,7 +12,7 @@
         <div class="relative" style="flex: 0 0 60%;">
           @if (previewData().productImage) {
             <img [src]="previewData().productImage" alt="Product"
-                 class="absolute inset-0 w-full h-full object-contain" />
+                 class="absolute inset-0 w-full h-full object-cover" />
           } @else {
             <div class="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
               Sin producto
@@ -21,8 +21,10 @@
 
           <!-- Logo (arriba izquierda) -->
           @if (previewData().brandLogo) {
-            <img [src]="previewData().brandLogo" alt="Brand"
-                 class="absolute top-2 left-2 w-12 h-12 object-contain" />
+            <div class="absolute top-2 left-2 w-12 h-12 rounded-full bg-white border-2 border-white">
+              <img [src]="previewData().brandLogo" alt="Brand"
+                   class="w-full h-full object-contain rounded-full" />
+            </div>
           }
 
           <!-- Badge (arriba derecha) -->
@@ -78,7 +80,7 @@
         <div class="relative border border-[#D2D5DA] rounded-lg" style="flex: 0 0 60%;">
           @if (previewData().productImage) {
             <img [src]="previewData().productImage" alt="Product"
-                 class="absolute inset-0 w-full h-full object-contain rounded-lg" />
+                 class="absolute inset-0 w-full h-full object-cover rounded-lg" />
           } @else {
             <div class="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
               Sin producto
@@ -87,8 +89,10 @@
 
           <!-- Logo (arriba del producto) -->
           @if (previewData().brandLogo) {
-            <img [src]="previewData().brandLogo" alt="Brand"
-                 class="absolute top-2 left-2 w-12 h-12 object-contain" />
+            <div class="absolute top-2 left-2 w-12 h-12 rounded-full bg-white border-2 border-white">
+              <img [src]="previewData().brandLogo" alt="Brand"
+                   class="w-full h-full object-contain rounded-full" />
+            </div>
           }
         </div>
       </div>
@@ -101,7 +105,7 @@
         <div class="relative border border-[#D2D5DA] rounded-lg" style="flex: 0 0 60%;">
           @if (previewData().productImage) {
             <img [src]="previewData().productImage" alt="Product"
-                 class="absolute inset-0 w-full h-full object-contain rounded-lg" />
+                 class="absolute inset-0 w-full h-full object-cover rounded-lg" />
           } @else {
             <div class="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
               Sin producto
@@ -110,8 +114,10 @@
 
           <!-- Logo (arriba del producto) -->
           @if (previewData().brandLogo) {
-            <img [src]="previewData().brandLogo" alt="Brand"
-                 class="absolute top-2 left-2 w-12 h-12 object-contain" />
+            <div class="absolute top-2 left-2 w-12 h-12 rounded-full bg-white border-2 border-white">
+              <img [src]="previewData().brandLogo" alt="Brand"
+                   class="w-full h-full object-contain rounded-full" />
+            </div>
           }
         </div>
 
@@ -162,7 +168,7 @@
         <div class="relative" style="flex: 0 0 60%;">
           @if (previewData().productImage) {
             <img [src]="previewData().productImage" alt="Product"
-                 class="absolute inset-0 w-full h-full object-contain" />
+                 class="absolute inset-0 w-full h-full object-cover" />
           } @else {
             <div class="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
               Sin producto
@@ -171,8 +177,10 @@
 
           <!-- Logo (arriba izquierda) -->
           @if (previewData().brandLogo) {
-            <img [src]="previewData().brandLogo" alt="Brand"
-                 class="absolute top-2 left-2 w-12 h-12 object-contain" />
+            <div class="absolute top-2 left-2 w-12 h-12 rounded-full bg-white border-2 border-white">
+              <img [src]="previewData().brandLogo" alt="Brand"
+                   class="w-full h-full object-contain rounded-full" />
+            </div>
           }
 
           <!-- Badge (arriba derecha) -->
@@ -188,7 +196,7 @@
       <div class="relative h-full">
         @if (previewData().productImage) {
           <img [src]="previewData().productImage" alt="Product"
-               class="w-full h-full object-contain" />
+               class="w-full h-full object-cover" />
         } @else {
           <div class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
             Sin producto
@@ -198,8 +206,10 @@
         <!-- Overlay con información -->
         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-4">
           @if (previewData().brandLogo) {
-            <img [src]="previewData().brandLogo" alt="Brand"
-                 class="w-12 h-12 object-contain mb-2" />
+            <div class="w-12 h-12 rounded-full bg-white border-2 border-white mb-2">
+              <img [src]="previewData().brandLogo" alt="Brand"
+                   class="w-full h-full object-contain rounded-full" />
+            </div>
           }
 
           <div [class]="badgeClass() + ' self-start px-2 py-1 rounded-full text-[10px] font-normal uppercase mb-2'">

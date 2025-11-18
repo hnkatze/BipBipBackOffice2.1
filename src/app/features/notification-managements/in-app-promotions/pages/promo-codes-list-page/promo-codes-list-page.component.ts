@@ -23,7 +23,7 @@ import { ConfirmationService } from 'primeng/api';
 
 // Services & Models
 import { PromoCodeService } from '../../services/promo-code.service';
-import { PromoCodeResponse, PromoCodeDiscountType, PROMO_CODE_DISCOUNT_TYPE_OPTIONS } from '../../models';
+import { PromoCodeResponse, PromoCodeType, PROMO_CODE_TYPE_OPTIONS } from '../../models';
 import { GlobalDataService } from '@core/services/global-data.service';
 
 @Component({
@@ -237,22 +237,25 @@ export class PromoCodesListPageComponent {
   // MÉTODOS - Helpers para Template
   // ============================================================================
 
-  getDiscountTypeLabel(type: PromoCodeDiscountType): string {
-    return PROMO_CODE_DISCOUNT_TYPE_OPTIONS.find(opt => opt.value === type)?.label || 'Desconocido';
+  getDiscountTypeLabel(type: PromoCodeType): string {
+    return PROMO_CODE_TYPE_OPTIONS.find(opt => opt.value === type)?.label || 'Desconocido';
   }
 
-  getDiscountTypeIcon(type: PromoCodeDiscountType): string {
-    return PROMO_CODE_DISCOUNT_TYPE_OPTIONS.find(opt => opt.value === type)?.icon || 'pi pi-tag';
+  getDiscountTypeIcon(type: PromoCodeType): string {
+    return PROMO_CODE_TYPE_OPTIONS.find(opt => opt.value === type)?.icon || 'pi pi-tag';
   }
 
   getFormattedDiscountValue(promoCode: PromoCodeResponse): string {
-    switch (promoCode.discountType) {
-      case PromoCodeDiscountType.Percentage:
-        return `${promoCode.discountValue}%`;
-      case PromoCodeDiscountType.FixedAmount:
-        return `L. ${promoCode.discountValue.toFixed(2)}`;
-      case PromoCodeDiscountType.FreeShipping:
-        return 'Gratis';
+    switch (promoCode.type) {
+      case PromoCodeType.Percentage:
+        // Backend devuelve 0.15, multiplicamos por 100 para mostrar 15%
+        return `${((promoCode.discountValue || 0) * 100).toFixed(0)}%`;
+      case PromoCodeType.FixedDiscount:
+        return `L. ${(promoCode.discountValue || 0).toFixed(2)}`;
+      case PromoCodeType.FreeShipping:
+        return 'Envío Gratis';
+      case PromoCodeType.Product:
+        return 'Producto Gratis';
       default:
         return '-';
     }
@@ -293,22 +296,26 @@ export class PromoCodesListPageComponent {
     return isActive ? 'Activo' : 'Inactivo';
   }
 
-  getDiscountTypeSeverity(type: PromoCodeDiscountType): 'info' | 'success' | 'secondary' {
+  getDiscountTypeSeverity(type: PromoCodeType): 'info' | 'success' | 'secondary' | 'warn' {
     switch (type) {
-      case PromoCodeDiscountType.Percentage:
+      case PromoCodeType.Percentage:
         return 'info';
-      case PromoCodeDiscountType.FixedAmount:
+      case PromoCodeType.FixedDiscount:
         return 'success';
-      case PromoCodeDiscountType.FreeShipping:
+      case PromoCodeType.FreeShipping:
         return 'secondary';
+      case PromoCodeType.Product:
+        return 'warn';
       default:
         return 'secondary';
     }
   }
 
+  // NOTE: maxUses y currentUses no existen en el modelo actual del API old
   getUsagePercentage(promoCode: PromoCodeResponse): number {
-    if (!promoCode.maxUses) return 0;
-    return (promoCode.currentUses / promoCode.maxUses) * 100;
+    // if (!promoCode.maxUses) return 0;
+    // return (promoCode.currentUses / promoCode.maxUses) * 100;
+    return 0; // TODO: Implementar cuando el API lo soporte
   }
 
   getUsageSeverity(promoCode: PromoCodeResponse): 'success' | 'warn' | 'danger' {

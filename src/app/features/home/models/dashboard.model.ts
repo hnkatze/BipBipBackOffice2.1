@@ -52,6 +52,25 @@ export interface ShippingCostsStatisticsDto {
   totalPagosEnvio: number;
 }
 
+export interface AvgTicketGlobalDto {
+  avgSubTotal: number;
+}
+
+export interface BrandSalesSummaryItemDto {
+  logo: string;
+  brandShortName: string;
+  totalMoney: number;
+  totalSalesDelivered: number;
+}
+
+export interface PercentageDto {
+  percent: number;
+}
+
+export interface AvgValueDto {
+  value: number;
+}
+
 /**
  * Dashboard Data interfaces (usadas en el componente)
  */
@@ -85,13 +104,18 @@ export interface OrdersByCity {
   total: number;
 }
 
+export interface OrdersByBrandWithRevenue extends OrdersByBrand {
+  totalRevenue?: number;
+  totalSalesDelivered?: number;
+}
+
 export interface DashboardData {
   totalOrders: number;
   deliveredOrders: number;
   ordersInProgress: number;
   ordersByPaymentMethod: OrdersByPaymentMethod[];
   ordersByChannel: OrdersByChannel[];
-  ordersByBrand: OrdersByBrand[];
+  ordersByBrand: OrdersByBrandWithRevenue[];
   ordersByCity: OrdersByCity[];
   shippingCosts: {
     averageShippingPayment: number;
@@ -100,6 +124,10 @@ export interface DashboardData {
     totalShippingCosts: number;
     totalShippingPayments: number;
   };
+  // Nuevas métricas
+  avgTicket?: number;
+  avgOrdersPerDay?: number;
+  recurrentCustomersPercentage?: number;
 }
 
 /**

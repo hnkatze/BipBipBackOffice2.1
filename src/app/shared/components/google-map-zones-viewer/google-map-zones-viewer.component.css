@@ -1,0 +1,43 @@
+.map-wrapper {
+  width: 100%;
+  height: 500px;
+  position: relative;
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  display: block;
+}
+
+google-map {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.map-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  z-index: 10;
+}
+
+/* Dark mode for Google Maps */
+@media (prefers-color-scheme: dark) {
+  google-map ::ng-deep .gm-style {
+    filter: invert(90%) hue-rotate(180deg);
+  }
+  google-map ::ng-deep .gm-style > div:first-child {
+    filter: invert(100%) hue-rotate(180deg);
+  }
+}

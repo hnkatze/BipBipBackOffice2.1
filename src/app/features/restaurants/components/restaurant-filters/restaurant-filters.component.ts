@@ -127,6 +127,21 @@ export class RestaurantFiltersComponent implements OnInit {
   }
 
   /**
+   * Handle countries ngModel change
+   */
+  onCountriesChange(selectedIds: number[]): void {
+    this.localCountries.set(selectedIds);
+    this.onCountryChange(selectedIds);
+  }
+
+  /**
+   * Handle cities ngModel change
+   */
+  onCitiesChange(selectedIds: number[]): void {
+    this.localCities.set(selectedIds);
+  }
+
+  /**
    * Apply filters
    */
   applyFilters(): void {

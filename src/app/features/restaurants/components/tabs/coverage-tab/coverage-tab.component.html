@@ -12,9 +12,9 @@
       <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
     </div>
   } @else {
-    <!-- Mapbox Viewer -->
+    <!-- Google Maps Viewer -->
     <div class="mb-6">
-      <app-mapbox-viewer
+      <app-google-map-zones-viewer
         [zones]="selectedZoneType() === 'restaurant' ? restaurantMapZones() : driverMapZones()"
         [restaurantMarker]="restaurantMarker()"
         [centerCoords]="restaurantCoords()"
@@ -26,7 +26,6 @@
         Haz clic en una zona del mapa para editarla
       </p>
     </div>
-
     <!-- Tabs for Restaurant vs Driver Zones -->
     <p-tabs
       [value]="selectedZoneType() === 'restaurant' ? 0 : 1"

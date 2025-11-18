@@ -12,6 +12,42 @@ import { Metadata } from './shared.model';
 // ============================================================================
 
 /**
+ * Tipos de trigger/disparador
+ */
+export enum TriggerType {
+  Product = 1,                 // Producto específico
+  BrandAndChannel = 2,         // Marca y Canal
+  Brand = 3                    // Solo Marca
+}
+
+/**
+ * Opciones para el selector de tipo de trigger
+ */
+export interface TriggerTypeOption {
+  value: TriggerType;
+  label: string;
+  icon: string;
+}
+
+export const TRIGGER_TYPE_OPTIONS: TriggerTypeOption[] = [
+  {
+    value: TriggerType.Product,
+    label: 'Producto',
+    icon: 'pi pi-shopping-cart'
+  },
+  {
+    value: TriggerType.BrandAndChannel,
+    label: 'Marca y Canal',
+    icon: 'pi pi-sitemap'
+  },
+  {
+    value: TriggerType.Brand,
+    label: 'Marca',
+    icon: 'pi pi-tag'
+  }
+];
+
+/**
  * Tipos de recompensa
  */
 export enum RewardType {

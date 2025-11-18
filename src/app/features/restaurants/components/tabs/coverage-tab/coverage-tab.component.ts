@@ -24,7 +24,11 @@ import type {
   UpdateCoverageZoneRequest
 } from '../../../models/coverage-zone.model';
 import { ZoneDialogComponent } from './zone-dialog/zone-dialog.component';
-import { MapboxViewerComponent, type MapZone, type MapMarker } from '@shared/components/mapbox-viewer/mapbox-viewer.component';
+import {
+  GoogleMapZonesViewerComponent,
+  type MapZone,
+  type RestaurantMapMarker
+} from '@shared/components';
 
 @Component({
   selector: 'app-coverage-tab',
@@ -35,7 +39,7 @@ import { MapboxViewerComponent, type MapZone, type MapMarker } from '@shared/com
     TableModule,
     TabsModule,
     ZoneDialogComponent,
-    MapboxViewerComponent
+    GoogleMapZonesViewerComponent
   ],
   templateUrl: './coverage-tab.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -89,7 +93,7 @@ export class CoverageTabComponent implements OnInit {
   );
 
   // Computed: Restaurant marker for map
-  readonly restaurantMarker = computed<MapMarker>(() => {
+  readonly restaurantMarker = computed<RestaurantMapMarker>(() => {
     const coords = this.restaurantCoords();
     const detail = this.restaurantService.restaurantDetail();
     return {

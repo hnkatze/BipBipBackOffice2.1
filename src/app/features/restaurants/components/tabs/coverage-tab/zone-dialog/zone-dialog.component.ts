@@ -18,7 +18,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 
 // Components
-import { GoogleMapsEditorComponent, type ZoneEditorData } from '../google-maps-editor/google-maps-editor.component';
+import { GoogleMapZoneEditorComponent, type ZoneEditorData } from '@shared/components';
 
 import type {
   CoverageZone,
@@ -36,7 +36,7 @@ import type {
     ButtonModule,
     InputTextModule,
     InputNumberModule,
-    GoogleMapsEditorComponent
+    GoogleMapZoneEditorComponent
   ],
   templateUrl: './zone-dialog.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush

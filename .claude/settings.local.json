@@ -21,7 +21,8 @@
       "Bash(npm uninstall:*)",
       "Bash(exit 0)",
       "Bash(python3:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(ng add:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

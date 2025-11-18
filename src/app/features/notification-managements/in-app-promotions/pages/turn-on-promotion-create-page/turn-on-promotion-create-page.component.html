@@ -1,0 +1,261 @@
+<!-- Header -->
+<div class="mb-6">
+  <div class="flex items-center gap-3 mb-2">
+    <p-button
+      icon="pi pi-arrow-left"
+      [rounded]="true"
+      [text]="true"
+      severity="secondary"
+      (onClick)="onCancel()"
+      pTooltip="Regresar"
+      tooltipPosition="bottom" />
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white m-0">Nueva Promoción Turn On</h1>
+  </div>
+  <p class="text-gray-600 dark:text-gray-400">
+    Crea una promoción que se activa automáticamente para un público objetivo específico
+  </p>
+</div>
+
+<!-- Form -->
+<form [formGroup]="form" class="flex flex-col gap-6">
+
+  <!-- Sección: Configuración Básica -->
+  <p-card header="Configuración Básica">
+    <div class="grid grid-cols-1 gap-4">
+      <!-- Target Audience -->
+      <div class="flex flex-col gap-2">
+        <label for="criteriaId" class="font-medium text-gray-900 dark:text-white">
+          Público Objetivo <span class="text-danger-500">*</span>
+        </label>
+        <p-select id="criteriaId" formControlName="criteriaId"
+          [options]="targetAudiencesOptions()" optionLabel="name" optionValue="id"
+          placeholder="Seleccione público objetivo" [filter]="true"
+          filterPlaceholder="Buscar público..." [loading]="isLoadingData()" />
+        @if (hasError('criteriaId')) {
+          <small class="text-danger-500">{{ getErrorMessage('criteriaId') }}</small>
+        }
+        <small class="text-gray-500">Grupo de usuarios al que se aplicará la promoción</small>
+      </div>
+
+      <!-- Promotion Mode -->
+      <div class="flex flex-col gap-3">
+        <label class="font-medium text-gray-900 dark:text-white">
+          Tipo de Promoción <span class="text-danger-500">*</span>
+        </label>
+
+        <div class="flex flex-col gap-3">
+          <!-- Option 1: Descuento -->
+          <div class="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all"
+            [class.border-primary-500]="promotionMode() === PromotionMode.Discount"
+            [class.bg-primary-50]="promotionMode() === PromotionMode.Discount"
+            [class.dark:bg-primary-900/20]="promotionMode() === PromotionMode.Discount"
+            [class.border-gray-200]="promotionMode() !== PromotionMode.Discount"
+            (click)="form.patchValue({ promotionMode: PromotionMode.Discount })">
+            <p-radiobutton
+              name="promotionMode"
+              [value]="PromotionMode.Discount"
+              formControlName="promotionMode"
+              inputId="modeDiscount" />
+            <div class="flex-1">
+              <label for="modeDiscount" class="cursor-pointer font-medium text-gray-900 dark:text-white">
+                <i class="pi pi-percentage mr-2"></i>
+                Descuento Automático
+              </label>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 mb-0">
+                Se aplica automáticamente sin necesidad de código
+              </p>
+            </div>
+          </div>
+
+          <!-- Option 2: Código Promocional -->
+          <div class="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all"
+            [class.border-primary-500]="promotionMode() === PromotionMode.PromoCode"
+            [class.bg-primary-50]="promotionMode() === PromotionMode.PromoCode"
+            [class.dark:bg-primary-900/20]="promotionMode() === PromotionMode.PromoCode"
+            [class.border-gray-200]="promotionMode() !== PromotionMode.PromoCode"
+            (click)="form.patchValue({ promotionMode: PromotionMode.PromoCode })">
+            <p-radiobutton
+              name="promotionMode"
+              [value]="PromotionMode.PromoCode"
+              formControlName="promotionMode"
+              inputId="modePromoCode" />
+            <div class="flex-1">
+              <label for="modePromoCode" class="cursor-pointer font-medium text-gray-900 dark:text-white">
+                <i class="pi pi-ticket mr-2"></i>
+                Código Promocional
+              </label>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 mb-0">
+                El usuario debe ingresar un código promocional
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </p-card>
+
+  <!-- Sección: Descuento (solo si modo = Discount) -->
+  @if (showDiscountFields()) {
+    <p-card header="Configuración de Descuento">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Discount Type -->
+        <div class="flex flex-col gap-2">
+          <label for="discountType" class="font-medium text-gray-900 dark:text-white">
+            Tipo de Descuento <span class="text-danger-500">*</span>
+          </label>
+          <p-select id="discountType" formControlName="discountType"
+            [options]="discountTypeOptions" optionLabel="label" optionValue="value"
+            placeholder="Seleccione tipo" />
+          @if (hasError('discountType')) {
+            <small class="text-danger-500">{{ getErrorMessage('discountType') }}</small>
+          }
+        </div>
+
+        <!-- Discount Value -->
+        <div class="flex flex-col gap-2">
+          <label for="discountValue" class="font-medium text-gray-900 dark:text-white">
+            @if (isPercentage()) {
+              Porcentaje de Descuento <span class="text-danger-500">*</span>
+            } @else if (isFixedDiscount()) {
+              Monto de Descuento <span class="text-danger-500">*</span>
+            }
+          </label>
+          <p-inputnumber id="discountValue" formControlName="discountValue"
+            [min]="0"
+            [max]="isPercentage() ? 100 : 999999"
+            [suffix]="isPercentage() ? '%' : ' L'"
+            [showButtons]="true"
+            [step]="isPercentage() ? 1 : 10"
+            placeholder="0" />
+          @if (hasError('discountValue')) {
+            <small class="text-danger-500">{{ getErrorMessage('discountValue') }}</small>
+          }
+          @if (isPercentage()) {
+            <small class="text-gray-500">Ingrese el porcentaje de descuento (1-100)</small>
+          } @else if (isFixedDiscount()) {
+            <small class="text-gray-500">Ingrese el monto fijo de descuento en Lempiras</small>
+          }
+        </div>
+      </div>
+    </p-card>
+  }
+
+  <!-- Sección: Código Promocional (solo si modo = PromoCode) -->
+  @if (showPromoCodeFields()) {
+    <p-card header="Código Promocional">
+      <div class="grid grid-cols-1 gap-4">
+        <!-- Brands -->
+        <div class="flex flex-col gap-2">
+          <label for="selectedBrands" class="font-medium text-gray-900 dark:text-white">
+            Marcas <span class="text-danger-500">*</span>
+          </label>
+          <p-multiselect id="selectedBrands" formControlName="selectedBrands"
+            [options]="brandsOptions()" optionLabel="name" optionValue="id"
+            placeholder="Seleccione marcas" display="chip" [filter]="true"
+            filterPlaceholder="Buscar marca..." />
+          @if (hasError('selectedBrands')) {
+            <small class="text-danger-500">{{ getErrorMessage('selectedBrands') }}</small>
+          }
+          <small class="text-gray-500">Seleccione marcas para filtrar códigos promocionales</small>
+        </div>
+
+        <!-- Promo Code -->
+        <div class="flex flex-col gap-2">
+          <label for="promocodeRequired" class="font-medium text-gray-900 dark:text-white">
+            Código Promocional <span class="text-danger-500">*</span>
+          </label>
+          <p-select id="promocodeRequired" formControlName="promocodeRequired"
+            [options]="promoCodesOptions()" optionLabel="name" optionValue="id"
+            placeholder="Seleccione código promocional" [filter]="true"
+            filterPlaceholder="Buscar código..."
+            [disabled]="promoCodesOptions().length === 0" />
+          @if (hasError('promocodeRequired')) {
+            <small class="text-danger-500">{{ getErrorMessage('promocodeRequired') }}</small>
+          }
+          @if (promoCodesOptions().length === 0 && form.value.selectedBrands?.length > 0) {
+            <small class="text-gray-500">No hay códigos promocionales disponibles para las marcas seleccionadas</small>
+          } @else if (promoCodesOptions().length === 0) {
+            <small class="text-gray-500">Seleccione al menos una marca para ver los códigos disponibles</small>
+          } @else {
+            <small class="text-gray-500">Código que el usuario deberá ingresar</small>
+          }
+        </div>
+      </div>
+    </p-card>
+  }
+
+  <!-- Sección: Restricciones (Obligatorias) -->
+  <p-card header="Restricciones">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Info -->
+      <div class="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg md:col-span-2">
+        <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 mt-1"></i>
+        <div class="flex flex-col gap-1">
+          <span class="font-medium text-blue-900 dark:text-blue-100">Restricciones obligatorias</span>
+          <span class="text-sm text-blue-700 dark:text-blue-300">
+            Debe configurar al menos una restricción de compra mínima para la promoción Turn On
+          </span>
+        </div>
+      </div>
+
+      <!-- Minimum Purchase Value -->
+      <div class="flex flex-col gap-2">
+        <label for="minimumPurchaseValue" class="font-medium text-gray-900 dark:text-white">
+          Valor Mínimo de Compra <span class="text-danger-500">*</span>
+        </label>
+        <p-inputnumber id="minimumPurchaseValue" formControlName="minimumPurchaseValue"
+          [min]="0" suffix=" L" [showButtons]="true" [step]="10" placeholder="0" />
+        @if (hasError('minimumPurchaseValue')) {
+          <small class="text-danger-500">{{ getErrorMessage('minimumPurchaseValue') }}</small>
+        }
+        <small class="text-gray-500">Monto mínimo de compra para aplicar la promoción</small>
+      </div>
+
+      <!-- Constraint Date From -->
+      <div class="flex flex-col gap-2">
+        <label for="constraintDateFrom" class="font-medium text-gray-900 dark:text-white">
+          Fecha de Inicio <span class="text-danger-500">*</span>
+        </label>
+        <p-datepicker id="constraintDateFrom" formControlName="constraintDateFrom"
+          dateFormat="dd/mm/yy" [showIcon]="true" [showTime]="true" />
+        @if (hasError('constraintDateFrom')) {
+          <small class="text-danger-500">{{ getErrorMessage('constraintDateFrom') }}</small>
+        }
+      </div>
+
+      <!-- Constraint Date To -->
+      <div class="flex flex-col gap-2">
+        <label for="constraintDateTo" class="font-medium text-gray-900 dark:text-white">
+          Fecha de Fin <span class="text-danger-500">*</span>
+        </label>
+        <p-datepicker id="constraintDateTo" formControlName="constraintDateTo"
+          dateFormat="dd/mm/yy" [showIcon]="true" [showTime]="true" />
+        @if (hasError('constraintDateTo')) {
+          <small class="text-danger-500">{{ getErrorMessage('constraintDateTo') }}</small>
+        }
+      </div>
+
+      <!-- Constraint Is Active -->
+      <div class="flex items-center gap-3">
+        <p-toggleswitch formControlName="constraintIsActive" inputId="constraintIsActive" />
+        <label for="constraintIsActive" class="font-medium cursor-pointer text-gray-900 dark:text-white">
+          Restricción Activa
+        </label>
+      </div>
+      <small class="text-gray-500 -mt-2 md:col-span-2">
+        Activa o desactiva la restricción de compra mínima
+      </small>
+    </div>
+  </p-card>
+
+  <!-- Botones de Acción -->
+  <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+    <p-button label="Cancelar" [outlined]="true" severity="secondary"
+      (onClick)="onCancel()" [disabled]="isSaving()" />
+    <p-button label="Crear Promoción" icon="pi pi-check"
+      (onClick)="onSubmit()" [loading]="isSaving()" [disabled]="form.invalid" />
+  </div>
+</form>
+
+<!-- Toast para notificaciones -->
+<p-toast />
