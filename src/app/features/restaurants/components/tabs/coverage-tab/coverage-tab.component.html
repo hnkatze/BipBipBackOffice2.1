@@ -92,11 +92,20 @@
             <p class="text-sm text-gray-600">
               {{ restaurantZones().length }} zona(s) configurada(s)
             </p>
-            <p-button
-              label="Agregar Zona"
-              icon="pi pi-plus"
-              (onClick)="openCreateDialog('restaurant')"
-            />
+            <div class="flex gap-2">
+              <p-button
+                label="Agregar Zona"
+                icon="pi pi-plus"
+                (onClick)="openCreateDialog('restaurant')"
+              />
+              <p-button
+                label="Agregar Zona con Polígono (DEMO)"
+                icon="pi pi-map"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="openPolygonZoneDialog('restaurant')"
+              />
+            </div>
           </div>
 
           <p-table
@@ -163,11 +172,20 @@
             <p class="text-sm text-gray-600">
               {{ driverZones().length }} zona(s) configurada(s)
             </p>
-            <p-button
-              label="Agregar Zona"
-              icon="pi pi-plus"
-              (onClick)="openCreateDialog('driver')"
-            />
+            <div class="flex gap-2">
+              <p-button
+                label="Agregar Zona"
+                icon="pi pi-plus"
+                (onClick)="openCreateDialog('driver')"
+              />
+              <p-button
+                label="Agregar Zona con Polígono (DEMO)"
+                icon="pi pi-map"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="openPolygonZoneDialog('driver')"
+              />
+            </div>
           </div>
 
           <p-table
@@ -241,6 +259,17 @@
       [restaurantCoords]="restaurantCoords()"
       (onClose)="closeDialog()"
       (onSave)="onZoneSave($event)"
+    />
+  }
+
+  <!-- Polygon Zone Dialog (DEMO) -->
+  @if (showPolygonDialog()) {
+    <app-polygon-zone-dialog
+      [visible]="showPolygonDialog()"
+      [restaurantCoords]="restaurantCoords()"
+      [zoneType]="polygonZoneType()"
+      (onClose)="closePolygonDialog()"
+      (onSave)="onPolygonZoneSave($event)"
     />
   }
 </div>

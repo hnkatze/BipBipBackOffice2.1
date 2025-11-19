@@ -112,4 +112,18 @@ export const BipBipPreset = {
       },
     },
   },
+  // CSS personalizado para multiselect chips en dark mode
+  css: ({ dt }: any) => `
+    /* Multiselect chips en dark mode */
+    .dark .p-multiselect-chip,
+    .dark .p-multiselect-label .p-chip {
+      background: ${dt('primary.200')} !important;
+      color: ${dt('slate.950')} !important;
+    }
+
+    .dark .p-multiselect-chip:hover,
+    .dark .p-multiselect-label .p-chip:hover {
+      background: ${dt('primary.200')} !important;
+    }
+  `,
 };

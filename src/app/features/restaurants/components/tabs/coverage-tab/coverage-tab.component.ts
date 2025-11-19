@@ -24,6 +24,7 @@ import type {
   UpdateCoverageZoneRequest
 } from '../../../models/coverage-zone.model';
 import { ZoneDialogComponent } from './zone-dialog/zone-dialog.component';
+import { PolygonZoneDialogComponent, type PolygonZoneData } from './polygon-zone-dialog/polygon-zone-dialog.component';
 import {
   GoogleMapZonesViewerComponent,
   type MapZone,
@@ -39,6 +40,7 @@ import {
     TableModule,
     TabsModule,
     ZoneDialogComponent,
+    PolygonZoneDialogComponent,
     GoogleMapZonesViewerComponent
   ],
   templateUrl: './coverage-tab.component.html',
@@ -58,6 +60,10 @@ export class CoverageTabComponent implements OnInit {
   readonly editingZone = signal<CoverageZone | null>(null);
   readonly selectedZoneType = signal<'restaurant' | 'driver'>('restaurant');
   readonly mapFilter = signal<'all' | 'restaurant' | 'driver'>('all'); // Filter for map display
+
+  // Polygon zone dialog state (DEMO)
+  readonly showPolygonDialog = signal<boolean>(false);
+  readonly polygonZoneType = signal<'restaurant' | 'driver'>('restaurant');
 
   // Coverage zones
   readonly restaurantZones = signal<CoverageZone[]>([]);
@@ -336,5 +342,33 @@ export class CoverageTabComponent implements OnInit {
    */
   onTabChange(event: any): void {
     this.selectedZoneType.set(event.index === 0 ? 'restaurant' : 'driver');
+  }
+
+  /**
+   * Open polygon zone dialog (DEMO)
+   */
+  openPolygonZoneDialog(zoneType: 'restaurant' | 'driver'): void {
+    this.polygonZoneType.set(zoneType);
+    this.showPolygonDialog.set(true);
+  }
+
+  /**
+   * Close polygon zone dialog
+   */
+  closePolygonDialog(): void {
+    this.showPolygonDialog.set(false);
+  }
+
+  /**
+   * Handle polygon zone save (DEMO - only logs to console)
+   */
+  onPolygonZoneSave(data: PolygonZoneData): void {
+    // Por ahora solo mostramos un mensaje de éxito
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Demo: Zona con Polígono',
+      detail: `Zona "${data.zoneName}" creada (ver consola para detalles)`,
+      life: 5000
+    });
   }
 }

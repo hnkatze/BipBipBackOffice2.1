@@ -73,7 +73,7 @@ export class PromoCodeService {
    */
   getPromoCodeById(id: number): Observable<PromoCodeResponse> {
     return this.http.get<PromoCodeResponse>(
-      `${this.apiBaseUrl}Incentives/promocode/${id}`
+      `${this.apiBaseUrl}Incentives/promoCodes/${id}`
     );
   }
 
@@ -82,7 +82,7 @@ export class PromoCodeService {
    */
   createPromoCode(data: CreatePromoCode): Observable<PromoCodeResponse> {
     return this.http.post<PromoCodeResponse>(
-      `${this.apiBaseUrl}Incentives`,
+      `${this.apiBaseUrl}Incentives/promoCodes`,
       data
     );
   }
@@ -92,7 +92,7 @@ export class PromoCodeService {
    */
   updatePromoCode(id: number, data: UpdatePromoCode): Observable<PromoCodeResponse> {
     return this.http.put<PromoCodeResponse>(
-      `${this.apiBaseUrl}Incentives/${id}`,
+      `${this.apiBaseUrl}Incentives/promoCodes/${id}`,
       data
     );
   }

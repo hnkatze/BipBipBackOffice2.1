@@ -67,8 +67,13 @@ export const routes: Routes = [
       {
         path: 'dashboards',
         loadChildren: () => import('./features/dashboards/dashboards.routes').then(m => m.DASHBOARDS_ROUTES)
+      },
+      // Driver App
+      {
+        path: 'driver-app',
+        loadChildren: () => import('./features/driver-app/driver-app.routes').then(m => m.DRIVER_APP_ROUTES)
       }
-      // TODO: Agregar más módulos padre aquí (Drivers, etc.)
+      // TODO: Agregar más módulos padre aquí
     ]
   },
 

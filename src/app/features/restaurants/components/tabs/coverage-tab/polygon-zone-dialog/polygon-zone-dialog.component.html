@@ -1,0 +1,203 @@
+<p-dialog
+  [visible]="visible()"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '90vw', maxWidth: '1200px' }"
+  [header]="dialogHeader()"
+  (onHide)="handleClose()"
+>
+  <div class="dialog-content">
+    <!-- Sección del mapa -->
+    <div class="map-section">
+      <app-google-map-polygon-editor
+        [restaurantCoords]="restaurantCoords()"
+        (onPolygonChange)="onPolygonChange($event)"
+      />
+    </div>
+
+    <!-- Sección del formulario -->
+    <div class="form-section">
+      <form [formGroup]="zoneForm">
+        <div class="field">
+          <p-floatlabel>
+            <input
+              pInputText
+              id="zoneName"
+              formControlName="zoneName"
+              class="w-full"
+            />
+            <label for="zoneName">Nombre de la Zona</label>
+          </p-floatlabel>
+          @if (zoneForm.get('zoneName')?.invalid && zoneForm.get('zoneName')?.touched) {
+            <small class="p-error">
+              El nombre debe tener al menos 3 caracteres
+            </small>
+          }
+        </div>
+
+        <div class="field">
+          <p-floatlabel>
+            <p-inputNumber
+              inputId="zoneMinAmount"
+              formControlName="zoneMinAmount"
+              [min]="0"
+              [maxFractionDigits]="2"
+              mode="currency"
+              currency="HNL"
+              locale="es-HN"
+              styleClass="w-full"
+            />
+            <label for="zoneMinAmount">Monto Mínimo</label>
+          </p-floatlabel>
+          @if (zoneForm.get('zoneMinAmount')?.invalid && zoneForm.get('zoneMinAmount')?.touched) {
+            <small class="p-error">
+              El monto mínimo debe ser mayor o igual a 0
+            </small>
+          }
+        </div>
+
+        <!-- Info del tipo de zona -->
+        <div class="zone-type-info">
+          <i class="pi" [class.pi-building]="zoneType() === 'restaurant'" [class.pi-car]="zoneType() === 'driver'"></i>
+          <span>
+            Tipo de zona: <strong>{{ zoneType() === 'restaurant' ? 'Restaurante' : 'Conductor' }}</strong>
+          </span>
+        </div>
+
+        <!-- Advertencia de demo -->
+        <div class="demo-warning">
+          <i class="pi pi-exclamation-triangle"></i>
+          <div>
+            <strong>Modo Demo</strong>
+            <p>Esta es una prueba de concepto. Los datos se mostrarán en la consola pero no se guardarán en el backend.</p>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer con botones -->
+  <ng-template pTemplate="footer">
+    <div class="dialog-footer">
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="handleClose()"
+      />
+      <p-button
+        label="Crear (Demo)"
+        icon="pi pi-check"
+        [disabled]="!canSave()"
+        (onClick)="handleSave()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<style>
+  .dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 0.5rem 0;
+  }
+
+  .map-section {
+    width: 100%;
+  }
+
+  .form-section {
+    width: 100%;
+  }
+
+  .field {
+    margin-bottom: 1.5rem;
+  }
+
+  .p-error {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+  }
+
+  .zone-type-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--surface-100);
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+  }
+
+  .zone-type-info i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+  }
+
+  .zone-type-info span {
+    font-size: 0.875rem;
+    color: var(--text-color);
+  }
+
+  .zone-type-info strong {
+    color: var(--primary-color);
+  }
+
+  .demo-warning {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--yellow-50);
+    border-left: 4px solid var(--yellow-500);
+    border-radius: var(--border-radius);
+  }
+
+  .demo-warning i {
+    font-size: 1.5rem;
+    color: var(--yellow-600);
+    flex-shrink: 0;
+  }
+
+  .demo-warning div {
+    flex: 1;
+  }
+
+  .demo-warning strong {
+    display: block;
+    color: var(--yellow-900);
+    margin-bottom: 0.25rem;
+  }
+
+  .demo-warning p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--yellow-800);
+  }
+
+  .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  /* Responsive */
+  @media (min-width: 768px) {
+    .dialog-content {
+      flex-direction: row;
+      gap: 2rem;
+    }
+
+    .map-section {
+      flex: 2;
+    }
+
+    .form-section {
+      flex: 1;
+      min-width: 300px;
+    }
+  }
+</style>

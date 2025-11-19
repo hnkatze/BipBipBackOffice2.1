@@ -61,8 +61,9 @@ export const PROMO_CODE_TYPE_OPTIONS: PromoCodeTypeOption[] = [
  * Modificador de un producto (personalización)
  */
 export interface PromoCodeModifier {
-  modifierId: string;  // ID del modificador
-  quantity: number;    // Cantidad del modificador
+  modifierId: string;      // ID del modificador
+  modifierName?: string;   // Nombre del modificador (para display)
+  quantity: number;        // Cantidad del modificador
 }
 
 /**
@@ -70,7 +71,9 @@ export interface PromoCodeModifier {
  */
 export interface PromoCodeItem {
   brandId: number;               // ID de la marca
+  brandName?: string;            // Nombre de la marca (para display)
   productId: string;             // ID del producto
+  productName?: string;          // Nombre del producto (para display)
   quantity: number;              // Cantidad del producto
   modifiers: PromoCodeModifier[]; // Modificadores del producto
 }
@@ -130,7 +133,6 @@ export interface PromoCodeResponse {
  * Create Promo Code - DTO para crear (formato de old)
  */
 export interface CreatePromoCode {
-  promotionType: number;          // Global promotion type (2 = PromoCode)
   name: string;
   code: string;
   description: string;
@@ -143,6 +145,7 @@ export interface CreatePromoCode {
   segmentId: null;                // Siempre null
   discountValue: number | null;   // Conversión: % → decimal (15 → 0.15)
   requireTurnOn: boolean;
+  isActive: boolean | null;       // Por defecto null, siempre se envía
   availableBrands: number[];
   availableChannels: number[];
   availableCities: number[];
@@ -154,7 +157,6 @@ export interface CreatePromoCode {
  * Update Promo Code - DTO para actualizar (formato de old)
  */
 export interface UpdatePromoCode {
-  promotionType: number;          // Global promotion type (2 = PromoCode)
   name: string;
   code: string;
   description: string;
@@ -167,6 +169,7 @@ export interface UpdatePromoCode {
   segmentId: null;
   discountValue: number | null;
   requireTurnOn: boolean;
+  isActive: boolean | null;       // Por defecto null, siempre se envía
   availableBrands: number[];
   availableChannels: number[];
   availableCities: number[];

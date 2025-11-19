@@ -9,10 +9,10 @@
       (onClick)="onCancel()"
       pTooltip="Regresar"
       tooltipPosition="bottom" />
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-white m-0">Nuevo Código Promocional</h1>
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white m-0">{{ pageTitle() }}</h1>
   </div>
   <p class="text-gray-600 dark:text-gray-400">
-    Crea un código promocional con descuentos, envío gratis o productos gratis
+    {{ isEditMode() ? 'Modifica los detalles del código promocional' : 'Crea un código promocional con descuentos, envío gratis o productos gratis' }}
   </p>
 </div>
 
@@ -91,7 +91,8 @@
           <p-inputnumber id="discountValue" formControlName="discountValue"
             [min]="0"
             [max]="isPercentage() ? 100 : 999999"
-            [suffix]="isPercentage() ? '%' : ' L'"
+            [prefix]="isPercentage() ? '' : 'L '"
+            [suffix]="isPercentage() ? '%' : ''"
             [showButtons]="true"
             [step]="isPercentage() ? 1 : 10"
             placeholder="0" />
@@ -113,7 +114,7 @@
         </label>
         <p-inputnumber id="minimumAmount" formControlName="minimumAmount"
           [min]="0"
-          suffix=" L"
+          prefix="L "
           [showButtons]="true"
           [step]="10"
           placeholder="0" />
@@ -159,13 +160,18 @@
                 <td>
                   <div class="flex items-center gap-2">
                     <i class="pi pi-tag text-primary-500"></i>
-                    <span class="font-medium">{{ getBrandName(product.brandId) }}</span>
+                    <span class="font-medium">{{ product.brandName || getBrandName(product.brandId) }}</span>
                   </div>
                 </td>
                 <td>
-                  <div class="flex items-center gap-2">
-                    <i class="pi pi-shopping-cart text-blue-500"></i>
-                    <span>{{ getProductName(product.productId) }}</span>
+                  <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-2">
+                      <i class="pi pi-shopping-cart text-blue-500"></i>
+                      <span class="font-medium">{{ product.productName || product.productId }}</span>
+                    </div>
+                    @if (product.productName && product.productId !== product.productName) {
+                      <span class="text-xs text-gray-500">ID: {{ product.productId }}</span>
+                    }
                   </div>
                 </td>
                 <td>
@@ -175,9 +181,14 @@
                   @if (product.modifiers && product.modifiers.length > 0) {
                     <div class="flex flex-col gap-1">
                       @for (modifier of product.modifiers; track $index) {
-                        <span class="text-sm text-gray-600 dark:text-gray-400">
-                          • {{ modifier.modifierId }} (x{{ modifier.quantity }})
-                        </span>
+                        <div class="flex flex-col">
+                          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            • {{ modifier.modifierName || modifier.modifierId }}
+                          </span>
+                          <span class="text-xs text-gray-500 ml-3">
+                            Cantidad: {{ modifier.quantity }}
+                          </span>
+                        </div>
                       }
                     </div>
                   } @else {
@@ -241,37 +252,59 @@
       <!-- Brands -->
       <div class="flex flex-col gap-2">
         <label for="availableBrands" class="font-medium text-gray-900 dark:text-white">
-          Marcas Disponibles <span class="text-danger-500">*</span>
+          @if (isProduct()) {
+            Marca <span class="text-danger-500">*</span>
+          } @else {
+            Marcas Disponibles <span class="text-danger-500">*</span>
+          }
         </label>
-        <p-multiselect id="availableBrands" formControlName="availableBrands"
-          [options]="brandsOptions()" optionLabel="name" optionValue="id"
-          placeholder="Seleccione marcas" display="chip" [filter]="true"
-          filterPlaceholder="Buscar marca..." />
+
+        <!-- Select simple para tipo Producto (solo una marca) -->
+        @if (isProduct()) {
+          <p-select id="availableBrands" formControlName="availableBrands"
+            [options]="brandsOptions()" optionLabel="name" optionValue="id"
+            placeholder="Seleccione marca" [filter]="true"
+            filterPlaceholder="Buscar marca..." />
+          <small class="text-gray-500">Para productos gratis, solo se permite una marca</small>
+        } @else {
+          <!-- Multiselect para otros tipos (múltiples marcas) -->
+          <p-multiselect id="availableBrands" formControlName="availableBrands"
+            [options]="brandsOptions()" optionLabel="name" optionValue="id"
+            placeholder="Seleccione marcas" display="chip" [filter]="true"
+            filterPlaceholder="Buscar marca..." />
+        }
+
         @if (hasError('availableBrands')) {
           <small class="text-danger-500">{{ getErrorMessage('availableBrands') }}</small>
         }
       </div>
 
-      <!-- Channels (Opcional) -->
+      <!-- Channels -->
       <div class="flex flex-col gap-2">
         <label for="availableChannels" class="font-medium text-gray-900 dark:text-white">
-          Canales Disponibles (Opcional)
+          Canales Disponibles <span class="text-danger-500">*</span>
         </label>
         <p-multiselect id="availableChannels" formControlName="availableChannels"
           [options]="channelsOptions()" optionLabel="description" optionValue="id"
           placeholder="Seleccione canales" display="chip" [filter]="true"
           filterPlaceholder="Buscar canal..." />
+        @if (hasError('availableChannels')) {
+          <small class="text-danger-500">{{ getErrorMessage('availableChannels') }}</small>
+        }
       </div>
 
-      <!-- Cities (Opcional) -->
+      <!-- Cities -->
       <div class="flex flex-col gap-2">
         <label for="availableCities" class="font-medium text-gray-900 dark:text-white">
-          Ciudades Disponibles (Opcional)
+          Ciudades Disponibles <span class="text-danger-500">*</span>
         </label>
         <p-multiselect id="availableCities" formControlName="availableCities"
           [options]="citiesOptions()" optionLabel="name" optionValue="id"
           placeholder="Seleccione ciudades" display="chip" [filter]="true"
           filterPlaceholder="Buscar ciudad..." />
+        @if (hasError('availableCities')) {
+          <small class="text-danger-500">{{ getErrorMessage('availableCities') }}</small>
+        }
       </div>
 
       <!-- Require Turn On Toggle -->
@@ -291,7 +324,7 @@
   <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
     <p-button label="Cancelar" [outlined]="true" severity="secondary"
       (onClick)="onCancel()" [disabled]="isSaving()" />
-    <p-button label="Crear Código Promocional" icon="pi pi-check"
+    <p-button [label]="submitButtonLabel()" icon="pi pi-check"
       (onClick)="onSubmit()" [loading]="isSaving()" [disabled]="form.invalid" />
   </div>
 </form>

@@ -11,29 +11,29 @@ export const IN_APP_PROMOTIONS_ROUTES: Routes = [
   {
     path: 'drag-drop-promotions/new',
     loadComponent: () =>
-      import('./pages/drag-drop-promotion-create-page/drag-drop-promotion-create-page.component').then(
-        (m) => m.DragDropPromotionCreatePageComponent
+      import('./pages/drag-drop-promotion-form-page/drag-drop-promotion-form-page.component').then(
+        (m) => m.DragDropPromotionFormPageComponent
       )
   },
   {
     path: 'drag-drop-promotions/edit/:id',
     loadComponent: () =>
-      import('./pages/drag-drop-promotion-edit-page/drag-drop-promotion-edit-page.component').then(
-        (m) => m.DragDropPromotionEditPageComponent
+      import('./pages/drag-drop-promotion-form-page/drag-drop-promotion-form-page.component').then(
+        (m) => m.DragDropPromotionFormPageComponent
       )
   },
   {
     path: 'promo-codes/new',
     loadComponent: () =>
-      import('./pages/promo-code-create-page/promo-code-create-page.component').then(
-        (m) => m.PromoCodeCreatePageComponent
+      import('./pages/promo-code-form-page/promo-code-form-page.component').then(
+        (m) => m.PromoCodeFormPageComponent
       )
   },
   {
     path: 'promo-codes/edit/:id',
     loadComponent: () =>
-      import('./pages/promo-code-edit-page/promo-code-edit-page.component').then(
-        (m) => m.PromoCodeEditPageComponent
+      import('./pages/promo-code-form-page/promo-code-form-page.component').then(
+        (m) => m.PromoCodeFormPageComponent
       )
   },
   {

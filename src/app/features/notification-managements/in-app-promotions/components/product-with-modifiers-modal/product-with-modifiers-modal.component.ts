@@ -263,14 +263,37 @@ export class ProductWithModifiersModalComponent implements OnInit {
 
     const formValue = this.form.value;
 
-    // Filter out invalid modifiers
-    const validModifiers = formValue.modifiers.filter(
-      (mod: any) => mod.modifierId && mod.modifierOptionId
-    );
+    // Get brand name
+    const brand = this.brandsData().find((b: any) => b.id === formValue.brandId);
+    const brandName = brand?.name || '';
+
+    // Get product name
+    const product = this.selectedProduct();
+    const productName = product?.name || formValue.productId;
+
+    // Filter and transform modifiers to match backend format
+    // Backend expects: { modifierId: string, quantity: number }
+    // modifierId should be the option ID (modifierOptionId), not the parent modifier ID
+    const validModifiers = formValue.modifiers
+      .filter((mod: any) => mod.modifierOptionId) // Only modifiers with an option selected
+      .map((mod: any) => {
+        // Find the modifier option to get its name
+        const modifier = this.modifiersList().find(m => m.modifierId === mod.modifierId);
+        const option = modifier?.options?.find((o: ModifierOption) => o.modifierOptionId === mod.modifierOptionId);
+        const modifierName = option?.name || mod.modifierOptionId;
+
+        return {
+          modifierId: mod.modifierOptionId, // Use the option ID as modifierId
+          modifierName: modifierName,       // Add modifier name for display
+          quantity: mod.quantity
+        };
+      });
 
     const productData = {
       brandId: formValue.brandId,
+      brandName: brandName,         // Add brand name
       productId: formValue.productId,
+      productName: productName,     // Add product name
       quantity: formValue.quantity,
       modifiers: validModifiers
     };

@@ -1,0 +1,63 @@
+<p-card styleClass="mb-3">
+  <ng-template pTemplate="header">
+    <div class="card-header-content">
+      <div>
+        <h3 class="m-0">{{ form().applicantName }}</h3>
+        <p class="text-sm text-muted m-0 mt-1">
+          <i class="pi pi-calendar text-xs mr-1"></i>
+          {{ form().requestDate | date: 'short' }}
+        </p>
+      </div>
+      <app-registration-form-status-badge [status]="form().status" />
+    </div>
+  </ng-template>
+
+  <div class="card-body-content">
+    <!-- Contacto -->
+    <div class="info-row">
+      <i class="pi pi-phone text-muted"></i>
+      <span>{{ form().applicantPhone }}</span>
+    </div>
+
+    <div class="info-row">
+      <i class="pi pi-envelope text-muted"></i>
+      <span>{{ form().applicantEmail }}</span>
+    </div>
+
+    <p-divider />
+
+    <!-- Ubicación -->
+    <div class="info-row">
+      <i class="pi pi-map-marker text-muted"></i>
+      <span>{{ form().countryName }} - {{ form().cityName }}</span>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="card-footer-content">
+      <p-button
+        label="Ver Detalles"
+        icon="pi pi-eye"
+        [outlined]="true"
+        size="small"
+        (onClick)="onViewDetails()"
+      />
+      <div class="action-buttons">
+        <p-button
+          icon="pi pi-check"
+          [rounded]="true"
+          severity="success"
+          pTooltip="Aprobar"
+          (onClick)="onApprove()"
+        />
+        <p-button
+          icon="pi pi-times"
+          [rounded]="true"
+          severity="danger"
+          pTooltip="Rechazar"
+          (onClick)="onReject()"
+        />
+      </div>
+    </div>
+  </ng-template>
+</p-card>

@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, effect, DestroyRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -17,18 +17,20 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
-import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { DialogService } from 'primeng/dynamicdialog';
 
 // Services & Models
 import { PromoCodeService } from '../../services/promo-code.service';
-import { CreatePromoCode, PromoCodeType, PROMO_CODE_TYPE_OPTIONS, PromoCodeItem } from '../../models/promo-code.model';
+import { CreatePromoCode, UpdatePromoCode, PromoCodeResponse, PromoCodeType, PROMO_CODE_TYPE_OPTIONS, PromoCodeItem } from '../../models/promo-code.model';
 import { GlobalDataService } from '@core/services/global-data.service';
+import { LoyaltyService } from '@features/notification-managements/loyalty-program/services/loyalty.service';
+import { forkJoin, tap } from 'rxjs';
 
 // Components
 import { ProductWithModifiersModalComponent } from '../../components/product-with-modifiers-modal/product-with-modifiers-modal.component';
 
 @Component({
-  selector: 'app-promo-code-create-page',
+  selector: 'app-promo-code-form-page',
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -45,23 +47,28 @@ import { ProductWithModifiersModalComponent } from '../../components/product-wit
     TableModule
   ],
   providers: [MessageService, DialogService],
-  templateUrl: './promo-code-create-page.component.html',
-  styleUrl: './promo-code-create-page.component.scss',
+  templateUrl: './promo-code-form-page.component.html',
+  styleUrl: './promo-code-form-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PromoCodeCreatePageComponent implements OnInit {
+export class PromoCodeFormPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly messageService = inject(MessageService);
   private readonly dialogService = inject(DialogService);
   private readonly promoCodeService = inject(PromoCodeService);
   private readonly globalDataService = inject(GlobalDataService);
+  private readonly loyaltyService = inject(LoyaltyService);
 
   // ============================================================================
   // SIGNALS - Estado
   // ============================================================================
 
+  readonly promoCodeId = signal<number | null>(null);
+  readonly isEditMode = computed(() => this.promoCodeId() !== null);
+  readonly isLoading = signal<boolean>(false);
   readonly isSaving = signal<boolean>(false);
   readonly selectedType = signal<PromoCodeType>(PromoCodeType.Percentage);
   readonly selectedProducts = signal<PromoCodeItem[]>([]);
@@ -83,6 +90,14 @@ export class PromoCodeCreatePageComponent implements OnInit {
   // ============================================================================
   // COMPUTED
   // ============================================================================
+
+  readonly pageTitle = computed(() =>
+    this.isEditMode() ? 'Editar Código Promocional' : 'Nuevo Código Promocional'
+  );
+
+  readonly submitButtonLabel = computed(() =>
+    this.isEditMode() ? 'Actualizar' : 'Crear'
+  );
 
   readonly brandsOptions = computed(() =>
     this.brands().map(brand => ({
@@ -156,11 +171,20 @@ export class PromoCodeCreatePageComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
+    this.checkEditMode();
   }
 
   // ============================================================================
   // MÉTODOS - Form Initialization
   // ============================================================================
+
+  private checkEditMode(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.promoCodeId.set(+id);
+      this.loadPromoCode(+id);
+    }
+  }
 
   initForm(): void {
     const today = new Date();
@@ -177,9 +201,10 @@ export class PromoCodeCreatePageComponent implements OnInit {
       type: [PromoCodeType.Percentage, Validators.required],
       discountValue: [0],
       requireTurnOn: [false],
+      isActive: [null],
       availableBrands: [[], Validators.required],
-      availableChannels: [[]],
-      availableCities: [[]],
+      availableChannels: [[], Validators.required],
+      availableCities: [[], Validators.required],
       availableStores: [[]]
     });
 
@@ -200,6 +225,100 @@ export class PromoCodeCreatePageComponent implements OnInit {
 
     // Inicializar validaciones para tipo por defecto
     this.updateTypeValidations(PromoCodeType.Percentage);
+  }
+
+  // ============================================================================
+  // MÉTODOS - Load Data
+  // ============================================================================
+
+  private loadPromoCode(id: number): void {
+    this.isLoading.set(true);
+
+    this.promoCodeService.getPromoCodeById(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (promoCode) => {
+          this.populateForm(promoCode);
+          this.isLoading.set(false);
+        },
+        error: (error) => {
+          console.error('Error loading promo code:', error);
+          this.isLoading.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo cargar el código promocional'
+          });
+          this.router.navigate(['/notification-managements/in-app-promotions']);
+        }
+      });
+  }
+
+  private populateForm(promoCode: PromoCodeResponse): void {
+    // Default type to Percentage if null
+    const promoType = promoCode.type ?? PromoCodeType.Percentage;
+
+    // Convertir discountValue de backend a frontend
+    let displayDiscountValue = 0;
+    if (promoCode.discountValue !== null) {
+      if (promoType === PromoCodeType.Percentage) {
+        // Backend: 0.15 → Frontend: 15
+        displayDiscountValue = promoCode.discountValue * 100;
+      } else {
+        // Backend: 50 → Frontend: 50
+        displayDiscountValue = promoCode.discountValue;
+      }
+    }
+
+    // Convertir availableBrands según el tipo
+    // Si es tipo Producto, convertir array a valor único (primera marca)
+    // Si es otro tipo, mantener como array
+    const brandsValue = promoType === PromoCodeType.Product
+      ? (promoCode.availableBrands && promoCode.availableBrands.length > 0 ? promoCode.availableBrands[0] : null)
+      : (promoCode.availableBrands || []);
+
+    this.form.patchValue({
+      name: promoCode.name,
+      code: promoCode.code,
+      description: promoCode.description,
+      startDate: promoCode.startDate ? new Date(promoCode.startDate) : new Date(),
+      endDate: promoCode.endDate ? new Date(promoCode.endDate) : new Date(),
+      minimumAmount: promoCode.minimumAmount,
+      type: promoType,
+      discountValue: displayDiscountValue,
+      requireTurnOn: promoCode.requireTurnOn ?? false,
+      isActive: promoCode.isActive ?? null,
+      availableBrands: brandsValue,
+      availableChannels: promoCode.availableChannels || [],
+      availableCities: promoCode.availableCities || [],
+      availableStores: promoCode.availableStores || []
+    });
+
+    // Actualizar tipo y productos
+    this.selectedType.set(promoType);
+
+    // Filtrar items válidos y enriquecer con nombres si faltan
+    if (promoCode.items && promoCode.items.length > 0) {
+      const validItems = promoCode.items.filter(
+        item => item.productId && item.productId.trim() !== ''
+      );
+      if (validItems.length > 0) {
+        // Para tipo Producto, usar availableBrands[0] como brandId si no está definido
+        if (promoType === PromoCodeType.Product && promoCode.availableBrands && promoCode.availableBrands.length > 0) {
+          const brandId = promoCode.availableBrands[0];
+          validItems.forEach(item => {
+            if (!item.brandId || item.brandId === 0 || item.brandId === null) {
+              item.brandId = brandId;
+            }
+          });
+        }
+        // Si los items no tienen nombres, intentamos cargarlos
+        this.enrichProductNames(validItems);
+      }
+    }
+
+    // Actualizar validaciones después de poblar
+    this.updateTypeValidations(promoType);
   }
 
   // ============================================================================
@@ -248,6 +367,7 @@ export class PromoCodeCreatePageComponent implements OnInit {
 
   private updateTypeValidations(type: PromoCodeType): void {
     const discountValueControl = this.form.get('discountValue');
+    const brandsControl = this.form.get('availableBrands');
 
     // Limpiar validadores primero
     discountValueControl?.clearValidators();
@@ -262,6 +382,32 @@ export class PromoCodeCreatePageComponent implements OnInit {
     }
 
     discountValueControl?.updateValueAndValidity();
+
+    // Manejar conversión de marcas según el tipo
+    if (type === PromoCodeType.Product) {
+      // Si cambió a tipo Producto, convertir array a valor único
+      const currentBrands = brandsControl?.value;
+      if (Array.isArray(currentBrands) && currentBrands.length > 0) {
+        // Tomar solo la primera marca
+        brandsControl?.setValue(currentBrands[0], { emitEvent: false });
+      } else if (Array.isArray(currentBrands) && currentBrands.length === 0) {
+        // Si no hay marcas, dejar null
+        brandsControl?.setValue(null, { emitEvent: false });
+      }
+      // Si ya es un valor único, dejarlo como está
+    } else {
+      // Si cambió de tipo Producto a otro tipo, convertir valor único a array
+      const currentBrands = brandsControl?.value;
+      if (!Array.isArray(currentBrands)) {
+        if (currentBrands !== null && currentBrands !== undefined) {
+          // Convertir a array de un elemento
+          brandsControl?.setValue([currentBrands], { emitEvent: false });
+        } else {
+          // Si es null, poner array vacío
+          brandsControl?.setValue([], { emitEvent: false });
+        }
+      }
+    }
   }
 
   // ============================================================================
@@ -379,10 +525,21 @@ export class PromoCodeCreatePageComponent implements OnInit {
 
     this.isSaving.set(true);
 
+    if (this.isEditMode()) {
+      this.updatePromoCode();
+    } else {
+      this.createPromoCode();
+    }
+  }
+
+  private createPromoCode(): void {
+    // Convertir availableBrands a array si es un valor único (tipo Producto)
+    const brandsValue = this.form.value.availableBrands;
+    const brandsArray = Array.isArray(brandsValue) ? brandsValue : [brandsValue];
+
     const formData: CreatePromoCode = {
       name: this.form.value.name,
       code: this.form.value.code.toUpperCase(), // Convertir a mayúsculas
-      promotionType: 2, // PromoCode global type
       description: this.form.value.description,
       startDate: this.formatDateToBackend(this.form.value.startDate),
       endDate: this.formatDateToBackend(this.form.value.endDate),
@@ -393,7 +550,8 @@ export class PromoCodeCreatePageComponent implements OnInit {
       segmentId: null,
       discountValue: this.convertDiscountValue(),
       requireTurnOn: this.form.value.requireTurnOn,
-      availableBrands: this.form.value.availableBrands,
+      isActive: null, // Always null by default
+      availableBrands: brandsArray, // Siempre enviar como array
       availableChannels: this.form.value.availableChannels || [],
       availableCities: this.form.value.availableCities || [],
       availableStores: this.form.value.availableStores?.length > 0 ? this.form.value.availableStores : null,
@@ -421,6 +579,68 @@ export class PromoCodeCreatePageComponent implements OnInit {
             severity: 'error',
             summary: 'Error',
             detail: 'No se pudo crear el código promocional'
+          });
+        }
+      });
+  }
+
+  private updatePromoCode(): void {
+    const id = this.promoCodeId();
+    if (!id) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'ID de código promocional no válido'
+      });
+      return;
+    }
+
+    // Convertir availableBrands a array si es un valor único (tipo Producto)
+    const brandsValue = this.form.value.availableBrands;
+    const brandsArray = Array.isArray(brandsValue) ? brandsValue : [brandsValue];
+
+    const formData: UpdatePromoCode = {
+      name: this.form.value.name,
+      code: this.form.value.code.toUpperCase(), // Convertir a mayúsculas
+      description: this.form.value.description,
+      startDate: this.formatDateToBackend(this.form.value.startDate),
+      endDate: this.formatDateToBackend(this.form.value.endDate),
+      minimumAmount: this.form.value.minimumAmount,
+      type: this.form.value.type, // PromoCode type (1=Percentage, 2=Fixed, 3=FreeShipping, 4=Product)
+      bankId: null,
+      fundingTypeId: null,
+      segmentId: null,
+      discountValue: this.convertDiscountValue(),
+      requireTurnOn: this.form.value.requireTurnOn,
+      isActive: this.form.value.isActive ?? null,
+      availableBrands: brandsArray, // Siempre enviar como array
+      availableChannels: this.form.value.availableChannels || [],
+      availableCities: this.form.value.availableCities || [],
+      availableStores: this.form.value.availableStores?.length > 0 ? this.form.value.availableStores : null,
+      items: this.selectedType() === PromoCodeType.Product ? this.selectedProducts() : []
+    };
+
+    this.promoCodeService.updatePromoCode(id, formData)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isSaving.set(false);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Código promocional actualizado correctamente'
+          });
+          setTimeout(() => {
+            this.router.navigate(['/notification-managements/in-app-promotions']);
+          }, 1500);
+        },
+        error: (error) => {
+          console.error('Error updating promo code:', error);
+          this.isSaving.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo actualizar el código promocional'
           });
         }
       });
@@ -454,6 +674,115 @@ export class PromoCodeCreatePageComponent implements OnInit {
       return value;
     }
     return null; // FreeShipping y Product
+  }
+
+  /**
+   * Enriquece los productos con sus nombres cuando faltan
+   * Se usa al cargar un PromoCode existente para mostrar nombres en vez de solo IDs
+   */
+  private enrichProductNames(items: PromoCodeItem[]): void {
+    // Agrupar items por brandId para minimizar llamadas a la API
+    const itemsByBrand = new Map<number, PromoCodeItem[]>();
+
+    items.forEach(item => {
+      if (!itemsByBrand.has(item.brandId)) {
+        itemsByBrand.set(item.brandId, []);
+      }
+      itemsByBrand.get(item.brandId)!.push(item);
+    });
+
+    // Crear observables para cargar productos por cada marca
+    const productRequests = Array.from(itemsByBrand.entries()).map(([brandId, brandItems]) => {
+      return this.loyaltyService.getProducts(brandId).pipe(
+        tap((products: any[]) => {
+          // Enriquecer cada item con el nombre del producto
+          brandItems.forEach(item => {
+            const product = products.find((p: any) => p.productId === item.productId);
+            if (product) {
+              // Agregar nombre del producto
+              item.productName = product.name || item.productId;
+
+              // Buscar el brand name desde globalDataService
+              const brand = this.brands().find(b => b.id === brandId);
+              if (brand) {
+                item.brandName = brand.name;
+              }
+            }
+          });
+        })
+      );
+    });
+
+    // Ejecutar todas las peticiones en paralelo
+    forkJoin(productRequests)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          // Ahora cargar los modificadores para cada producto
+          this.enrichModifierNames(items);
+        },
+        error: (error: unknown) => {
+          console.error('Error cargando nombres de productos:', error);
+          // Aunque falle, mostrar los productos con los datos que tengamos
+          this.selectedProducts.set([...items]);
+        }
+      });
+  }
+
+  /**
+   * Enriquece los modificadores con sus nombres
+   */
+  private enrichModifierNames(items: PromoCodeItem[]): void {
+    // Crear observables para cargar modificadores de cada producto
+    const modifierRequests = items
+      .filter(item => item.modifiers && item.modifiers.length > 0)
+      .map(item => {
+        // Buscar el brand name para pasarlo a la API
+        const brand = this.brands().find(b => b.id === item.brandId);
+        const brandName = brand?.name || item.brandId.toString();
+
+        return this.loyaltyService.getModifiers(item.productId, brandName).pipe(
+          tap((response: any) => {
+            // response.modifiers es un array de modificadores
+            if (response.modifiers && Array.isArray(response.modifiers)) {
+              item.modifiers.forEach(modifier => {
+                // Buscar el modificador y la opción que coincida
+                response.modifiers.forEach((mod: any) => {
+                  if (mod.options && Array.isArray(mod.options)) {
+                    const option = mod.options.find(
+                      (opt: any) => opt.modifierOptionId === modifier.modifierId
+                    );
+                    if (option) {
+                      modifier.modifierName = option.name || modifier.modifierId;
+                    }
+                  }
+                });
+              });
+            }
+          })
+        );
+      });
+
+    // Si no hay modificadores que cargar, simplemente actualizar el signal
+    if (modifierRequests.length === 0) {
+      this.selectedProducts.set([...items]);
+      return;
+    }
+
+    // Ejecutar todas las peticiones en paralelo
+    forkJoin(modifierRequests)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          // Actualizar el signal con los items enriquecidos
+          this.selectedProducts.set([...items]);
+        },
+        error: (error: unknown) => {
+          console.error('Error cargando nombres de modificadores:', error);
+          // Aunque falle, mostrar los productos con los datos que tengamos
+          this.selectedProducts.set([...items]);
+        }
+      });
   }
 
   /**

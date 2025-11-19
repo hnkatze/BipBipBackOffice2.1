@@ -18,7 +18,7 @@ import { MessageService } from 'primeng/api';
 
 // Services & Models
 import { DragDropPromotionService } from '../../services/drag-drop-promotion.service';
-import { UpdateDragDropPromotion, DragDropPromotionResponse } from '../../models/drag-drop-promotion.model';
+import { CreateDragDropPromotion, UpdateDragDropPromotion, DragDropPromotionResponse } from '../../models/drag-drop-promotion.model';
 import { GlobalDataService } from '@core/services/global-data.service';
 import { ImageUploadService } from '@shared/services/image-upload.service';
 
@@ -26,7 +26,7 @@ import { ImageUploadService } from '@shared/services/image-upload.service';
 import { DragDropPromotionPreviewComponent, PromotionPreviewData } from '../../components/drag-drop-promotion-preview/drag-drop-promotion-preview.component';
 
 @Component({
-  selector: 'app-drag-drop-promotion-edit-page',
+  selector: 'app-drag-drop-promotion-form-page',
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -42,11 +42,11 @@ import { DragDropPromotionPreviewComponent, PromotionPreviewData } from '../../c
     DragDropPromotionPreviewComponent
   ],
   providers: [MessageService],
-  templateUrl: './drag-drop-promotion-edit-page.component.html',
-  styleUrl: './drag-drop-promotion-edit-page.component.scss',
+  templateUrl: './drag-drop-promotion-form-page.component.html',
+  styleUrl: './drag-drop-promotion-form-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DragDropPromotionEditPageComponent implements OnInit {
+export class DragDropPromotionFormPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -61,6 +61,7 @@ export class DragDropPromotionEditPageComponent implements OnInit {
   // ============================================================================
 
   readonly promotionId = signal<number | null>(null);
+  readonly isEditMode = computed(() => this.promotionId() !== null);
   readonly isLoading = signal<boolean>(false);
   readonly isSaving = signal<boolean>(false);
   readonly isUploadingImage = signal<boolean>(false);
@@ -76,7 +77,7 @@ export class DragDropPromotionEditPageComponent implements OnInit {
 
   form!: FormGroup;
 
-  // Opciones para selects (igual que create)
+  // Opciones para selects
   readonly prefixBannerOptions = [
     { value: 'Desde', label: 'Desde' },
     { value: 'Hasta', label: 'Hasta' }
@@ -99,6 +100,14 @@ export class DragDropPromotionEditPageComponent implements OnInit {
   // ============================================================================
   // COMPUTED
   // ============================================================================
+
+  readonly pageTitle = computed(() =>
+    this.isEditMode() ? 'Editar Promoción Drag & Drop' : 'Nueva Promoción Drag & Drop'
+  );
+
+  readonly submitButtonLabel = computed(() =>
+    this.isEditMode() ? 'Guardar Cambios' : 'Guardar Promoción'
+  );
 
   readonly brandsOptions = computed(() =>
     this.brands().map(brand => ({
@@ -176,12 +185,20 @@ export class DragDropPromotionEditPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
-    this.loadPromotion();
+    this.checkEditMode();
   }
 
   // ============================================================================
   // MÉTODOS - Form Initialization
   // ============================================================================
+
+  private checkEditMode(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.promotionId.set(+id);
+      this.loadPromotion(+id);
+    }
+  }
 
   initForm(): void {
     const today = new Date();
@@ -247,22 +264,10 @@ export class DragDropPromotionEditPageComponent implements OnInit {
   // MÉTODOS - Load Data
   // ============================================================================
 
-  private loadPromotion(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'ID de promoción no válido'
-      });
-      this.router.navigate(['/notification-managements/in-app-promotions']);
-      return;
-    }
-
-    this.promotionId.set(+id);
+  private loadPromotion(id: number): void {
     this.isLoading.set(true);
 
-    this.dragDropPromotionService.getDragDropPromotionById(+id)
+    this.dragDropPromotionService.getDragDropPromotionById(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (promotion) => {
@@ -351,11 +356,19 @@ export class DragDropPromotionEditPageComponent implements OnInit {
 
     this.availableMediaPositions.set(positionsMap[promotionType] || []);
 
-    // Solo actualizar si la posición actual no está disponible
-    const currentPosition = this.form.get('mediaPosition')?.value;
-    const isPositionAvailable = positionsMap[promotionType]?.some(p => p.value === currentPosition);
+    // En modo edición, solo actualizar si la posición actual no está disponible
+    if (this.isEditMode()) {
+      const currentPosition = this.form.get('mediaPosition')?.value;
+      const isPositionAvailable = positionsMap[promotionType]?.some(p => p.value === currentPosition);
 
-    if (!isPositionAvailable) {
+      if (!isPositionAvailable) {
+        const firstPosition = positionsMap[promotionType]?.[0]?.value;
+        if (firstPosition) {
+          this.form.get('mediaPosition')?.setValue(firstPosition);
+        }
+      }
+    } else {
+      // En modo creación, establecer el primer valor disponible
       const firstPosition = positionsMap[promotionType]?.[0]?.value;
       if (firstPosition) {
         this.form.get('mediaPosition')?.setValue(firstPosition);
@@ -370,9 +383,15 @@ export class DragDropPromotionEditPageComponent implements OnInit {
     if (actionType === 'redirect') {
       productIdControl?.setValidators([Validators.required]);
       promoCodeControl?.clearValidators();
+      if (!this.isEditMode()) {
+        promoCodeControl?.setValue('');
+      }
     } else if (actionType === 'clipboard') {
       promoCodeControl?.setValidators([Validators.required]);
       productIdControl?.clearValidators();
+      if (!this.isEditMode()) {
+        productIdControl?.setValue('');
+      }
     }
 
     productIdControl?.updateValueAndValidity();
@@ -417,6 +436,63 @@ export class DragDropPromotionEditPageComponent implements OnInit {
       return;
     }
 
+    this.isSaving.set(true);
+
+    if (this.isEditMode()) {
+      this.updatePromotion();
+    } else {
+      this.createPromotion();
+    }
+  }
+
+  private createPromotion(): void {
+    const formData: CreateDragDropPromotion = {
+      type: 1, // Drag & Drop Promotion
+      title: this.form.value.title,
+      description: this.form.value.description || '',
+      banner: this.form.value.banner,
+      prefixBanner: this.form.value.prefixBanner || '',
+      mediaUrl: this.form.value.mediaUrl,  // URL de la imagen del producto
+      mediaPosition: this.form.value.mediaPosition,
+      promotionType: this.form.value.promotionType,
+      actionType: this.form.value.actionType,
+      recentlyAdded: this.form.value.recentlyAdded,
+      promoStartDate: this.formatDateToISO(this.form.value.promoStartDate),
+      promoEndDate: this.formatDateToISO(this.form.value.promoEndDate),
+      availableBrands: this.form.value.availableBrands,
+      availableChannels: this.form.value.availableChannels || [],
+      availableStores: this.form.value.availableStores || [],
+      productId: this.form.value.productId || '',
+      promoCode: this.form.value.promoCode || ''
+    };
+
+    this.dragDropPromotionService.createDragDropPromotion(formData)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isSaving.set(false);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Promoción creada correctamente'
+          });
+          setTimeout(() => {
+            this.router.navigate(['/notification-managements/in-app-promotions']);
+          }, 1500);
+        },
+        error: (error) => {
+          console.error('Error creating promotion:', error);
+          this.isSaving.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo crear la promoción'
+          });
+        }
+      });
+  }
+
+  private updatePromotion(): void {
     const id = this.promotionId();
     if (!id) {
       this.messageService.add({
@@ -426,8 +502,6 @@ export class DragDropPromotionEditPageComponent implements OnInit {
       });
       return;
     }
-
-    this.isSaving.set(true);
 
     const formData: UpdateDragDropPromotion = {
       type: 1, // Drag & Drop Promotion

@@ -1,0 +1,29 @@
+// Todo el styling se hace con Tailwind directamente en el template
+// Solo dejamos estilos custom si son absolutamente necesarios
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+
+  .header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+
+    .header-actions {
+      width: 100%;
+
+      ::ng-deep .p-button {
+        flex: 1;
+      }
+    }
+  }
+}

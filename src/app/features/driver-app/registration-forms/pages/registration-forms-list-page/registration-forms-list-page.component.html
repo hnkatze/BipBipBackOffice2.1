@@ -1,0 +1,111 @@
+<div class="registration-forms-page">
+  <!-- Header -->
+  <div class="page-header mb-4">
+    <h1 class="page-title">Formularios de Registro</h1>
+    <p class="page-subtitle">Gestión de solicitudes de registro de drivers</p>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar mb-4">
+    <!-- Status Buttons -->
+    <div class="status-filters">
+      <p-button
+        label="Todos ({{ totalCount() }})"
+        [outlined]="selectedStatus() !== null"
+        [raised]="selectedStatus() === null"
+        size="small"
+        (onClick)="filterByStatus(null)"
+      />
+      <p-button
+        label="Pendientes ({{ totalPending() }})"
+        [outlined]="selectedStatus() !== RegistrationFormStatus.PENDING"
+        [raised]="selectedStatus() === RegistrationFormStatus.PENDING"
+        severity="warn"
+        size="small"
+        (onClick)="filterByStatus(RegistrationFormStatus.PENDING)"
+      />
+      <p-button
+        label="Rechazados ({{ totalRejected() }})"
+        [outlined]="selectedStatus() !== RegistrationFormStatus.REJECTED"
+        [raised]="selectedStatus() === RegistrationFormStatus.REJECTED"
+        severity="danger"
+        size="small"
+        (onClick)="filterByStatus(RegistrationFormStatus.REJECTED)"
+      />
+    </div>
+
+    <!-- Search -->
+    <p-iconfield iconPosition="left" class="search-input">
+      <p-inputicon styleClass="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        [formControl]="searchControl"
+        placeholder="Buscar por email, teléfono o nombre..."
+        class="w-full"
+      />
+    </p-iconfield>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-container">
+      <p-skeleton height="400px" />
+    </div>
+  }
+
+  <!-- Content -->
+  @if (!loading()) {
+    <!-- Desktop: Table -->
+    <div class="hidden md:block">
+      <app-registration-form-table
+        [forms]="forms()"
+        (viewDetails)="viewDetails($event)"
+        (approve)="approveForm($event)"
+        (reject)="rejectForm($event)"
+      />
+    </div>
+
+    <!-- Mobile: Cards -->
+    <div class="block md:hidden">
+      @for (form of forms(); track trackByFormId($index, form)) {
+        <app-registration-form-card
+          [form]="form"
+          (viewDetails)="viewDetails($event)"
+          (approve)="approveForm($event)"
+          (reject)="rejectForm($event)"
+        />
+      } @empty {
+        <div class="empty-state">
+          <i class="pi pi-inbox empty-icon"></i>
+          <p class="empty-message">No se encontraron formularios</p>
+        </div>
+      }
+    </div>
+
+    <!-- Paginator -->
+    @if (totalCount() > 0) {
+      <div class="paginator-container mt-4">
+        <p-paginator
+          [first]="(currentPage() - 1) * pageSize()"
+          [rows]="pageSize()"
+          [totalRecords]="totalCount()"
+          [rowsPerPageOptions]="[10, 20, 50, 100]"
+          (onPageChange)="onPageChange($event)"
+        />
+      </div>
+    }
+  }
+
+  <!-- Detail Drawer -->
+  <app-registration-form-detail-drawer
+    #detailDrawer
+    (approved)="approveForm($event)"
+  />
+
+  <!-- Toast for notifications -->
+  <p-toast position="top-right" />
+
+  <!-- Confirm Dialog -->
+  <p-confirmDialog />
+</div>

@@ -18,3 +18,7 @@ export type { ZoneEditorData } from './google-map-zone-editor/google-map-zone-ed
 // Google Map Zones Viewer component
 export { GoogleMapZonesViewerComponent } from './google-map-zones-viewer/google-map-zones-viewer.component';
 export type { MapZone, RestaurantMapMarker } from './google-map-zones-viewer/google-map-zones-viewer.component';
+
+// Google Map Polygon Editor component
+export { GoogleMapPolygonEditorComponent } from './google-map-polygon-editor/google-map-polygon-editor.component';
+export type { PolygonCoordinate, PolygonData } from './google-map-polygon-editor/google-map-polygon-editor.component';

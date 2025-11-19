@@ -1,0 +1,12 @@
+.reject-dialog-content {
+  padding: 1rem 0;
+
+  .char-counter {
+    color: var(--text-color-secondary);
+    font-size: 0.875rem;
+
+    &.text-danger {
+      color: var(--red-500);
+    }
+  }
+}

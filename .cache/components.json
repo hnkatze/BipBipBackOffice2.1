@@ -1,40 +1,24 @@
 [
   [
-    "select",
+    "tabs",
     {
       "data": {
-        "name": "select",
-        "description": "Select is used to choose an item from a collection of options.",
-        "importStatement": "import { Select } from 'primeng/select';",
-        "moduleImport": "import { SelectModule } from 'primeng/select';",
-        "basicUsage": "import { SelectModule } from 'primeng/select';",
+        "name": "tabs",
+        "description": "Tabs is a container component to group content with tabs.",
+        "importStatement": "import { Tabs } from 'primeng/tabs';",
+        "moduleImport": "import { TabsModule } from 'primeng/tabs';",
+        "basicUsage": "import { TabsModule } from 'primeng/tabs';",
         "examples": [
-          "import { SelectModule } from 'primeng/select';",
-          "<p-select [options]=\"cities\" [(ngModel)]=\"selectedCity\" optionLabel=\"name\" placeholder=\"Select a City\" class=\"w-full md:w-56\" />",
-          "<p-select [options]=\"cities\" [(ngModel)]=\"selectedCity\" [checkmark]=\"true\" optionLabel=\"name\" [showClear]=\"true\" placeholder=\"Select a City\" class=\"w-full md:w-56\" />",
-          "<p-select [options]=\"cities\" [(ngModel)]=\"selectedCity\" placeholder=\"Select a City\" [editable]=\"true\" optionLabel=\"name\" class=\"w-full md:w-56\" />",
-          "<p-select [options]=\"groupedCities\" [(ngModel)]=\"selectedCity\" placeholder=\"Select a City\" [group]=\"true\" class=\"w-full md:w-56\">\n    <ng-template let-group #group>\n        <div class=\"flex items-center\">\n            <img src=\"https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png\" [class]=\"'mr-2 flag flag-' + group.value\" style=\"width: 20px\" />\n            <span>{{ group.label }}</span>\n        </div>\n    </ng-template>\n</p-select>",
-          "<p-select [options]=\"countries\" [(ngModel)]=\"selectedCountry\" optionLabel=\"name\" [filter]=\"true\" filterBy=\"name\" [showClear]=\"true\" placeholder=\"Select a Country\" class=\"w-full md:w-56\">\n    <ng-template #selectedItem let-selectedOption>\n        <div class=\"flex items-center gap-2\">\n            <img src=\"https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png\" [class]=\"'flag flag-' + selectedCountry.code.toLowerCase()\" style=\"width: 18px\" />\n            <div>{{ selectedOption.name }}</div>\n        </div>\n    </ng-template>\n    <ng-template let-country #item>\n        <div class=\"flex items-center gap-2\">\n            <img src=\"https://primefaces.org/cdn/primeng/images/demo/flag/flag_placeholder.png\" [class]=\"'flag flag-' + country.code.toLowerCase()\" style=\"width: 18px\" />\n            <div>{{ country.name }}</div>\n        </div>\n    </ng-template>\n</p-select>",
-          "<p-select [options]=\"cities\" [(ngModel)]=\"selectedCity\" [loading]=\"true\" optionLabel=\"name\" placeholder=\"Loading...\" class=\"w-full md:w-56\" />",
-          "<p-select [options]=\"items\" [(ngModel)]=\"selectedItem\" placeholder=\"Select Item\" [virtualScroll]=\"true\" [virtualScrollItemSize]=\"38\" class=\"w-full md:w-56\" />",
-          "<p-select [options]=\"items\" [(ngModel)]=\"selectedItem\" placeholder=\"Select Item\" [virtualScroll]=\"true\" [virtualScrollItemSize]=\"38\" [virtualScrollOptions]=\"options\" class=\"w-full md:w-56\" />",
-          "<p-select [options]=\"cities\" [(ngModel)]=\"selectedCity\" variant=\"filled\" optionLabel=\"name\" placeholder=\"Select a City\" class=\"w-full md:w-56\" />",
-          "<p-floatlabel class=\"w-full md:w-56\">\n    <p-select [(ngModel)]=\"value1\" inputId=\"over_label\" [options]=\"cities\" optionLabel=\"name\" class=\"w-full\" />\n    <label for=\"over_label\">Over Label</label>\n</p-floatlabel>\n\n<p-floatlabel class=\"w-full md:w-56\" variant=\"in\">\n    <p-select [(ngModel)]=\"value2\" inputId=\"in_label\" [options]=\"cities\" optionLabel=\"name\" class=\"w-full\" variant=\"filled\" />\n    <label for=\"in_label\">In Label</label>\n</p-floatlabel>\n\n<p-floatlabel class=\"w-full md:w-56\" variant=\"on\">\n    <p-select [(ngModel)]=\"value3\" inputId=\"on_label\" [options]=\"cities\" optionLabel=\"name\" class=\"w-full\" />\n    <label for=\"on_label\">On Label</label>\n</p-floatlabel>",
-          "<p-iftalabel class=\"w-full md:w-56\">\n    <p-select [(ngModel)]=\"selectedCity\" inputId=\"dd-city\" [options]=\"cities\" optionLabel=\"name\" class=\"w-full\" />\n    <label for=\"dd-city\">City</label>\n</p-iftalabel>",
-          "<p-select [options]=\"cities\" [(ngModel)]=\"selectedCity\" optionLabel=\"name\" placeholder=\"Select a City\" class=\"w-full md:w-56\" [showClear]=\"true\" />",
-          "<p-select [(ngModel)]=\"value1\" [options]=\"cities\" optionLabel=\"name\" size=\"small\" placeholder=\"Small\" class=\"w-full md:w-56\" />\n<p-select [(ngModel)]=\"value2\" [options]=\"cities\" optionLabel=\"name\" placeholder=\"Normal\" class=\"w-full md:w-56\" />\n<p-select [(ngModel)]=\"value3\" [options]=\"cities\" optionLabel=\"name\" size=\"large\" placeholder=\"Large\" class=\"w-full md:w-56\" />",
-          "<p-select [options]=\"cities\" [(ngModel)]=\"selectedCity\" optionLabel=\"name\" placeholder=\"Select a City\" class=\"w-full md:w-56\" />",
-          "<p-select [options]=\"cities\" [(ngModel)]=\"selectedCity\" placeholder=\"Select a City\" optionLabel=\"name\" [disabled]=\"true\" class=\"w-full md:w-56\" />",
-          "<p-select [options]=\"cities\" [(ngModel)]=\"selectedCity1\" optionLabel=\"name\" [showClear]=\"true\" [invalid]=\"value1\" placeholder=\"Select a City\" class=\"w-full md:w-56\" />\n<p-select [options]=\"cities\" [(ngModel)]=\"selectedCity2\" optionLabel=\"name\" [showClear]=\"true\" [invalid]=\"value2\" placeholder=\"Select a City\" class=\"w-full md:w-56\" variant=\"filled\"/>",
-          "<form #exampleForm (ngSubmit)=\"onSubmit(exampleForm)\" class=\"flex flex-col gap-4 w-full sm:w-56\">\n    <div class=\"flex flex-col gap-1\">\n        <p-select #city=\"ngModel\" [(ngModel)]=\"selectedCity\" [options]=\"cities\" [invalid]=\"city.invalid && (city.touched || exampleForm.submitted)\" optionLabel=\"name\" placeholder=\"Select a City\" class=\"w-full md:w-56\" required />\n        @if (city.invalid && (city.touched || exampleForm.submitted)) {\n            <p-message severity=\"error\" size=\"small\" variant=\"simple\">City is required.</p-message>\n        }\n    </div>\n    <button pButton severity=\"secondary\" type=\"submit\"><span pButtonLabel>Submit</span></button>\n</form>",
-          "<form [formGroup]=\"exampleForm\" (ngSubmit)=\"onSubmit()\" class=\"flex flex-col gap-4 w-full sm:w-56\">\n    <div class=\"flex flex-col gap-1\">\n        <p-select formControlName=\"selectedCity\" [options]=\"cities\" [invalid]=\"isInvalid('city')\" optionLabel=\"name\" placeholder=\"Select a City\" class=\"w-full md:w-56\" />\n        @if (isInvalid('city')) {\n            <p-message severity=\"error\" size=\"small\" variant=\"simple\">City is required.</p-message>\n        }\n    </div>\n    <button pButton severity=\"secondary\" type=\"submit\"><span pButtonLabel>Submit</span></button>\n</form>",
-          "<span id=\"dd1\">Options</span>\n<p-select ariaLabelledBy=\"dd1\"/>\n\n<p-select ariaLabel=\"Options\"/>"
+          "import { TabsModule } from 'primeng/tabs';",
+          "<p-tabs value=\"0\">\n    <p-tablist>\n        @for (tab of tabs; track tab.value) {\n            <p-tab [value]=\"tab.value\">{{ tab.title }}</p-tab>\n        }\n    </p-tablist>\n    <p-tabpanels>\n        @for (tab of tabs; track tab.value) {\n            <p-tabpanel [value]=\"tab.value\">\n                <p class=\"m-0\">{{ tab.content }}</p>\n            </p-tabpanel>\n        }\n    </p-tabpanels>\n</p-tabs>",
+          "<p-tabs value=\"0\" scrollable>\n    <p-tablist>\n        @for(tab of scrollableTabs; track tab.value){\n            <p-tab [value]=\"tab.value\">\n                {{ tab.title }}\n            </p-tab>\n        }\n    </p-tablist>\n    <p-tabpanels>\n        @for(tab of scrollableTabs; track tab.value){\n            <p-tabpanel [value]=\"tab.value\">\n                <p class=\"m-0\">{{ tab.content }}</p>\n            </p-tabpanel>\n        }\n    </p-tabpanels>\n</p-tabs>",
+          "<p-tabs value=\"/dashboard\">\n    <p-tablist>\n        @for(tab of tabs; track tab.route){\n            <p-tab [value]=\"tab.route\" [routerLink]=\"tab.route\" class=\"flex items-center !gap-2 text-inherit\">\n                <i [class]=\"tab.icon\"></i>\n                <span>{{ tab.label }}</span>\n            </p-tab>\n        }\n    </p-tablist>\n</p-tabs>\n<!--<router-outlet></router-outlet>-->"
         ],
         "properties": [],
         "events": [],
         "methods": []
       },
-      "timestamp": 1763226679340,
+      "timestamp": 1763582890274,
       "ttl": 86400000
     }
   ]
