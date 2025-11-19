@@ -94,7 +94,7 @@ export class PromotionalDiscountService {
    */
   createPromotionalDiscount(data: CreatePromotionalDiscount): Observable<PromotionalDiscount> {
     return this.http.post<PromotionalDiscount>(
-      `${this.apiBaseUrl}Incentives/promotional-discounts`,
+      `${this.apiBaseUrl}Incentives`,
       data
     );
   }
@@ -107,7 +107,7 @@ export class PromotionalDiscountService {
     data: UpdatePromotionalDiscount
   ): Observable<PromotionalDiscount> {
     return this.http.put<PromotionalDiscount>(
-      `${this.apiBaseUrl}Incentives/promotional-discounts/${id}`,
+      `${this.apiBaseUrl}Incentives/${id}`,
       data
     );
   }

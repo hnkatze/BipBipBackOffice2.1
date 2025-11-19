@@ -154,6 +154,7 @@ export class PromotionalDiscountCreatePageComponent implements OnInit {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     this.form = this.fb.group({
+      type: [5], // Promotional Discount type
       discountType: [DiscountType.FixedDiscount, Validators.required],
       discountValue: [0, [Validators.min(0)]],
       deliveryCost: [0, [Validators.min(0)]],
@@ -281,6 +282,7 @@ export class PromotionalDiscountCreatePageComponent implements OnInit {
     this.isSaving.set(true);
 
     const formData: CreatePromotionalDiscount = {
+      type: 5, // Promotional Discount
       discountType: this.form.value.discountType,
       discountValue: this.convertDiscountValue(),
       deliveryCost: this.form.value.discountType === DiscountType.DeliveryCost

@@ -185,6 +185,7 @@ export class DragDropPromotionCreatePageComponent implements OnInit {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     this.form = this.fb.group({
+      type: [1], // Drag & Drop Promotion type
       title: ['', [Validators.required, Validators.minLength(3)]],
       description: [''],
       banner: ['', Validators.required],
@@ -340,6 +341,7 @@ export class DragDropPromotionCreatePageComponent implements OnInit {
     this.isSaving.set(true);
 
     const formData: CreateDragDropPromotion = {
+      type: 1, // Drag & Drop Promotion
       title: this.form.value.title,
       description: this.form.value.description || '',
       banner: this.form.value.banner,

@@ -94,7 +94,7 @@ export class ProductRewardService {
    */
   createProductReward(data: CreateProductReward): Observable<ProductReward> {
     return this.http.post<ProductReward>(
-      `${this.apiBaseUrl}Incentives/rewards`,
+      `${this.apiBaseUrl}Incentives`,
       data
     );
   }
@@ -107,7 +107,7 @@ export class ProductRewardService {
     data: UpdateProductReward
   ): Observable<ProductReward> {
     return this.http.put<ProductReward>(
-      `${this.apiBaseUrl}Incentives/rewards/${id}`,
+      `${this.apiBaseUrl}Incentives/${id}`,
       data
     );
   }

@@ -18,6 +18,7 @@ import { TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 
 import { RestaurantService } from '../../../services/restaurant.service';
@@ -45,7 +46,8 @@ import type {
     TableModule,
     DialogModule,
     SelectModule,
-    ToggleSwitchModule
+    ToggleSwitchModule,
+    TooltipModule
   ],
   templateUrl: './config-tab.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush

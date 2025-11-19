@@ -25,6 +25,16 @@
       <fieldset class="border border-gray-300 rounded-lg p-4">
         <legend class="text-base font-semibold text-gray-700 px-2">Información General</legend>
 
+        <!-- Info Banner -->
+        <div class="bg-red-50 border-l-4 border-red-500 p-3 mb-4 rounded-r">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-info-circle text-red-500 mt-0.5"></i>
+            <p class="text-sm text-red-900">
+              Configuración básica del restaurante: identificación, tiempo de preparación y visibilidad en la plataforma.
+            </p>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Restaurant Code -->
           <div class="flex flex-col gap-2">
@@ -50,6 +60,7 @@
               formControlName="neighborhood"
               placeholder="Ej: Centro"
             />
+            <small class="text-red-500">**Exclusivo Integración GC**</small>
           </div>
 
           <!-- Preparing Time -->
@@ -99,11 +110,25 @@
       <fieldset class="border border-gray-300 rounded-lg p-4">
         <legend class="text-base font-semibold text-gray-700 px-2">Configuración de Pedidos</legend>
 
+        <!-- Info Banner -->
+        <div class="bg-red-50 border-l-4 border-red-500 p-3 mb-4 rounded-r">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-info-circle text-red-500 mt-0.5"></i>
+            <p class="text-sm text-red-900">
+              Parámetros de operación: multiorden, límites de productos y tiempos de espera para asignación de repartidores.
+            </p>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Multi Order Quantity -->
           <div class="flex flex-col gap-2">
-            <label for="cantMultiOrder" class="text-sm font-medium text-gray-700">
+            <label for="cantMultiOrder" class="flex items-center gap-2 text-sm font-medium text-gray-700">
               Cantidad Multi-Orden <span class="text-red-500">*</span>
+              <i class="pi pi-info-circle text-gray-400 cursor-help"
+                 pTooltip="Cantidad de pedidos simultáneos que puede manejar un repartidor"
+                 tooltipPosition="top">
+              </i>
             </label>
             <p-inputnumber
               inputId="cantMultiOrder"
@@ -118,8 +143,12 @@
 
           <!-- Minimum Next Order -->
           <div class="flex flex-col gap-2">
-            <label for="minNextOrder" class="text-sm font-medium text-gray-700">
+            <label for="minNextOrder" class="flex items-center gap-2 text-sm font-medium text-gray-700">
               Mínimo Próximo Pedido <span class="text-red-500">*</span>
+              <i class="pi pi-info-circle text-gray-400 cursor-help"
+                 pTooltip="Intervalo de minutos entre una orden y otra para asignarlas al mismo repartidor"
+                 tooltipPosition="top">
+              </i>
             </label>
             <p-inputnumber
               inputId="minNextOrder"
@@ -134,8 +163,12 @@
 
           <!-- Maximum Products -->
           <div class="flex flex-col gap-2">
-            <label for="maxProducts" class="text-sm font-medium text-gray-700">
+            <label for="maxProducts" class="flex items-center gap-2 text-sm font-medium text-gray-700">
               Productos Máximos por Pedido <span class="text-red-500">*</span>
+              <i class="pi pi-info-circle text-gray-400 cursor-help"
+                 pTooltip="Cantidad máxima de productos permitidos en una orden"
+                 tooltipPosition="top">
+              </i>
             </label>
             <p-inputnumber
               inputId="maxProducts"
@@ -150,8 +183,12 @@
 
           <!-- Maximum Wait Time -->
           <div class="flex flex-col gap-2">
-            <label for="orderMaxAwaitTime" class="text-sm font-medium text-gray-700">
+            <label for="orderMaxAwaitTime" class="flex items-center gap-2 text-sm font-medium text-gray-700">
               Tiempo Máximo de Espera (minutos) <span class="text-red-500">*</span>
+              <i class="pi pi-info-circle text-gray-400 cursor-help"
+                 pTooltip="Cantidad de minutos que una orden puede permanecer sin repartidor antes de ampliar el radio de búsqueda"
+                 tooltipPosition="top">
+              </i>
             </label>
             <p-inputnumber
               inputId="orderMaxAwaitTime"
@@ -171,17 +208,30 @@
       <fieldset class="border border-gray-300 rounded-lg p-4">
         <legend class="text-base font-semibold text-gray-700 px-2">Configuración de Pagos</legend>
 
+        <!-- Info Banner -->
+        <div class="bg-red-50 border-l-4 border-red-500 p-3 mb-4 rounded-r">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-info-circle text-red-500 mt-0.5"></i>
+            <p class="text-sm text-red-900">
+              Configuración exclusiva para integración con GC Pay: métodos de pago digital y desarrollo.
+            </p>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Allow BipPay -->
-          <div class="flex items-center gap-2">
-            <p-checkbox
-              inputId="allowBipPay"
-              formControlName="allowBipPay"
-              [binary]="true"
-            />
-            <label for="allowBipPay" class="text-sm font-medium text-gray-700">
-              Permitir BipPay
-            </label>
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <p-checkbox
+                inputId="allowBipPay"
+                formControlName="allowBipPay"
+                [binary]="true"
+              />
+              <label for="allowBipPay" class="text-sm font-medium text-gray-700">
+                Permitir BipPay
+              </label>
+            </div>
+            <small class="text-red-500">**Exclusivo Integración GC**</small>
           </div>
 
           <!-- POS GC BPay Code -->
@@ -195,6 +245,7 @@
               formControlName="codePosGCBPay"
               placeholder="Código POS"
             />
+            <small class="text-red-500">**Exclusivo Integración GC**</small>
           </div>
         </div>
       </fieldset>
@@ -202,6 +253,16 @@
       <!-- Delivery Configuration Section -->
       <fieldset class="border border-gray-300 rounded-lg p-4">
         <legend class="text-base font-semibold text-gray-700 px-2">Configuración de Delivery</legend>
+
+        <!-- Info Banner -->
+        <div class="bg-red-50 border-l-4 border-red-500 p-3 mb-4 rounded-r">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-info-circle text-red-500 mt-0.5"></i>
+            <p class="text-sm text-red-900">
+              Distancia en metros entre dos órdenes. (MultiOrden)
+            </p>
+          </div>
+        </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Client Delivery Radius 1 -->
@@ -286,6 +347,16 @@
       <fieldset class="border border-gray-300 rounded-lg p-4">
         <legend class="text-base font-semibold text-gray-700 px-2">Características Avanzadas</legend>
 
+        <!-- Info Banner -->
+        <div class="bg-red-50 border-l-4 border-red-500 p-3 mb-4 rounded-r">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-info-circle text-red-500 mt-0.5"></i>
+            <p class="text-sm text-red-900">
+              Configuración de servicios externos y precios dinámicos basados en demanda y condiciones del mercado.
+            </p>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Enable Signal Service -->
           <div class="flex items-center gap-2">
@@ -350,21 +421,34 @@
           </div>
 
           <!-- BPay Dev Mode -->
-          <div class="flex items-center gap-2">
-            <p-checkbox
-              inputId="bPayDev"
-              formControlName="bPayDev"
-              [binary]="true"
-            />
-            <label for="bPayDev" class="text-sm font-medium text-gray-700">
-              Modo Desarrollo BPay
-            </label>
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <p-checkbox
+                inputId="bPayDev"
+                formControlName="bPayDev"
+                [binary]="true"
+              />
+              <label for="bPayDev" class="text-sm font-medium text-gray-700">
+                Modo Desarrollo BPay
+              </label>
+            </div>
+            <small class="text-red-500">**Exclusivo Integración GC**</small>
           </div>
         </div>
       </fieldset>
 
       <!-- Schedule Configs Section -->
       <fieldset class="border border-gray-300 rounded-lg p-4">
+        <!-- Info Banner -->
+        <div class="bg-red-50 border-l-4 border-red-500 p-3 mb-4 rounded-r">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-info-circle text-red-500 mt-0.5"></i>
+            <p class="text-sm text-red-900">
+              Minutos de anticipación con los que se envía una orden programada al restaurante. (Por Canal)
+            </p>
+          </div>
+        </div>
+
         <div class="flex justify-between items-center mb-3">
           <legend class="text-base font-semibold text-gray-700">
             Configuraciones de Tiempo por Canal
@@ -421,6 +505,16 @@
 
       <!-- Driver Radius Configs Section -->
       <fieldset class="border border-gray-300 rounded-lg p-4">
+        <!-- Info Banner -->
+        <div class="bg-red-50 border-l-4 border-red-500 p-3 mb-4 rounded-r">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-info-circle text-red-500 mt-0.5"></i>
+            <p class="text-sm text-red-900">
+              Distancia máxima en metros desde la cual el repartidor puede marcar la entrega.
+            </p>
+          </div>
+        </div>
+
         <div class="flex justify-between items-center mb-3">
           <legend class="text-base font-semibold text-gray-700">
             Configuraciones de Radio de Conductor
@@ -471,6 +565,16 @@
 
       <!-- Payment Configs Section with Paginator -->
       <fieldset class="border border-gray-300 rounded-lg p-4">
+        <!-- Info Banner -->
+        <div class="bg-red-50 border-l-4 border-red-500 p-3 mb-4 rounded-r">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-info-circle text-red-500 mt-0.5"></i>
+            <p class="text-sm text-red-900">
+              Métodos de pago habilitados por canal: límites de órdenes y montos en efectivo permitidos.
+            </p>
+          </div>
+        </div>
+
         <div class="flex justify-between items-center mb-3">
           <legend class="text-base font-semibold text-gray-700">
             Configuraciones de Métodos de Pago

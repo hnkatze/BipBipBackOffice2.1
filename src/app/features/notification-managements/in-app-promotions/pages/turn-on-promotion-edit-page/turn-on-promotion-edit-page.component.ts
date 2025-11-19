@@ -171,6 +171,7 @@ export class TurnOnPromotionEditPageComponent implements OnInit {
 
     this.form = this.fb.group({
       // Básico
+      type: [3], // Turn On Promotion type
       criteriaId: [null, Validators.required],
       promotionMode: [PromotionMode.Discount, Validators.required],
 
@@ -473,6 +474,7 @@ export class TurnOnPromotionEditPageComponent implements OnInit {
 
     const mode = this.promotionMode();
     const formData: UpdateTurnOnPromotion = {
+      promotionType: 3, // Turn On Promotion global type
       criteriaId: this.form.value.criteriaId,
       type: mode === PromotionMode.Discount ? this.form.value.discountType : null,
       value: mode === PromotionMode.Discount ? this.convertDiscountValue() : 0,

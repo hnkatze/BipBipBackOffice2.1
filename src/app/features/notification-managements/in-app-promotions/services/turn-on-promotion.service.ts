@@ -56,14 +56,14 @@ export class TurnOnPromotionService {
    * Crea una nueva promoción Turn On
    */
   createTurnOnPromotion(data: CreateTurnOnPromotion): Observable<TurnOnPromotionResponse> {
-    return this.http.post<TurnOnPromotionResponse>(`${this.apiUrl}/turnOnPromotions`, data);
+    return this.http.post<TurnOnPromotionResponse>(`${this.apiUrl}`, data);
   }
 
   /**
    * Actualiza una promoción Turn On existente
    */
   updateTurnOnPromotion(id: number, data: UpdateTurnOnPromotion): Observable<TurnOnPromotionResponse> {
-    return this.http.put<TurnOnPromotionResponse>(`${this.apiUrl}/turnOnPromotions/${id}`, data);
+    return this.http.put<TurnOnPromotionResponse>(`${this.apiUrl}/${id}`, data);
   }
 
   /**

@@ -102,7 +102,7 @@
             <!-- Código de Restaurante -->
             <div>
               <label for="restCodPostGC" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                Código de Restaurante <span class="text-red-500">*</span>
+                Código de Restaurante <span class="text-gray-500">(Opcional)</span>
               </label>
               <input
                 id="restCodPostGC"
@@ -112,15 +112,12 @@
                 placeholder="Ingrese el Código"
                 class="w-full"
               />
-              @if (form.get('restCodPostGC')?.invalid && form.get('restCodPostGC')?.touched) {
-                <small class="text-red-500">El código es requerido</small>
-              }
             </div>
 
             <!-- Acrónimo -->
             <div>
               <label for="restShortName" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                Acrónimo <span class="text-red-500">*</span>
+                Acrónimo <span class="text-gray-500">(Opcional)</span>
               </label>
               <input
                 id="restShortName"
@@ -131,7 +128,7 @@
                 class="w-full"
               />
               @if (form.get('restShortName')?.invalid && form.get('restShortName')?.touched) {
-                <small class="text-red-500">El acrónimo es requerido</small>
+                <small class="text-red-500">El acrónimo no debe exceder 50 caracteres</small>
               }
             </div>
 

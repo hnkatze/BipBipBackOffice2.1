@@ -57,6 +57,7 @@ export class CoverageTabComponent implements OnInit {
   readonly dialogMode = signal<'create' | 'edit'>('create');
   readonly editingZone = signal<CoverageZone | null>(null);
   readonly selectedZoneType = signal<'restaurant' | 'driver'>('restaurant');
+  readonly mapFilter = signal<'all' | 'restaurant' | 'driver'>('all'); // Filter for map display
 
   // Coverage zones
   readonly restaurantZones = signal<CoverageZone[]>([]);
@@ -88,9 +89,26 @@ export class CoverageTabComponent implements OnInit {
       lat: zone.zoneLat,
       lon: zone.zoneLon,
       radius: zone.zoneRadius,
-      color: '#2196f3'
+      color: '#10b981' // Verde (green-500)
     }))
   );
+
+  // Computed: Filtered zones based on mapFilter
+  readonly filteredMapZones = computed<MapZone[]>(() => {
+    const filter = this.mapFilter();
+    const restZones = this.restaurantMapZones();
+    const driverZones = this.driverMapZones();
+
+    switch (filter) {
+      case 'restaurant':
+        return restZones;
+      case 'driver':
+        return driverZones;
+      case 'all':
+      default:
+        return [...restZones, ...driverZones];
+    }
+  });
 
   // Computed: Restaurant marker for map
   readonly restaurantMarker = computed<RestaurantMapMarker>(() => {
@@ -300,10 +318,13 @@ export class CoverageTabComponent implements OnInit {
    * Handle zone click from map
    */
   onMapZoneClick(zoneId: number): void {
-    // Find the zone in the appropriate array
-    const zone = this.selectedZoneType() === 'restaurant'
-      ? this.restaurantZones().find(z => z.zoneId === zoneId)
-      : this.driverZones().find(z => z.zoneId === zoneId);
+    // Try to find the zone in restaurant zones first
+    let zone = this.restaurantZones().find(z => z.zoneId === zoneId);
+
+    // If not found, try driver zones
+    if (!zone) {
+      zone = this.driverZones().find(z => z.zoneId === zoneId);
+    }
 
     if (zone) {
       this.openEditDialog(zone);

@@ -161,6 +161,7 @@ export class ProductRewardEditPageComponent implements OnInit {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     this.form = this.fb.group({
+      type: [4], // Product Reward type
       triggerId: [TriggerType.Product, Validators.required],
       brandId: [null, Validators.required],
       rewardType: [RewardType.None, Validators.required],
@@ -402,6 +403,7 @@ export class ProductRewardEditPageComponent implements OnInit {
       : null;
 
     const formData: UpdateProductReward = {
+      type: 4, // Product Reward
       triggerId: formValue.triggerId,
       brandId: formValue.brandId,
       rewardType: formValue.rewardType,

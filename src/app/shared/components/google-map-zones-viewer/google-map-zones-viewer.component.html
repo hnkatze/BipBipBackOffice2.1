@@ -14,7 +14,7 @@
     [center]="{ lat: centerCoords().lat, lng: centerCoords().lon }"
     [zoom]="initialZoom()"
   >
-    @for (zone of zones(); track zone.id) {
+    @for (zone of internalZones(); track zone._uniqueKey) {
       <map-circle
         [center]="{ lat: zone.lat, lng: zone.lon }"
         [radius]="zone.radius"

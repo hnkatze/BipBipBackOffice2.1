@@ -170,6 +170,7 @@ export class ProductRewardCreatePageComponent implements OnInit {
 
     this.form = this.fb.group({
       // Básicos
+      type: [4], // Product Reward type
       triggerId: [TriggerType.Product, Validators.required],
       brandId: [null, Validators.required],
       rewardType: [RewardType.None, Validators.required],
@@ -388,6 +389,7 @@ export class ProductRewardCreatePageComponent implements OnInit {
       : null;
 
     const formData: CreateProductReward = {
+      type: 4, // Product Reward
       triggerId: formValue.triggerId,
       brandId: formValue.brandId,
       rewardType: formValue.rewardType,

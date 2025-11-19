@@ -162,6 +162,7 @@ export interface ProductRewardResponse {
  * Create Product Reward - DTO para crear
  */
 export interface CreateProductReward {
+  type: number; // Promotion type identifier (4 = Product Reward)
   productCode: string;
   startTime: string;
   endTime: string;
@@ -183,6 +184,7 @@ export interface CreateProductReward {
  * Update Product Reward - DTO para actualizar
  */
 export interface UpdateProductReward {
+  type: number; // Promotion type identifier (4 = Product Reward)
   productCode: string;
   startTime: string;
   endTime: string;

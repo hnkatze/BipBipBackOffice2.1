@@ -132,6 +132,7 @@ export interface DragDropPromotionResponse {
  * Create Drag & Drop Promotion - DTO para crear
  */
 export interface CreateDragDropPromotion {
+  type: number; // Promotion type identifier (1 = Drag & Drop)
   title: string;
   description: string;
   banner: string;
@@ -154,6 +155,7 @@ export interface CreateDragDropPromotion {
  * Update Drag & Drop Promotion - DTO para actualizar
  */
 export interface UpdateDragDropPromotion {
+  type: number; // Promotion type identifier (1 = Drag & Drop)
   title: string;
   description: string;
   banner: string;

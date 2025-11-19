@@ -106,6 +106,7 @@ export interface TurnOnPromotionResponse {
  * Create Turn On Promotion - DTO para crear
  */
 export interface CreateTurnOnPromotion {
+  promotionType: number; // Global promotion type identifier (3 = Turn On)
   criteriaId: number;
   type: TurnOnDiscountType | null;
   value: number;
@@ -117,6 +118,7 @@ export interface CreateTurnOnPromotion {
  * Update Turn On Promotion - DTO para actualizar
  */
 export interface UpdateTurnOnPromotion {
+  promotionType: number; // Global promotion type identifier (3 = Turn On)
   criteriaId: number;
   type: TurnOnDiscountType | null;
   value: number;

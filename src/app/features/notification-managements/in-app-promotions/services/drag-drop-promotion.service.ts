@@ -82,7 +82,7 @@ export class DragDropPromotionService {
    */
   createDragDropPromotion(data: CreateDragDropPromotion): Observable<DragDropPromotionResponse> {
     return this.http.post<DragDropPromotionResponse>(
-      `${this.apiBaseUrl}Incentives/promotions`,
+      `${this.apiBaseUrl}Incentives`,
       data
     );
   }
@@ -92,7 +92,7 @@ export class DragDropPromotionService {
    */
   updateDragDropPromotion(id: number, data: UpdateDragDropPromotion): Observable<DragDropPromotionResponse> {
     return this.http.put<DragDropPromotionResponse>(
-      `${this.apiBaseUrl}Incentives/promotions/${id}`,
+      `${this.apiBaseUrl}Incentives/${id}`,
       data
     );
   }

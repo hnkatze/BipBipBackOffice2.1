@@ -14,17 +14,60 @@
   } @else {
     <!-- Google Maps Viewer -->
     <div class="mb-6">
+      <!-- Map Filter Buttons -->
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <p-button
+            [label]="'Todas (' + (restaurantZones().length + driverZones().length) + ')'"
+            [outlined]="mapFilter() !== 'all'"
+            [severity]="mapFilter() === 'all' ? 'primary' : 'secondary'"
+            size="small"
+            (onClick)="mapFilter.set('all')"
+          />
+          <p-button
+            [label]="'Restaurante (' + restaurantZones().length + ')'"
+            [outlined]="mapFilter() !== 'restaurant'"
+            [severity]="mapFilter() === 'restaurant' ? 'danger' : 'secondary'"
+            size="small"
+            (onClick)="mapFilter.set('restaurant')"
+          >
+            <i class="pi pi-building mr-2"></i>
+          </p-button>
+          <p-button
+            [label]="'Conductor (' + driverZones().length + ')'"
+            [outlined]="mapFilter() !== 'driver'"
+            [severity]="mapFilter() === 'driver' ? 'success' : 'secondary'"
+            size="small"
+            (onClick)="mapFilter.set('driver')"
+          >
+            <i class="pi pi-car mr-2"></i>
+          </p-button>
+        </div>
+        <p class="text-sm text-gray-500">
+          <i class="pi pi-info-circle mr-1"></i>
+          Haz clic en una zona del mapa para editarla
+        </p>
+      </div>
+
       <app-google-map-zones-viewer
-        [zones]="selectedZoneType() === 'restaurant' ? restaurantMapZones() : driverMapZones()"
+        [zones]="filteredMapZones()"
         [restaurantMarker]="restaurantMarker()"
         [centerCoords]="restaurantCoords()"
         [initialZoom]="13"
         (onZoneClick)="onMapZoneClick($event)"
       />
-      <p class="text-sm text-gray-500 mt-2">
-        <i class="pi pi-info-circle mr-1"></i>
-        Haz clic en una zona del mapa para editarla
-      </p>
+
+      <!-- Legend -->
+      <div class="flex items-center justify-end gap-4 text-sm mt-2">
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-full bg-[#fb0021] opacity-40 border-2 border-[#fb0021]"></div>
+          <span class="text-gray-600">Restaurante</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-full bg-[#10b981] opacity-40 border-2 border-[#10b981]"></div>
+          <span class="text-gray-600">Conductor</span>
+        </div>
+      </div>
     </div>
     <!-- Tabs for Restaurant vs Driver Zones -->
     <p-tabs

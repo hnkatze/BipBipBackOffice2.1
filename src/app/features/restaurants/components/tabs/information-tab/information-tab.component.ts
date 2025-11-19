@@ -105,8 +105,8 @@ export class InformationTabComponent implements OnInit {
       restCountryId: [null, [Validators.required]],
       restCityId: [null, [Validators.required]],
       restBrandId: [null, [Validators.required]],
-      restCodPostGC: ['', [Validators.required]],
-      restShortName: ['', [Validators.required, Validators.maxLength(50)]],
+      restCodPostGC: [''], // Opcional
+      restShortName: ['', [Validators.maxLength(50)]], // Opcional
       isHeadquarter: [false],
       restAddress: ['', [Validators.required]],
       accessPIN: ['', [Validators.required, Validators.minLength(4)]],

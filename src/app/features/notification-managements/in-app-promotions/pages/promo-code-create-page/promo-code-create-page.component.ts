@@ -17,11 +17,15 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 
 // Services & Models
 import { PromoCodeService } from '../../services/promo-code.service';
 import { CreatePromoCode, PromoCodeType, PROMO_CODE_TYPE_OPTIONS, PromoCodeItem } from '../../models/promo-code.model';
 import { GlobalDataService } from '@core/services/global-data.service';
+
+// Components
+import { ProductWithModifiersModalComponent } from '../../components/product-with-modifiers-modal/product-with-modifiers-modal.component';
 
 @Component({
   selector: 'app-promo-code-create-page',
@@ -40,7 +44,7 @@ import { GlobalDataService } from '@core/services/global-data.service';
     ToastModule,
     TableModule
   ],
-  providers: [MessageService],
+  providers: [MessageService, DialogService],
   templateUrl: './promo-code-create-page.component.html',
   styleUrl: './promo-code-create-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -50,6 +54,7 @@ export class PromoCodeCreatePageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly messageService = inject(MessageService);
+  private readonly dialogService = inject(DialogService);
   private readonly promoCodeService = inject(PromoCodeService);
   private readonly globalDataService = inject(GlobalDataService);
 
@@ -302,11 +307,26 @@ export class PromoCodeCreatePageComponent implements OnInit {
   // ============================================================================
 
   onOpenProductSelector(): void {
-    // TODO: Abrir modal de selección de productos
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Info',
-      detail: 'Modal de productos en desarrollo'
+    const ref = this.dialogService.open(ProductWithModifiersModalComponent, {
+      header: 'Agregar Producto',
+      width: '800px',
+      data: {
+        brands: this.brands()
+      }
+    });
+
+    ref?.onClose.subscribe((productData: PromoCodeItem | undefined) => {
+      if (productData) {
+        const products = [...this.selectedProducts()];
+        products.push(productData);
+        this.selectedProducts.set(products);
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Producto agregado correctamente'
+        });
+      }
     });
   }
 
@@ -314,6 +334,22 @@ export class PromoCodeCreatePageComponent implements OnInit {
     const products = [...this.selectedProducts()];
     products.splice(index, 1);
     this.selectedProducts.set(products);
+
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Producto eliminado',
+      detail: 'El producto fue removido de la lista'
+    });
+  }
+
+  getBrandName(brandId: number): string {
+    const brand = this.brands().find(b => b.id === brandId);
+    return brand?.name || `ID: ${brandId}`;
+  }
+
+  getProductName(productId: string): string {
+    // En producción, esto debería buscar en una lista de productos cargados
+    return productId;
   }
 
   // ============================================================================
@@ -346,11 +382,12 @@ export class PromoCodeCreatePageComponent implements OnInit {
     const formData: CreatePromoCode = {
       name: this.form.value.name,
       code: this.form.value.code.toUpperCase(), // Convertir a mayúsculas
+      promotionType: 2, // PromoCode global type
       description: this.form.value.description,
       startDate: this.formatDateToBackend(this.form.value.startDate),
       endDate: this.formatDateToBackend(this.form.value.endDate),
       minimumAmount: this.form.value.minimumAmount,
-      type: this.form.value.type,
+      type: this.form.value.type, // PromoCode type (1=Percentage, 2=Fixed, 3=FreeShipping, 4=Product)
       bankId: null,
       fundingTypeId: null,
       segmentId: null,

@@ -68,8 +68,7 @@ import { Product } from '@features/notification-managements/loyalty-program/mode
           [placeholder]="productPlaceholder"
           [filter]="true"
           filterPlaceholder="Buscar producto..."
-          [loading]="isLoadingProducts()"
-          [disabled]="!hasSelectedBrand()" />
+          [loading]="isLoadingProducts()" />
         @if (showProductError()) {
           <small class="text-danger-500">{{ productErrorMessage }}</small>
         }
@@ -127,11 +126,6 @@ export class SimpleProductSelectorComponent implements OnInit {
 
   readonly productOptions = computed(() => this.products());
 
-  readonly hasSelectedBrand = computed(() => {
-    const brandId = this.form.get(this.brandFieldName)?.value;
-    return brandId && brandId > 0;
-  });
-
   readonly showBrandError = computed(() => {
     const control = this.form.get(this.brandFieldName);
     return control?.invalid && (control?.dirty || control?.touched) || false;
@@ -150,17 +144,28 @@ export class SimpleProductSelectorComponent implements OnInit {
     // Watch for brand changes in form
     effect(() => {
       const brandId = this.form.get(this.brandFieldName)?.value;
-      if (brandId && brandId > 0) {
+      const productControl = this.form.get(this.productFieldName);
+
+      if (brandId !== null && brandId !== undefined && brandId !== '') {
         this.loadProducts(brandId);
+        productControl?.enable();
+      } else {
+        productControl?.disable();
+        this.products.set([]);
       }
     });
   }
 
   ngOnInit(): void {
-    // Load products if brand is already selected
+    // Initialize product control state
     const brandId = this.form.get(this.brandFieldName)?.value;
-    if (brandId && brandId > 0) {
+    const productControl = this.form.get(this.productFieldName);
+
+    if (brandId !== null && brandId !== undefined && brandId !== '') {
       this.loadProducts(brandId);
+      productControl?.enable();
+    } else {
+      productControl?.disable();
     }
   }
 
@@ -170,11 +175,15 @@ export class SimpleProductSelectorComponent implements OnInit {
 
   onBrandChange(brandId: number): void {
     // Clear product selection when brand changes
-    this.form.get(this.productFieldName)?.setValue('');
+    const productControl = this.form.get(this.productFieldName);
+    productControl?.setValue('');
     this.products.set([]);
 
-    if (brandId && brandId > 0) {
+    if (brandId !== null && brandId !== undefined) {
       this.loadProducts(brandId);
+      productControl?.enable();
+    } else {
+      productControl?.disable();
     }
   }
 

@@ -130,13 +130,14 @@ export interface PromoCodeResponse {
  * Create Promo Code - DTO para crear (formato de old)
  */
 export interface CreatePromoCode {
+  promotionType: number;          // Global promotion type (2 = PromoCode)
   name: string;
   code: string;
   description: string;
   startDate: string;              // "YYYY-MM-DDTHH:mm:ss" sin Z
   endDate: string;                // "YYYY-MM-DDTHH:mm:ss" sin Z
   minimumAmount: number;          // Puede ser 0
-  type: number;                   // 1, 2, 3, 4
+  type: number;                   // PromoCode type: 1, 2, 3, 4
   bankId: null;                   // Siempre null
   fundingTypeId: null;            // Siempre null
   segmentId: null;                // Siempre null
@@ -153,13 +154,14 @@ export interface CreatePromoCode {
  * Update Promo Code - DTO para actualizar (formato de old)
  */
 export interface UpdatePromoCode {
+  promotionType: number;          // Global promotion type (2 = PromoCode)
   name: string;
   code: string;
   description: string;
   startDate: string;
   endDate: string;
   minimumAmount: number;
-  type: number;
+  type: number;                   // PromoCode type: 1, 2, 3, 4
   bankId: null;
   fundingTypeId: null;
   segmentId: null;

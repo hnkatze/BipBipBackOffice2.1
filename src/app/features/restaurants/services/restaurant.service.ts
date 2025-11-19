@@ -319,21 +319,21 @@ export class RestaurantService {
    * Create a new coverage zone
    */
   createCoverageZone(restId: number, data: CreateCoverageZoneRequest): Observable<any> {
-    return this.dataService.post$(`Restaurant/${restId}/zone`, data);
+    return this.dataService.post$(`Restaurant/CreateCoverageZone?IdStore=${restId}`, data);
   }
 
   /**
    * Update an existing coverage zone
    */
   updateCoverageZone(zoneId: number, restId: number, data: UpdateCoverageZoneRequest): Observable<any> {
-    return this.dataService.put$(`Restaurant/${restId}/zone/${zoneId}`, data);
+    return this.dataService.put$(`Restaurant/UpdateCoverageZone?Id=${zoneId}&IdStore=${restId}`, data);
   }
 
   /**
    * Delete a coverage zone
    */
   deleteCoverageZone(zoneId: number): Observable<any> {
-    return this.dataService.delete$(`Restaurant/zone/${zoneId}`);
+    return this.dataService.delete$(`Restaurant/DeleteCoverageZone?Id=${zoneId}`);
   }
 
   /**

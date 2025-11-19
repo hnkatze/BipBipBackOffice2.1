@@ -107,7 +107,7 @@ export class PushInAppListPageComponent {
       if (this.cities().length === 0) {
         this.globalDataService.forceRefresh('citiesShort');
       }
-    }, { allowSignalWrites: true });
+    });
 
     // Setup search debounce
     this.searchSubject
@@ -122,8 +122,7 @@ export class PushInAppListPageComponent {
         this.loadPushInApps();
       });
 
-    // Cargar data inicial
-    this.loadPushInApps();
+    // La carga inicial la maneja el evento onLazyLoad de p-table
   }
 
   // ============================================================================
@@ -168,8 +167,11 @@ export class PushInAppListPageComponent {
   // ============================================================================
 
   onPageChange(event: any): void {
-    this.currentPageSignal.set(event.page + 1); // PrimeNG usa 0-based
-    this.pageSizeSignal.set(event.rows);
+    const page = event.page ?? 0; // PrimeNG usa 0-based, default a 0
+    const rows = event.rows ?? 10; // Default pageSize
+
+    this.currentPageSignal.set(page + 1); // Convertir a 1-based para el API
+    this.pageSizeSignal.set(rows);
     this.loadPushInApps();
   }
 

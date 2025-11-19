@@ -141,8 +141,11 @@
 
         <!-- Tabla de productos seleccionados -->
         @if (selectedProducts().length > 0) {
-          <p-table [value]="selectedProducts()" [tableStyle]="{'min-width': '50rem'}">
-            <ng-template #header>
+          <p-table
+            [value]="selectedProducts()"
+            [tableStyle]="{'min-width': '50rem'}"
+            [size]="'small'">
+            <ng-template pTemplate="header">
               <tr>
                 <th>Marca</th>
                 <th>Producto</th>
@@ -151,12 +154,36 @@
                 <th style="width: 4rem">Acciones</th>
               </tr>
             </ng-template>
-            <ng-template #body let-product let-rowIndex="rowIndex">
+            <ng-template pTemplate="body" let-product let-rowIndex="rowIndex">
               <tr>
-                <td>{{ product.brandId }}</td>
-                <td>{{ product.productId }}</td>
-                <td>{{ product.quantity }}</td>
-                <td>{{ product.modifiers.length }}</td>
+                <td>
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-tag text-primary-500"></i>
+                    <span class="font-medium">{{ getBrandName(product.brandId) }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-shopping-cart text-blue-500"></i>
+                    <span>{{ getProductName(product.productId) }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="font-semibold">{{ product.quantity }}</span>
+                </td>
+                <td>
+                  @if (product.modifiers && product.modifiers.length > 0) {
+                    <div class="flex flex-col gap-1">
+                      @for (modifier of product.modifiers; track $index) {
+                        <span class="text-sm text-gray-600 dark:text-gray-400">
+                          • {{ modifier.modifierId }} (x{{ modifier.quantity }})
+                        </span>
+                      }
+                    </div>
+                  } @else {
+                    <span class="text-gray-400 text-sm">Sin modificadores</span>
+                  }
+                </td>
                 <td>
                   <p-button
                     icon="pi pi-trash"
@@ -164,14 +191,17 @@
                     [text]="true"
                     [rounded]="true"
                     (onClick)="onRemoveProduct(rowIndex)"
-                  />
+                    pTooltip="Eliminar producto"
+                    tooltipPosition="top" />
                 </td>
               </tr>
             </ng-template>
           </p-table>
         } @else {
-          <div class="text-center py-6 text-gray-500">
-            No hay productos seleccionados
+          <div class="flex flex-col items-center gap-3 py-8">
+            <i class="pi pi-inbox text-4xl text-gray-400"></i>
+            <p class="text-gray-600 dark:text-gray-400 m-0">No hay productos seleccionados</p>
+            <p class="text-sm text-gray-500">Haz clic en "Seleccionar Productos" para agregar productos</p>
           </div>
         }
       </div>

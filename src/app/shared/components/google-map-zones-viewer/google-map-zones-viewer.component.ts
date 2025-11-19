@@ -7,7 +7,10 @@ import {
   output,
   signal,
   effect,
-  ChangeDetectionStrategy
+  computed,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GoogleMap, GoogleMapsModule } from '@angular/google-maps';
@@ -55,6 +58,7 @@ export interface RestaurantMapMarker {
 })
 export class GoogleMapZonesViewerComponent implements AfterViewInit, OnDestroy {
   @ViewChild(GoogleMap) googleMap!: GoogleMap;
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // Inputs
   readonly zones = input<MapZone[]>([]);
@@ -67,6 +71,15 @@ export class GoogleMapZonesViewerComponent implements AfterViewInit, OnDestroy {
 
   // State
   readonly isLoading = signal<boolean>(true);
+
+  // Internal zones with unique keys for proper re-rendering
+  readonly internalZones = computed(() => {
+    const zones = this.zones();
+    return zones.map(zone => ({
+      ...zone,
+      _uniqueKey: `${zone.id}_${zone.lat}_${zone.lon}_${Date.now()}`
+    }));
+  });
 
   // Map options
   readonly mapOptions: google.maps.MapOptions = {
@@ -101,7 +114,7 @@ export class GoogleMapZonesViewerComponent implements AfterViewInit, OnDestroy {
   private circles: Map<number, google.maps.Circle> = new Map();
 
   constructor() {
-    // Effect: Update map when zones change
+    // Effect: Update circle click listeners when zones change
     effect(() => {
       const zones = this.zones();
       if (this.googleMap?.googleMap) {

@@ -1,0 +1,187 @@
+<div class="flex flex-col gap-6 p-6">
+  <!-- Header -->
+  <div class="flex flex-col gap-2">
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white m-0">
+      Agregar Producto
+    </h2>
+    <p class="text-gray-600 dark:text-gray-400">
+      Selecciona un producto y sus modificadores opcionales
+    </p>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="form" class="flex flex-col gap-6">
+
+    <!-- Product Selector -->
+    <app-simple-product-selector
+      [form]="form"
+      [brandsData]="brandsData()"
+      brandFieldName="brandId"
+      productFieldName="productId"
+      brandLabel="Marca"
+      productLabel="Producto"
+      brandPlaceholder="Seleccione marca"
+      productPlaceholder="Seleccione producto"
+      brandHelperText="Marca del producto"
+      productHelperText="Producto que se agrega al código promocional" />
+
+    <!-- Quantity -->
+    <div class="flex flex-col gap-2">
+      <label for="quantity" class="font-medium text-gray-900 dark:text-white">
+        Cantidad <span class="text-danger-500">*</span>
+      </label>
+      <p-inputnumber
+        id="quantity"
+        formControlName="quantity"
+        [min]="1"
+        [showButtons]="true"
+        placeholder="1" />
+      @if (hasError('quantity')) {
+        <small class="text-danger-500">La cantidad debe ser al menos 1</small>
+      }
+      <small class="text-gray-500">Cantidad de productos requeridos</small>
+    </div>
+
+    <!-- Modifiers Section -->
+    @if (hasSelectedProduct()) {
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <div class="flex flex-col gap-1">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white m-0">
+              Modificadores (Opcional)
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Agrega modificadores específicos si el producto los requiere
+            </p>
+          </div>
+          @if (hasModifiers()) {
+            <p-button
+              label="Agregar Modificador"
+              icon="pi pi-plus"
+              [outlined]="true"
+              size="small"
+              (onClick)="addModifier()" />
+          }
+        </div>
+
+        <!-- Loading Modifiers -->
+        @if (isLoadingModifiers()) {
+          <div class="flex items-center justify-center py-8">
+            <i class="pi pi-spin pi-spinner text-3xl text-primary-500"></i>
+          </div>
+        }
+
+        <!-- No Modifiers Available -->
+        @if (!isLoadingModifiers() && !hasModifiers() && hasSelectedProduct()) {
+          <div class="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <i class="pi pi-info-circle text-blue-600 dark:text-blue-400"></i>
+            <span class="text-sm text-blue-700 dark:text-blue-300">
+              Este producto no tiene modificadores disponibles
+            </span>
+          </div>
+        }
+
+        <!-- Modifiers List -->
+        @if (hasModifiers() && modifiersArray.length === 0) {
+          <div class="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <i class="pi pi-info-circle text-gray-600 dark:text-gray-400"></i>
+            <span class="text-sm text-gray-700 dark:text-gray-300">
+              No hay modificadores agregados. Haz clic en "Agregar Modificador" para añadir uno.
+            </span>
+          </div>
+        }
+
+        <!-- Modifiers FormArray -->
+        @if (hasModifiers() && modifiersArray.length > 0) {
+          <div class="flex flex-col gap-4" [formGroup]="form">
+            @for (modifierGroup of modifiersArray.controls; track $index) {
+              <div [formGroup]="$any(modifierGroup)" class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+
+                <!-- Modifier Selection -->
+                <div class="flex flex-col gap-2">
+                  <label [for]="'modifier-' + $index" class="font-medium text-gray-900 dark:text-white">
+                    Modificador <span class="text-danger-500">*</span>
+                  </label>
+                  <p-select
+                    [id]="'modifier-' + $index"
+                    formControlName="modifierId"
+                    [options]="modifiersList()"
+                    optionLabel="name"
+                    optionValue="modifierId"
+                    placeholder="Seleccione modificador"
+                    [filter]="true"
+                    filterPlaceholder="Buscar..." />
+                  @if (hasError('modifierId', $index)) {
+                    <small class="text-danger-500">Campo requerido</small>
+                  }
+                </div>
+
+                <!-- Option Selection -->
+                <div class="flex flex-col gap-2">
+                  <label [for]="'option-' + $index" class="font-medium text-gray-900 dark:text-white">
+                    Opción <span class="text-danger-500">*</span>
+                  </label>
+                  <p-select
+                    [id]="'option-' + $index"
+                    formControlName="modifierOptionId"
+                    [options]="getModifierOptions($index)"
+                    optionLabel="name"
+                    optionValue="modifierOptionId"
+                    placeholder="Seleccione opción"
+                    [disabled]="!modifierGroup.get('modifierId')?.value"
+                    [filter]="true"
+                    filterPlaceholder="Buscar..." />
+                  @if (hasError('modifierOptionId', $index)) {
+                    <small class="text-danger-500">Campo requerido</small>
+                  }
+                </div>
+
+                <!-- Quantity + Remove Button -->
+                <div class="flex gap-2 items-start">
+                  <div class="flex-1 flex flex-col gap-2">
+                    <label [for]="'mod-quantity-' + $index" class="font-medium text-gray-900 dark:text-white">
+                      Cantidad <span class="text-danger-500">*</span>
+                    </label>
+                    <p-inputnumber
+                      [id]="'mod-quantity-' + $index"
+                      formControlName="quantity"
+                      [min]="1"
+                      [showButtons]="true"
+                      placeholder="1" />
+                  </div>
+
+                  <!-- Remove Button -->
+                  <div class="flex items-end h-full">
+                    <p-button
+                      icon="pi pi-trash"
+                      severity="danger"
+                      [text]="true"
+                      [rounded]="true"
+                      (onClick)="removeModifier($index)"
+                      pTooltip="Eliminar modificador"
+                      tooltipPosition="top"
+                      class="mt-auto" />
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </form>
+
+  <!-- Actions -->
+  <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+    <p-button
+      label="Cancelar"
+      [outlined]="true"
+      severity="secondary"
+      (onClick)="onCancel()" />
+    <p-button
+      label="Agregar Producto"
+      icon="pi pi-check"
+      (onClick)="onSubmit()"
+      [disabled]="form.invalid || !hasSelectedProduct()" />
+  </div>
+</div>

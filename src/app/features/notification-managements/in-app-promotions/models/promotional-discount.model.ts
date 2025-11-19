@@ -89,6 +89,7 @@ export interface PromotionalDiscountResponse {
  * Create Promotional Discount - DTO para crear
  */
 export interface CreatePromotionalDiscount {
+  type: number; // Promotion type identifier (5 = Promotional Discount)
   discountType: DiscountType;
   discountValue: number;
   deliveryCost: number;
@@ -104,6 +105,7 @@ export interface CreatePromotionalDiscount {
  * Update Promotional Discount - DTO para actualizar
  */
 export interface UpdatePromotionalDiscount {
+  type: number; // Promotion type identifier (5 = Promotional Discount)
   discountType: DiscountType;
   discountValue: number;
   deliveryCost: number;
