@@ -1,0 +1,102 @@
+<p-table
+  [value]="drivers()"
+  [tableStyle]="{ 'min-width': '60rem' }"
+  styleClass="p-datatable-sm"
+>
+  <ng-template pTemplate="header">
+    <tr>
+      <th>Código</th>
+      <th>Nombre</th>
+      <th>Teléfono</th>
+      <th>Email</th>
+      <th>País/Ciudad</th>
+      <th>Base</th>
+      <th>Fecha Registro</th>
+      <th>Estado</th>
+      <th class="text-center" style="width: 4rem">Acciones</th>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-driver>
+    <tr>
+      <td>
+        <span class="font-mono text-sm">{{ driver.driverCode }}</span>
+      </td>
+      <td>
+        <span class="font-semibold">{{ driver.name }}</span>
+      </td>
+      <td>{{ driver.phone }}</td>
+      <td>{{ driver.email }}</td>
+      <td>
+        <div class="text-sm">
+          <div>{{ driver.countryName }}</div>
+          <div class="text-muted">{{ driver.cityName }}</div>
+        </div>
+      </td>
+      <td>{{ driver.baseAsign || 'N/A' }}</td>
+      <td>{{ driver.dateRegis | date: 'dd/MM/yyyy' }}</td>
+      <td>
+        <app-registered-driver-status-badge
+          [status]="driver.status"
+          [isPenalized]="driver.isPenalized"
+        />
+      </td>
+      <td class="text-center">
+        <p-button
+          icon="pi pi-ellipsis-v"
+          [text]="true"
+          [rounded]="true"
+          (onClick)="actionsMenu.toggle($event); currentDriverId.set(driver.id); currentDriver.set(driver)"
+        />
+        <p-popover #actionsMenu>
+          <div class="flex flex-col gap-1 p-2 min-w-[180px]">
+            <p-button
+              label="Ver detalles"
+              icon="pi pi-eye"
+              [text]="true"
+              size="small"
+              styleClass="w-full justify-start"
+              (onClick)="onViewDetails(driver); actionsMenu.hide()"
+            />
+            <p-button
+              label="Editar"
+              icon="pi pi-pencil"
+              [text]="true"
+              severity="secondary"
+              size="small"
+              styleClass="w-full justify-start"
+              (onClick)="onEdit(currentDriverId()); actionsMenu.hide()"
+            />
+            <p-button
+              [label]="driver.status ? 'Inactivar' : 'Activar'"
+              [icon]="driver.status ? 'pi pi-ban' : 'pi pi-check'"
+              [text]="true"
+              [severity]="driver.status ? 'warn' : 'success'"
+              size="small"
+              styleClass="w-full justify-start"
+              (onClick)="onToggleStatus(currentDriver()!); actionsMenu.hide()"
+            />
+            <p-button
+              label="Eliminar"
+              icon="pi pi-trash"
+              [text]="true"
+              severity="danger"
+              size="small"
+              styleClass="w-full justify-start"
+              (onClick)="onDelete(currentDriverId()); actionsMenu.hide()"
+            />
+          </div>
+        </p-popover>
+      </td>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="9" class="text-center py-5">
+        <i class="pi pi-inbox text-4xl text-muted mb-3"></i>
+        <p class="text-muted">No se encontraron drivers registrados</p>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>

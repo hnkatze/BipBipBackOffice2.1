@@ -82,7 +82,7 @@ export class DragDropPromotionService {
    */
   createDragDropPromotion(data: CreateDragDropPromotion): Observable<DragDropPromotionResponse> {
     return this.http.post<DragDropPromotionResponse>(
-      `${this.apiBaseUrl}Incentives`,
+      `${this.apiBaseUrl}Incentives/promotions`,
       data
     );
   }

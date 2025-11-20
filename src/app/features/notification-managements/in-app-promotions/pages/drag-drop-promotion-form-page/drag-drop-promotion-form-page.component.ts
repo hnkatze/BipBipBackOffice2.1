@@ -21,6 +21,7 @@ import { DragDropPromotionService } from '../../services/drag-drop-promotion.ser
 import { CreateDragDropPromotion, UpdateDragDropPromotion, DragDropPromotionResponse } from '../../models/drag-drop-promotion.model';
 import { GlobalDataService } from '@core/services/global-data.service';
 import { ImageUploadService } from '@shared/services/image-upload.service';
+import { PromoCodeService } from '../../services/promo-code.service';
 
 // Components
 import { DragDropPromotionPreviewComponent, PromotionPreviewData } from '../../components/drag-drop-promotion-preview/drag-drop-promotion-preview.component';
@@ -55,6 +56,7 @@ export class DragDropPromotionFormPageComponent implements OnInit {
   private readonly dragDropPromotionService = inject(DragDropPromotionService);
   private readonly globalDataService = inject(GlobalDataService);
   private readonly imageUploadService = inject(ImageUploadService);
+  private readonly promoCodeService = inject(PromoCodeService);
 
   // ============================================================================
   // SIGNALS - Estado
@@ -66,6 +68,7 @@ export class DragDropPromotionFormPageComponent implements OnInit {
   readonly isSaving = signal<boolean>(false);
   readonly isUploadingImage = signal<boolean>(false);
   readonly productImagePreview = signal<string>('');
+  readonly promoCodesOptions = signal<{ code: string; description: string }[]>([]);
 
   // Data global
   readonly brands = this.globalDataService.brands;
@@ -102,7 +105,7 @@ export class DragDropPromotionFormPageComponent implements OnInit {
   // ============================================================================
 
   readonly pageTitle = computed(() =>
-    this.isEditMode() ? 'Editar Promoción Drag & Drop' : 'Nueva Promoción Drag & Drop'
+    this.isEditMode() ? 'Editar Promoción En App' : 'Nueva Promoción En App'
   );
 
   readonly submitButtonLabel = computed(() =>
@@ -124,13 +127,10 @@ export class DragDropPromotionFormPageComponent implements OnInit {
     }))
   );
 
-  readonly isActionTypeRedirect = computed(() =>
-    this.form?.get('actionType')?.value === 'redirect'
-  );
-
-  readonly isActionTypeClipboard = computed(() =>
-    this.form?.get('actionType')?.value === 'clipboard'
-  );
+  readonly isActionTypeClipboard = computed(() => {
+    const values = this.formValues();
+    return values.actionType === 'clipboard';
+  });
 
   // ============================================================================
   // PREVIEW DATA
@@ -186,6 +186,48 @@ export class DragDropPromotionFormPageComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.checkEditMode();
+    this.loadPromoCodesOptions();
+
+    // 🔍 DEBUG: Suscribirse a cambios del form para rastrear su estado
+    this.form.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        console.log('📝 Form value cambió:', this.form.value);
+        console.log('✅ Form valid:', this.form.valid);
+        console.log('❌ Form invalid:', this.form.invalid);
+        console.log('🖼️ mediaUrl:', this.form.get('mediaUrl')?.value);
+        console.log('🔧 mediaUrl errors:', this.form.get('mediaUrl')?.errors);
+
+        // 🔍 Mostrar TODOS los campos con errores
+        console.log('🚨 Campos con errores:');
+        Object.keys(this.form.controls).forEach(key => {
+          const control = this.form.get(key);
+          if (control?.errors) {
+            console.log(`   ❌ ${key}:`, control.errors, '| Value:', control.value);
+          }
+        });
+      });
+  }
+
+  /**
+   * Cargar opciones de promo codes para el selector
+   */
+  private loadPromoCodesOptions(): void {
+    this.promoCodeService.getPromoCodesSimple()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (promoCodes) => {
+          this.promoCodesOptions.set(promoCodes);
+        },
+        error: (error) => {
+          console.error('Error cargando promo codes:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudieron cargar los códigos promocionales'
+          });
+        }
+      });
   }
 
   // ============================================================================
@@ -227,6 +269,19 @@ export class DragDropPromotionFormPageComponent implements OnInit {
 
     // Inicializar media positions para el tipo por defecto
     this.updateAvailableMediaPositions('6x4');
+
+    // 🔍 DEBUG: Mostrar estado inicial del form
+    console.log('🚀 Form inicializado:');
+    console.log('   - Form value:', this.form.value);
+    console.log('   - Form valid:', this.form.valid);
+    console.log('   - Form invalid:', this.form.invalid);
+    console.log('   - Campos requeridos y su estado:');
+    Object.keys(this.form.controls).forEach(key => {
+      const control = this.form.get(key);
+      if (control?.hasError('required')) {
+        console.log(`     ❌ ${key}: requerido pero vacío`);
+      }
+    });
 
     // Configurar validación de end date
     const endDateControl = this.form.get('promoEndDate');
@@ -377,25 +432,32 @@ export class DragDropPromotionFormPageComponent implements OnInit {
   }
 
   private updateActionTypeValidations(actionType: string): void {
-    const productIdControl = this.form.get('productId');
+    console.log('🔄 updateActionTypeValidations llamado con actionType:', actionType);
+
     const promoCodeControl = this.form.get('promoCode');
 
-    if (actionType === 'redirect') {
-      productIdControl?.setValidators([Validators.required]);
+    console.log('📋 promoCodesOptions length:', this.promoCodesOptions().length);
+
+    if (actionType === 'clipboard') {
+      console.log('📋 Modo: CLIPBOARD');
+      promoCodeControl?.setValidators([Validators.required]);
+      console.log('   - promoCode requerido:', promoCodeControl?.hasError('required'));
+      console.log('   - promoCode value:', promoCodeControl?.value);
+    } else {
+      // Si no es clipboard, limpiar validaciones y valor
+      console.log('➡️ Modo: REDIRECT (o ninguno)');
       promoCodeControl?.clearValidators();
       if (!this.isEditMode()) {
         promoCodeControl?.setValue('');
       }
-    } else if (actionType === 'clipboard') {
-      promoCodeControl?.setValidators([Validators.required]);
-      productIdControl?.clearValidators();
-      if (!this.isEditMode()) {
-        productIdControl?.setValue('');
-      }
     }
 
-    productIdControl?.updateValueAndValidity();
     promoCodeControl?.updateValueAndValidity();
+
+    console.log('✅ Después de updateValueAndValidity:');
+    console.log('   - form.valid:', this.form.valid);
+    console.log('   - form.invalid:', this.form.invalid);
+    console.log('   - promoCode errors:', promoCodeControl?.errors);
   }
 
   // ============================================================================
@@ -447,7 +509,6 @@ export class DragDropPromotionFormPageComponent implements OnInit {
 
   private createPromotion(): void {
     const formData: CreateDragDropPromotion = {
-      type: 1, // Drag & Drop Promotion
       title: this.form.value.title,
       description: this.form.value.description || '',
       banner: this.form.value.banner,
@@ -504,7 +565,6 @@ export class DragDropPromotionFormPageComponent implements OnInit {
     }
 
     const formData: UpdateDragDropPromotion = {
-      type: 1, // Drag & Drop Promotion
       title: this.form.value.title,
       description: this.form.value.description || '',
       banner: this.form.value.banner,
@@ -625,9 +685,21 @@ export class DragDropPromotionFormPageComponent implements OnInit {
       .subscribe({
         next: (url) => {
           this.isUploadingImage.set(false);
+
+          console.log('🎉 Imagen subida exitosamente a S3!');
+          console.log('🔗 URL recibida:', url);
+
           this.form.patchValue({
             mediaUrl: url  // Guardar en mediaUrl
           });
+
+          console.log('📝 Form después de patchValue:');
+          console.log('   - mediaUrl value:', this.form.get('mediaUrl')?.value);
+          console.log('   - mediaUrl errors:', this.form.get('mediaUrl')?.errors);
+          console.log('   - form.valid:', this.form.valid);
+          console.log('   - form.invalid:', this.form.invalid);
+          console.log('   - Form completo:', this.form.value);
+
           this.messageService.add({
             severity: 'success',
             summary: 'Éxito',

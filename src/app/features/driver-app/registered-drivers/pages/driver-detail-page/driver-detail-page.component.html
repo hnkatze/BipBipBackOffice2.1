@@ -1,0 +1,223 @@
+<div class="driver-detail-page p-4">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems()" />
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="mb-4">
+      <p-skeleton height="60px" styleClass="mb-3" />
+      <p-skeleton height="400px" />
+    </div>
+  }
+
+  <!-- Content -->
+  @if (driverDetail() && !loading()) {
+    <!-- Header with Back Button -->
+    <div class="flex justify-between items-center mb-6">
+      <div class="flex items-center gap-3">
+        <p-button
+          icon="pi pi-arrow-left"
+          [text]="true"
+          [rounded]="true"
+          (onClick)="goBack()"
+        />
+        <h1 class="text-2xl font-bold m-0">
+          Driver: {{ driverDetail()!.driverFullName }}
+        </h1>
+      </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="border border-surface-border rounded-lg bg-surface-card overflow-hidden">
+      <!-- Card Header with Actions -->
+      <div class="flex items-center justify-between border-b border-surface-border px-4 py-3">
+        <div class="flex-1">
+          <p class="text-lg font-semibold m-0">Driver #{{ driverDetail()!.driverId }}</p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <p-button
+            label="Agregar Cupón"
+            [text]="true"
+            severity="secondary"
+            (onClick)="openCouponsDialog()"
+          />
+
+          @if (isPenalized()) {
+            <p-button
+              label="Despenalizar"
+              icon="pi pi-unlock"
+              [text]="true"
+              severity="success"
+              (onClick)="openUnpenalizeDialog()"
+            />
+          } @else {
+            <p-button
+              label="Penalizar"
+              icon="pi pi-ban"
+              [text]="true"
+              severity="danger"
+              (onClick)="openPenaltyDialog()"
+            />
+          }
+
+          <p-button
+            label="Recordar Documentos"
+            icon="pi pi-send"
+            [text]="true"
+            severity="warn"
+            (onClick)="remindDocuments()"
+          />
+        </div>
+      </div>
+
+      <!-- Datos Generales -->
+      <div class="border-b border-surface-border px-4 py-4">
+        <h3 class="text-base font-semibold mb-4">Datos Generales:</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div>
+            <label class="text-sm text-muted block mb-1">Usuario</label>
+            <p class="text-base m-0">{{ driverDetail()!.driverUserName }}</p>
+          </div>
+
+          <div>
+            <label class="text-sm text-muted block mb-1">Base asignada</label>
+            <p class="text-base m-0">{{ driverDetail()!.assignedHeadquarters || 'N/A' }}</p>
+          </div>
+
+          <div>
+            <label class="text-sm text-muted block mb-1">Estado</label>
+            <app-registered-driver-status-badge
+              [status]="driverDetail()!.driverStatus"
+              [isPenalized]="isPenalized()"
+            />
+          </div>
+
+          <div>
+            <label class="text-sm text-muted block mb-1">Teléfono</label>
+            <p class="text-base m-0">{{ driverDetail()!.driverPhone }}</p>
+          </div>
+
+          <div>
+            <label class="text-sm text-muted block mb-1">Email</label>
+            <p class="text-base m-0">{{ driverDetail()!.driverEmail }}</p>
+          </div>
+
+          <div>
+            <label class="text-sm text-muted block mb-1">País</label>
+            <p class="text-base m-0">{{ driverDetail()!.countryName }}</p>
+          </div>
+
+          <div>
+            <label class="text-sm text-muted block mb-1">Ciudad</label>
+            <p class="text-base m-0">{{ driverDetail()!.cityName }}</p>
+          </div>
+
+          <div>
+            <label class="text-sm text-muted block mb-1">Fecha de Registro</label>
+            <p class="text-base m-0">{{ driverDetail()!.driverCreatedAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+
+          <div>
+            <label class="text-sm text-muted block mb-1">DNI</label>
+            <p class="text-base m-0">{{ driverDetail()!.driverDNI || 'No registrado' }}</p>
+          </div>
+
+          <div>
+            <label class="text-sm text-muted block mb-1">Tipo de Sangre</label>
+            <p class="text-base m-0">{{ driverDetail()!.bloodType }}</p>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="text-sm text-muted block mb-1">Dirección</label>
+            <p class="text-base m-0">{{ driverDetail()!.driverAddress }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos de Pago -->
+      <div class="border-b border-surface-border px-4 py-4">
+        <h3 class="text-base font-semibold mb-4">Datos de Pago:</h3>
+        @if (driverDetail()!.paymentMethod) {
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div>
+              <label class="text-sm text-muted block mb-1">Método</label>
+              <p class="text-base m-0">{{ driverDetail()!.paymentMethod.method }}</p>
+            </div>
+
+            <div>
+              <label class="text-sm text-muted block mb-1">Banco</label>
+              <p class="text-base m-0">{{ driverDetail()!.paymentMethod.bank }}</p>
+            </div>
+
+            <div>
+              <label class="text-sm text-muted block mb-1">Titular</label>
+              <p class="text-base m-0">{{ driverDetail()!.paymentMethod.accountOwner }}</p>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="text-sm text-muted block mb-1">Número de Cuenta</label>
+              <p class="text-base font-mono m-0">{{ driverDetail()!.paymentMethod.accountNumber }}</p>
+            </div>
+          </div>
+        } @else {
+          <p class="text-muted m-0">No hay método de pago registrado</p>
+        }
+      </div>
+
+      <!-- Documentos -->
+      <div class="px-4 py-4">
+        <h3 class="text-base font-semibold mb-4">Documentos:</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          @if (driverDetail()!.pathImageDni) {
+            <div>
+              <label class="text-sm text-muted block mb-2">DNI</label>
+              <img
+                [src]="driverDetail()!.pathImageDni"
+                alt="DNI"
+                class="w-full h-auto max-h-48 object-contain border border-surface-border rounded cursor-pointer hover:shadow-md transition-shadow"
+                (click)="openImagePreview(driverDetail()!.pathImageDni, 'DNI')"
+              />
+            </div>
+          }
+
+          @if (driverDetail()!.pathImageDriverLicense) {
+            <div>
+              <label class="text-sm text-muted block mb-2">Licencia de Conducir</label>
+              <img
+                [src]="driverDetail()!.pathImageDriverLicense"
+                alt="Licencia"
+                class="w-full h-auto max-h-48 object-contain border border-surface-border rounded cursor-pointer hover:shadow-md transition-shadow"
+                (click)="openImagePreview(driverDetail()!.pathImageDriverLicense, 'Licencia de Conducir')"
+              />
+            </div>
+          }
+
+          @if (driverDetail()!.pathImageCriminalRecords) {
+            <div>
+              <label class="text-sm text-muted block mb-2">Antecedentes Penales</label>
+              <img
+                [src]="driverDetail()!.pathImageCriminalRecords"
+                alt="Antecedentes"
+                class="w-full h-auto max-h-48 object-contain border border-surface-border rounded cursor-pointer hover:shadow-md transition-shadow"
+                (click)="openImagePreview(driverDetail()!.pathImageCriminalRecords, 'Antecedentes Penales')"
+              />
+            </div>
+          }
+        </div>
+
+        @if (!driverDetail()!.pathImageDni && !driverDetail()!.pathImageDriverLicense && !driverDetail()!.pathImageCriminalRecords) {
+          <p class="text-muted m-0">No hay documentos disponibles</p>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Toast -->
+  <p-toast position="top-right" />
+
+  <!-- Dialogs -->
+  <app-image-preview-dialog />
+  <app-driver-unpenalize-dialog (confirm)="onUnpenalizeConfirmed($event)" />
+  <app-driver-coupon-dialog (confirm)="onCouponConfirmed($event)" />
+  <app-driver-penalty-dialog (confirm)="onPenaltyConfirmed($event)" />
+</div>

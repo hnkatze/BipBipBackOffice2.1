@@ -1,0 +1,43 @@
+// Todo el styling se hace con Tailwind directamente en el template
+
+.registered-drivers-page {
+  .filters-bar {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+
+    .status-filters {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 250px;
+      max-width: 400px;
+    }
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+
+    .empty-icon {
+      font-size: 3rem;
+      color: var(--text-color-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .empty-message {
+      color: var(--text-color-secondary);
+      margin: 0;
+    }
+  }
+}

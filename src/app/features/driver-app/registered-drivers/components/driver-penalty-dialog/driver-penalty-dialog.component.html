@@ -1,0 +1,107 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="true"
+  header="Penalizar Driver"
+  [style]="{ width: '600px' }"
+>
+  <form [formGroup]="penaltyForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+    <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+      <div class="flex items-center gap-2">
+        <i class="pi pi-exclamation-triangle text-red-500"></i>
+        <p class="text-sm text-surface-900">
+          Penalizando a: <span class="font-medium">{{ driverName() }}</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label for="reasonId" class="font-medium text-surface-900">
+        Motivo de penalización <span class="text-red-500">*</span>
+      </label>
+      <p-select
+        id="reasonId"
+        formControlName="reasonId"
+        [options]="reasons()"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Selecciona un motivo"
+        styleClass="w-full"
+      />
+      @if (getErrorMessage('reasonId')) {
+        <small class="text-red-500">{{ getErrorMessage('reasonId') }}</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label for="description" class="font-medium text-surface-900">
+        Descripción <span class="text-red-500">*</span>
+      </label>
+      <textarea
+        id="description"
+        pTextarea
+        formControlName="description"
+        rows="4"
+        placeholder="Describe el motivo de la penalización..."
+        class="w-full"
+      ></textarea>
+      @if (getErrorMessage('description')) {
+        <small class="text-red-500">{{ getErrorMessage('description') }}</small>
+      }
+      <small class="text-surface-500">Mínimo 10 caracteres</small>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="flex flex-col gap-2">
+        <label for="startDate" class="font-medium text-surface-900">
+          Fecha inicio <span class="text-red-500">*</span>
+        </label>
+        <p-datepicker
+          id="startDate"
+          formControlName="startDate"
+          [showIcon]="true"
+          [iconDisplay]="'button'"
+          placeholder="Selecciona fecha"
+          class="w-full"
+        />
+        @if (getErrorMessage('startDate')) {
+          <small class="text-red-500">{{ getErrorMessage('startDate') }}</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="endDate" class="font-medium text-surface-900">
+          Fecha fin <span class="text-red-500">*</span>
+        </label>
+        <p-datepicker
+          id="endDate"
+          formControlName="endDate"
+          [showIcon]="true"
+          [iconDisplay]="'button'"
+          placeholder="Selecciona fecha"
+          class="w-full"
+        />
+        @if (getErrorMessage('endDate')) {
+          <small class="text-red-500">{{ getErrorMessage('endDate') }}</small>
+        }
+      </div>
+    </div>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancelar"
+      severity="secondary"
+      (onClick)="close()"
+      [disabled]="loading()"
+    />
+    <p-button
+      label="Penalizar"
+      severity="danger"
+      (onClick)="onSubmit()"
+      [loading]="loading()"
+      [disabled]="penaltyForm.invalid"
+    />
+  </ng-template>
+</p-dialog>

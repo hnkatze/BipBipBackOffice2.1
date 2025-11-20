@@ -106,4 +106,14 @@ export class PromoCodeService {
       null
     );
   }
+
+  /**
+   * Obtener lista simple de códigos promocionales (solo code y description)
+   * Para usar en selects/dropdowns
+   */
+  getPromoCodesSimple(): Observable<{ code: string; description: string }[]> {
+    return this.http.get<{ code: string; description: string }[]>(
+      `${this.apiBaseUrl}Incentives/promoCodes`
+    );
+  }
 }

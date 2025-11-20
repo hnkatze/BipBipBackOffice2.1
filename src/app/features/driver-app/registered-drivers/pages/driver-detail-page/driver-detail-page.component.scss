@@ -1,0 +1,10 @@
+// Todo el styling se hace con Tailwind directamente en el template
+
+.driver-detail-page {
+  .page-header {
+    background: var(--surface-card);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--surface-border);
+  }
+}

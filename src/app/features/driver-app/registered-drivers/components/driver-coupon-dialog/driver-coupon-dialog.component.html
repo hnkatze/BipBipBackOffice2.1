@@ -1,0 +1,68 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="true"
+  header="Agregar Cupones"
+  [style]="{ width: '500px' }"
+>
+  <form [formGroup]="couponForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+    <div class="p-4 bg-surface-50 rounded-lg border border-surface-200">
+      <p class="text-sm text-surface-600">
+        Agregando cupones para: <span class="font-medium text-surface-900">{{ driverName() }}</span>
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label for="quantity" class="font-medium text-surface-900">
+        Cantidad de cupones <span class="text-red-500">*</span>
+      </label>
+      <p-select
+        id="quantity"
+        formControlName="quantity"
+        [options]="quantityOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Selecciona cantidad"
+        styleClass="w-full"
+      />
+      @if (getErrorMessage('quantity')) {
+        <small class="text-red-500">{{ getErrorMessage('quantity') }}</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label for="reason" class="font-medium text-surface-900">
+        Razón <span class="text-red-500">*</span>
+      </label>
+      <textarea
+        id="reason"
+        pTextarea
+        formControlName="reason"
+        rows="4"
+        placeholder="Escribe la razón por la que se agregan los cupones..."
+        class="w-full"
+      ></textarea>
+      @if (getErrorMessage('reason')) {
+        <small class="text-red-500">{{ getErrorMessage('reason') }}</small>
+      }
+      <small class="text-surface-500">Mínimo 10 caracteres</small>
+    </div>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancelar"
+      severity="secondary"
+      (onClick)="close()"
+      [disabled]="loading()"
+    />
+    <p-button
+      label="Agregar Cupones"
+      severity="primary"
+      (onClick)="onSubmit()"
+      [loading]="loading()"
+      [disabled]="couponForm.invalid"
+    />
+  </ng-template>
+</p-dialog>

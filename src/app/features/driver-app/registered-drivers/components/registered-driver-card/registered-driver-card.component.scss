@@ -1,0 +1,8 @@
+// Todo el styling se hace con Tailwind directamente en el template
+// Solo dejamos estilos custom si son absolutamente necesarios
+
+.driver-card {
+  ::ng-deep .p-card-body {
+    padding: 1rem;
+  }
+}

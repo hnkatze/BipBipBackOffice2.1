@@ -1,0 +1,93 @@
+<div class="driver-card mb-3">
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="flex justify-between items-start p-4 pb-0">
+        <div class="flex-1">
+          <h3 class="text-lg font-bold m-0 mb-1">{{ driver().name }}</h3>
+          <p class="text-sm text-muted m-0 font-mono">{{ driver().driverCode }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <app-registered-driver-status-badge
+            [status]="driver().status"
+            [isPenalized]="driver().isPenalized"
+          />
+          <p-button
+            icon="pi pi-ellipsis-v"
+            [text]="true"
+            [rounded]="true"
+            size="small"
+            (onClick)="actionsMenu.toggle($event)"
+          />
+          <p-popover #actionsMenu>
+            <div class="flex flex-col gap-1 p-2 min-w-[180px]">
+              <p-button
+                label="Ver detalles"
+                icon="pi pi-eye"
+                [text]="true"
+                size="small"
+                styleClass="w-full justify-start"
+                (onClick)="onViewDetails(); actionsMenu.hide()"
+              />
+              <p-button
+                label="Editar"
+                icon="pi pi-pencil"
+                [text]="true"
+                severity="secondary"
+                size="small"
+                styleClass="w-full justify-start"
+                (onClick)="onEdit(); actionsMenu.hide()"
+              />
+              <p-button
+                [label]="driver().status ? 'Inactivar' : 'Activar'"
+                [icon]="driver().status ? 'pi pi-ban' : 'pi pi-check'"
+                [text]="true"
+                [severity]="driver().status ? 'warn' : 'success'"
+                size="small"
+                styleClass="w-full justify-start"
+                (onClick)="onToggleStatus(); actionsMenu.hide()"
+              />
+              <p-button
+                label="Eliminar"
+                icon="pi pi-trash"
+                [text]="true"
+                severity="danger"
+                size="small"
+                styleClass="w-full justify-start"
+                (onClick)="onDelete(); actionsMenu.hide()"
+              />
+            </div>
+          </p-popover>
+        </div>
+      </div>
+    </ng-template>
+
+    <div class="space-y-2">
+      <div class="flex items-center gap-2 text-sm">
+        <i class="pi pi-phone text-muted"></i>
+        <span>{{ driver().phone }}</span>
+      </div>
+
+      <div class="flex items-center gap-2 text-sm">
+        <i class="pi pi-envelope text-muted"></i>
+        <span class="truncate">{{ driver().email }}</span>
+      </div>
+
+      <div class="flex items-center gap-2 text-sm">
+        <i class="pi pi-map-marker text-muted"></i>
+        <span>{{ driver().countryName }} / {{ driver().cityName }}</span>
+      </div>
+
+      @if (driver().baseAsign) {
+        <div class="flex items-center gap-2 text-sm">
+          <i class="pi pi-building text-muted"></i>
+          <span>{{ driver().baseAsign }}</span>
+        </div>
+      }
+
+      <div class="flex items-center gap-2 text-sm">
+        <i class="pi pi-calendar text-muted"></i>
+        <span>{{ driver().dateRegis | date: 'dd/MM/yyyy' }}</span>
+      </div>
+    </div>
+  </p-card>
+</div>
