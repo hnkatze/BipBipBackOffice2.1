@@ -1,0 +1,309 @@
+<div class="p-4">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems()" />
+
+  <!-- Card Container -->
+  <div class="card">
+    <!-- Header -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+      <div class="flex items-center gap-3">
+        <p-button
+          icon="pi pi-arrow-left"
+          [text]="true"
+          [rounded]="true"
+          (onClick)="goBack()"
+        />
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white m-0">
+            Historial de Pedidos
+          </h2>
+          <p class="text-gray-600 dark:text-gray-400 mt-1">
+            Driver #{{ driverId() }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edge Orders Card (Primera y Última Orden) -->
+    @if (loadingEdgeOrders()) {
+      <div class="mb-4">
+        <p-skeleton height="150px" />
+      </div>
+    }
+
+    @if (!loadingEdgeOrders() && edgeOrders()) {
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <!-- Primera Orden -->
+        <p-card>
+          <ng-template pTemplate="header">
+            <div class="px-4 pt-4">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-calendar text-blue-500 text-xl"></i>
+                <h3 class="text-lg font-semibold m-0">Primera Orden</h3>
+              </div>
+            </div>
+          </ng-template>
+          <div class="space-y-3">
+            <div>
+              <span class="text-sm text-gray-500 dark:text-gray-400">Pedido #</span>
+              <p class="text-base font-mono font-semibold m-0">{{ edgeOrders()!.firstOrder.posgOrderId }}</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">Tienda</span>
+                <p class="text-base font-medium m-0">{{ edgeOrders()!.firstOrder.storeShortname }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">Marca</span>
+                <p class="text-base font-medium m-0">{{ edgeOrders()!.firstOrder.brandShortName }}</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">Fecha</span>
+                <p class="text-base m-0">{{ edgeOrders()!.firstOrder.dateDelivery | date: 'dd/MM/yyyy' }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">Total</span>
+                <p class="text-base font-bold m-0">{{ edgeOrders()!.firstOrder.total | currency }}</p>
+              </div>
+            </div>
+          </div>
+        </p-card>
+
+        <!-- Última Orden -->
+        <p-card>
+          <ng-template pTemplate="header">
+            <div class="px-4 pt-4">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-clock text-green-500 text-xl"></i>
+                <h3 class="text-lg font-semibold m-0">Última Orden</h3>
+              </div>
+            </div>
+          </ng-template>
+          <div class="space-y-3">
+            <div>
+              <span class="text-sm text-gray-500 dark:text-gray-400">Pedido #</span>
+              <p class="text-base font-mono font-semibold m-0">{{ edgeOrders()!.lastOrder.posgOrderId }}</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">Tienda</span>
+                <p class="text-base font-medium m-0">{{ edgeOrders()!.lastOrder.storeShortname }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">Marca</span>
+                <p class="text-base font-medium m-0">{{ edgeOrders()!.lastOrder.brandShortName }}</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">Fecha</span>
+                <p class="text-base m-0">{{ edgeOrders()!.lastOrder.dateDelivery | date: 'dd/MM/yyyy' }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-gray-500 dark:text-gray-400">Total</span>
+                <p class="text-base font-bold m-0">{{ edgeOrders()!.lastOrder.total | currency }}</p>
+              </div>
+            </div>
+          </div>
+        </p-card>
+      </div>
+    }
+
+    <!-- Filters Bar -->
+    <div class="flex flex-wrap gap-3 mb-4 border-[1px] border-gray-300 dark:border-gray-600 rounded-lg p-3 items-center">
+      <!-- Status Buttons -->
+      <div class="flex gap-2 flex-wrap">
+        <p-button
+          label="Todos ({{ totalCount() }})"
+          [outlined]="selectedStatus() !== 'all'"
+          [raised]="selectedStatus() === 'all'"
+          size="small"
+          (onClick)="filterByStatus('all')"
+        />
+        <p-button
+          label="Pendientes ({{ totalPending() }})"
+          [outlined]="selectedStatus() !== 'in_progress'"
+          [raised]="selectedStatus() === 'in_progress'"
+          severity="info"
+          size="small"
+          (onClick)="filterByStatus('in_progress')"
+        />
+        <p-button
+          label="Entregadas ({{ totalDelivered() }})"
+          [outlined]="selectedStatus() !== 'completed'"
+          [raised]="selectedStatus() === 'completed'"
+          severity="success"
+          size="small"
+          (onClick)="filterByStatus('completed')"
+        />
+        <p-button
+          label="Canceladas ({{ totalCanceled() }})"
+          [outlined]="selectedStatus() !== 'cancelled'"
+          [raised]="selectedStatus() === 'cancelled'"
+          severity="danger"
+          size="small"
+          (onClick)="filterByStatus('cancelled')"
+        />
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading()) {
+      <div class="loading-container">
+        <p-skeleton height="400px" />
+      </div>
+    }
+
+    <!-- Content -->
+    @if (!loading()) {
+      <!-- Desktop: Table -->
+      <div class="hidden md:block">
+        <p-table
+          [value]="orders()"
+          [tableStyle]="{ 'min-width': '50rem' }"
+          styleClass="p-datatable-sm"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>ID Pedido</th>
+              <th>Ciudad</th>
+              <th>Lugar de Recepción</th>
+              <th>Lugar de Entrega</th>
+              <th>Tiempo Esperado</th>
+              <th>Tiempo Real</th>
+              <th>Estado</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-order>
+            <tr>
+              <td>
+                <span class="font-mono font-semibold">{{ order.orderId }}</span>
+              </td>
+              <td>{{ order.cityName }}</td>
+              <td>
+                <span class="text-sm text-gray-600 dark:text-gray-400">
+                  {{ order.orderReceptionPlace | slice:0:30 }}{{ order.orderReceptionPlace.length > 30 ? '...' : '' }}
+                </span>
+              </td>
+              <td>
+                <span class="text-sm text-gray-600 dark:text-gray-400">
+                  {{ order.orderDeliveryPlace | slice:0:30 }}{{ order.orderDeliveryPlace.length > 30 ? '...' : '' }}
+                </span>
+              </td>
+              <td>{{ order.timeExpectedDelivery }}</td>
+              <td>{{ order.timeRealDelivery }}</td>
+              <td>
+                <span
+                  class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                  [ngClass]="getStatusClass(order.orderStatus)"
+                >
+                  {{ order.orderStatus }}
+                </span>
+              </td>
+              <td class="text-center">
+                <p-button
+                  label="Ver Detalles"
+                  icon="pi pi-eye"
+                  [text]="true"
+                  size="small"
+                  (onClick)="viewOrderDetails(order.orderId)"
+                />
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="8" class="text-center py-8">
+                <div class="empty-state">
+                  <i class="pi pi-inbox text-6xl text-gray-400 mb-4"></i>
+                  <p class="text-gray-600 dark:text-gray-400">No se encontraron pedidos</p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Mobile: Cards -->
+      <div class="block md:hidden">
+        @for (order of orders(); track trackByOrderId($index, order)) {
+          <div class="card mb-3 p-4 border border-surface-border rounded-lg">
+            <div class="flex justify-between items-start mb-3">
+              <div>
+                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Pedido</span>
+                <h3 class="text-lg font-mono font-semibold text-gray-900 dark:text-white m-0">
+                  {{ order.orderId }}
+                </h3>
+              </div>
+              <span
+                class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                [ngClass]="getStatusClass(order.orderStatus)"
+              >
+                {{ order.orderStatus }}
+              </span>
+            </div>
+
+            <div class="mb-3">
+              <span class="text-sm text-gray-500 dark:text-gray-400">Ciudad:</span>
+              <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ order.cityName }}</p>
+            </div>
+
+            <div class="mb-3">
+              <span class="text-sm text-gray-500 dark:text-gray-400">Lugar de Recepción:</span>
+              <p class="text-sm text-gray-700 dark:text-gray-300 m-0">{{ order.orderReceptionPlace }}</p>
+            </div>
+
+            <div class="mb-3">
+              <span class="text-sm text-gray-500 dark:text-gray-400">Lugar de Entrega:</span>
+              <p class="text-sm text-gray-700 dark:text-gray-300 m-0">{{ order.orderDeliveryPlace }}</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+              <div>
+                <span class="text-gray-500 dark:text-gray-400">Tiempo Esperado:</span>
+                <p class="font-medium m-0">{{ order.timeExpectedDelivery }} min</p>
+              </div>
+              <div>
+                <span class="text-gray-500 dark:text-gray-400">Tiempo Real:</span>
+                <p class="font-medium m-0">{{ order.timeRealDelivery }} min</p>
+              </div>
+            </div>
+
+            <p-button
+              label="Ver Detalles"
+              icon="pi pi-eye"
+              [outlined]="true"
+              size="small"
+              class="w-full"
+              (onClick)="viewOrderDetails(order.orderId)"
+            />
+          </div>
+        } @empty {
+          <div class="empty-state text-center py-12">
+            <i class="pi pi-inbox text-6xl text-gray-400 mb-4"></i>
+            <p class="text-gray-600 dark:text-gray-400">No se encontraron pedidos</p>
+          </div>
+        }
+      </div>
+
+      <!-- Paginator -->
+      @if (totalCount() > 0) {
+        <div class="mt-4">
+          <p-paginator
+            [first]="(currentPage() - 1) * pageSize()"
+            [rows]="pageSize()"
+            [totalRecords]="totalCount()"
+            [rowsPerPageOptions]="[10, 20, 50, 100]"
+            (onPageChange)="onPageChange($event)"
+          />
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Toast -->
+  <p-toast position="top-right" />
+</div>

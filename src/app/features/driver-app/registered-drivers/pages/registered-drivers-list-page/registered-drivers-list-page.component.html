@@ -1,103 +1,113 @@
-<div class="registered-drivers-page">
-  <!-- Header -->
-  <div class="page-header mb-4">
-    <h1 class="page-title">Drivers Registrados</h1>
-    <p class="page-subtitle">Gestión de drivers activos en la plataforma</p>
-  </div>
+<div class="p-4">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems()" />
 
-  <!-- Filters Bar -->
-  <div class="filters-bar mb-4">
-    <!-- Status Buttons -->
-    <div class="status-filters">
-      <p-button
-        label="Todos ({{ totalCount() }})"
-        [outlined]="selectedStatus() !== null"
-        [raised]="selectedStatus() === null"
-        size="small"
-        (onClick)="filterByStatus(null)"
-      />
-      <p-button
-        label="Activos ({{ totalActive() }})"
-        [outlined]="selectedStatus() !== 'true'"
-        [raised]="selectedStatus() === 'true'"
-        severity="success"
-        size="small"
-        (onClick)="filterByStatus('true')"
-      />
-      <p-button
-        label="Inactivos ({{ totalInactive() }})"
-        [outlined]="selectedStatus() !== 'false'"
-        [raised]="selectedStatus() === 'false'"
-        severity="secondary"
-        size="small"
-        (onClick)="filterByStatus('false')"
-      />
+  <!-- Card Container -->
+  <div class="card">
+    <!-- Header -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white m-0">Drivers Registrados</h2>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">Gestión de drivers activos en la plataforma</p>
+      </div>
     </div>
 
-    <!-- Search -->
-    <p-iconfield iconPosition="left" class="search-input">
-      <p-inputicon styleClass="pi pi-search" />
-      <input
-        pInputText
-        type="text"
-        [formControl]="searchControl"
-        placeholder="Buscar por código, nombre, email o teléfono..."
-        class="w-full"
-      />
-    </p-iconfield>
-  </div>
+    <!-- Filters Bar -->
+   <div class="flex flex-wrap gap-3 mb-4 border-[1px] border-gray-300 dark:border-gray-600 rounded-lg p-3 items-center">
+      <!-- Status Buttons -->
+      <div class="flex gap-2 flex-wrap">
+        <p-button
+          label="Todos ({{ totalCount() }})"
+          [outlined]="selectedStatus() !== null"
+          [raised]="selectedStatus() === null"
+          size="small"
+          (onClick)="filterByStatus(null)"
+        />
+        <p-button
+          label="Activos ({{ totalActive() }})"
+          [outlined]="selectedStatus() !== 'true'"
+          [raised]="selectedStatus() === 'true'"
+          severity="success"
+          size="small"
+          (onClick)="filterByStatus('true')"
+        />
+        <p-button
+          label="Inactivos ({{ totalInactive() }})"
+          [outlined]="selectedStatus() !== 'false'"
+          [raised]="selectedStatus() === 'false'"
+          severity="secondary"
+          size="small"
+          (onClick)="filterByStatus('false')"
+        />
+      </div>
 
-  <!-- Loading State -->
-  @if (loading()) {
-    <div class="loading-container">
-      <p-skeleton height="400px" />
+      <!-- Search -->
+      <div class="flex-1 min-w-[250px]">
+        <p-iconfield iconPosition="left">
+          <p-inputicon styleClass="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            [formControl]="searchControl"
+            placeholder="Buscar por código, nombre, email o teléfono..."
+            class="w-full"
+          />
+        </p-iconfield>
+      </div>
     </div>
-  }
 
-  <!-- Content -->
-  @if (!loading()) {
-    <!-- Desktop: Table -->
-    <div class="hidden md:block">
-      <app-registered-driver-table
-        [drivers]="drivers()"
-        (viewDetails)="viewDetails($event)"
-        (edit)="editDriver($event)"
-        (toggleStatus)="toggleDriverStatus($event)"
-        (delete)="deleteDriver($event)"
-      />
-    </div>
+    <!-- Loading State -->
+    @if (loading()) {
+      <div class="loading-container">
+        <p-skeleton height="400px" />
+      </div>
+    }
 
-    <!-- Mobile: Cards -->
-    <div class="block md:hidden">
-      @for (driver of drivers(); track trackByDriverId($index, driver)) {
-        <app-registered-driver-card
-          [driver]="driver"
+    <!-- Content -->
+    @if (!loading()) {
+      <!-- Desktop: Table -->
+      <div class="hidden md:block">
+        <app-registered-driver-table
+          [drivers]="drivers()"
           (viewDetails)="viewDetails($event)"
           (edit)="editDriver($event)"
           (toggleStatus)="toggleDriverStatus($event)"
           (delete)="deleteDriver($event)"
         />
-      } @empty {
-        <div class="empty-state">
-          <i class="pi pi-inbox empty-icon"></i>
-          <p class="empty-message">No se encontraron drivers</p>
+      </div>
+
+      <!-- Mobile: Cards -->
+      <div class="block md:hidden">
+        @for (driver of drivers(); track trackByDriverId($index, driver)) {
+          <app-registered-driver-card
+            [driver]="driver"
+            (viewDetails)="viewDetails($event)"
+            (edit)="editDriver($event)"
+            (toggleStatus)="toggleDriverStatus($event)"
+            (delete)="deleteDriver($event)"
+          />
+        } @empty {
+          <div class="empty-state text-center py-12">
+            <i class="pi pi-inbox text-6xl text-gray-400 mb-4"></i>
+            <p class="text-gray-600 dark:text-gray-400">No se encontraron drivers</p>
+          </div>
+        }
+      </div>
+
+      <!-- Paginator -->
+      @if (totalCount() > 0) {
+        <div class="mt-4">
+          <p-paginator
+            [first]="(currentPage() - 1) * pageSize()"
+            [rows]="pageSize()"
+            [totalRecords]="totalCount()"
+            [rowsPerPageOptions]="[10, 20, 50, 100]"
+            (onPageChange)="onPageChange($event)"
+          />
         </div>
       }
-    </div>
-
-    <!-- Paginator -->
-    @if (totalCount() > 0) {
-      <div class="paginator-container mt-4">
-        <p-paginator
-          [first]="(currentPage() - 1) * pageSize()"
-          [rows]="pageSize()"
-          [totalRecords]="totalCount()"
-          [rowsPerPageOptions]="[10, 20, 50, 100]"
-          (onPageChange)="onPageChange($event)"
-        />
-      </div>
     }
-  }
+  </div>
 
   <!-- Toast for notifications -->
   <p-toast position="top-right" />

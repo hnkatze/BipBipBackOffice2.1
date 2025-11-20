@@ -12,8 +12,8 @@
 
   <!-- Content -->
   @if (driverDetail() && !loading()) {
-    <!-- Header with Back Button -->
-    <div class="flex justify-between items-center mb-6">
+    <!-- Header with Actions -->
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
       <div class="flex items-center gap-3">
         <p-button
           icon="pi pi-arrow-left"
@@ -25,16 +25,61 @@
           Driver: {{ driverDetail()!.driverFullName }}
         </h1>
       </div>
+
+      <!-- Navigation Buttons -->
+      <div class="flex gap-2 flex-wrap">
+        <p-button
+          label="Historial de Pedidos"
+          icon="pi pi-shopping-cart"
+          [text]="true"
+          severity="secondary"
+          (onClick)="goToOrdersHistory()"
+        />
+        <p-button
+          label="Historial de Penalizaciones"
+          icon="pi pi-history"
+          [text]="true"
+          severity="secondary"
+          (onClick)="goToPenaltiesHistory()"
+        />
+      </div>
     </div>
 
     <!-- Main Card -->
-    <div class="border border-surface-border rounded-lg bg-surface-card overflow-hidden">
+    <div class="border border-gray-300 rounded-lg bg-surface-card overflow-hidden">
       <!-- Card Header with Actions -->
-      <div class="flex items-center justify-between border-b border-surface-border px-4 py-3">
+      <div class="flex items-center justify-between border-b border-gray-300 px-4 py-3 flex-wrap gap-3">
         <div class="flex-1">
           <p class="text-lg font-semibold m-0">Driver #{{ driverDetail()!.driverId }}</p>
         </div>
-        <div class="flex gap-2 flex-wrap">
+        <!-- <div class="flex gap-2 flex-wrap">
+          @if (mode() === 'view') {
+            <p-button
+              label="Editar"
+              icon="pi pi-pencil"
+              [text]="true"
+              severity="secondary"
+              (onClick)="enableEditMode()"
+            />
+          } @else {
+            <p-button
+              label="Cancelar"
+              icon="pi pi-times"
+              [text]="true"
+              severity="secondary"
+              (onClick)="cancelEdit()"
+              [disabled]="saving()"
+            />
+            <p-button
+              label="Guardar"
+              icon="pi pi-check"
+              severity="success"
+              (onClick)="saveChanges()"
+              [loading]="saving()"
+              [disabled]="driverForm.invalid"
+            />
+          }
+
           <p-button
             label="Agregar Cupón"
             [text]="true"
@@ -67,146 +112,491 @@
             severity="warn"
             (onClick)="remindDocuments()"
           />
-        </div>
+        </div> -->
       </div>
+
+      <!-- Active Penalty Warning -->
+      @if (isPenalized() && driverDetail()!.motivePenalty) {
+        <div class="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-4 py-3">
+          <div class="flex items-start gap-3">
+            <i class="pi pi-exclamation-triangle text-red-500 text-xl"></i>
+            <div class="flex-1">
+              <h4 class="text-red-900 dark:text-red-200 font-bold m-0 mb-2">Driver Penalizado</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span class="font-semibold text-red-800 dark:text-red-300">Motivo:</span>
+                  <span class="text-red-700 dark:text-red-400 ml-2">{{ driverDetail()!.motivePenalty }}</span>
+                </div>
+                @if (driverDetail()!.penaltyDuration) {
+                  <div>
+                    <span class="font-semibold text-red-800 dark:text-red-300">Duración:</span>
+                    <span class="text-red-700 dark:text-red-400 ml-2">{{ driverDetail()!.penaltyDuration }} días</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Coupons Section -->
+      @if (driverCoupons() && driverCoupons()!.length > 0) {
+        <div class="bg-green-50 dark:bg-green-900/20 border-b border-green-200 dark:border-green-800 px-4 py-3">
+          <div class="flex items-center gap-3">
+            <i class="pi pi-ticket text-green-600 text-xl"></i>
+            <div class="flex-1">
+              <h4 class="text-green-900 dark:text-green-200 font-bold m-0 mb-2">Cupones Disponibles</h4>
+              <div class="flex flex-wrap gap-2">
+                @for (coupon of driverCoupons(); track coupon.id) {
+                  <div class="bg-white dark:bg-surface-800 border border-green-300 dark:border-green-700 rounded px-3 py-1 text-sm">
+                    <span class="font-semibold text-green-800 dark:text-green-300">{{ coupon.quantity }}x</span>
+                    <span class="text-gray-700 dark:text-gray-300 ml-1">{{ coupon.reason }}</span>
+                    <span class="text-gray-500 dark:text-gray-400 ml-2 text-xs">({{ coupon.createdAt | date: 'dd/MM/yyyy' }})</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
 
       <!-- Datos Generales -->
-      <div class="border-b border-surface-border px-4 py-4">
-        <h3 class="text-base font-semibold mb-4">Datos Generales:</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <div>
-            <label class="text-sm text-muted block mb-1">Usuario</label>
-            <p class="text-base m-0">{{ driverDetail()!.driverUserName }}</p>
-          </div>
+      <div class="border-b border-gray-300 px-4 py-4">
+        <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Datos Generales</h3>
 
-          <div>
-            <label class="text-sm text-muted block mb-1">Base asignada</label>
-            <p class="text-base m-0">{{ driverDetail()!.assignedHeadquarters || 'N/A' }}</p>
-          </div>
-
-          <div>
-            <label class="text-sm text-muted block mb-1">Estado</label>
-            <app-registered-driver-status-badge
-              [status]="driverDetail()!.driverStatus"
-              [isPenalized]="isPenalized()"
-            />
-          </div>
-
-          <div>
-            <label class="text-sm text-muted block mb-1">Teléfono</label>
-            <p class="text-base m-0">{{ driverDetail()!.driverPhone }}</p>
-          </div>
-
-          <div>
-            <label class="text-sm text-muted block mb-1">Email</label>
-            <p class="text-base m-0">{{ driverDetail()!.driverEmail }}</p>
-          </div>
-
-          <div>
-            <label class="text-sm text-muted block mb-1">País</label>
-            <p class="text-base m-0">{{ driverDetail()!.countryName }}</p>
-          </div>
-
-          <div>
-            <label class="text-sm text-muted block mb-1">Ciudad</label>
-            <p class="text-base m-0">{{ driverDetail()!.cityName }}</p>
-          </div>
-
-          <div>
-            <label class="text-sm text-muted block mb-1">Fecha de Registro</label>
-            <p class="text-base m-0">{{ driverDetail()!.driverCreatedAt | date: 'dd/MM/yyyy HH:mm' }}</p>
-          </div>
-
-          <div>
-            <label class="text-sm text-muted block mb-1">DNI</label>
-            <p class="text-base m-0">{{ driverDetail()!.driverDNI || 'No registrado' }}</p>
-          </div>
-
-          <div>
-            <label class="text-sm text-muted block mb-1">Tipo de Sangre</label>
-            <p class="text-base m-0">{{ driverDetail()!.bloodType }}</p>
-          </div>
-
-          <div class="md:col-span-2">
-            <label class="text-sm text-muted block mb-1">Dirección</label>
-            <p class="text-base m-0">{{ driverDetail()!.driverAddress }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Datos de Pago -->
-      <div class="border-b border-surface-border px-4 py-4">
-        <h3 class="text-base font-semibold mb-4">Datos de Pago:</h3>
-        @if (driverDetail()!.paymentMethod) {
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <!-- VIEW MODE -->
+        @if (mode() === 'view') {
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             <div>
-              <label class="text-sm text-muted block mb-1">Método</label>
-              <p class="text-base m-0">{{ driverDetail()!.paymentMethod.method }}</p>
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Usuario</label>
+              <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.driverUserName }}</p>
             </div>
 
             <div>
-              <label class="text-sm text-muted block mb-1">Banco</label>
-              <p class="text-base m-0">{{ driverDetail()!.paymentMethod.bank }}</p>
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Nombre Completo</label>
+              <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.driverFullName }}</p>
             </div>
 
             <div>
-              <label class="text-sm text-muted block mb-1">Titular</label>
-              <p class="text-base m-0">{{ driverDetail()!.paymentMethod.accountOwner }}</p>
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Base asignada</label>
+              <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.assignedHeadquarters || 'N/A' }}</p>
+            </div>
+
+            <div>
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Estado</label>
+              <app-registered-driver-status-badge
+                [status]="driverDetail()!.driverStatus"
+                [isPenalized]="isPenalized()"
+              />
+            </div>
+
+            <div>
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Teléfono</label>
+              <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.driverPhone }}</p>
+            </div>
+
+            <div>
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Email</label>
+              <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.driverEmail }}</p>
+            </div>
+
+            <div>
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">País</label>
+              <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.countryName }}</p>
+            </div>
+
+            <div>
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Ciudad</label>
+              <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.cityName }}</p>
+            </div>
+
+            <div>
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Fecha de Registro</label>
+              <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.driverCreatedAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+            </div>
+
+            <div>
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">DNI</label>
+              <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.driverDNI || 'No registrado' }}</p>
+            </div>
+
+            <div>
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Tipo de Sangre</label>
+              <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.bloodType }}</p>
             </div>
 
             <div class="md:col-span-2">
-              <label class="text-sm text-muted block mb-1">Número de Cuenta</label>
-              <p class="text-base font-mono m-0">{{ driverDetail()!.paymentMethod.accountNumber }}</p>
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Dirección</label>
+              <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.driverAddress }}</p>
             </div>
           </div>
-        } @else {
-          <p class="text-muted m-0">No hay método de pago registrado</p>
+        }
+
+        <!-- EDIT MODE -->
+        @if (mode() === 'edit') {
+          <form [formGroup]="driverForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div>
+              <label for="userName" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                Usuario <span class="text-red-500">*</span>
+              </label>
+              <input pInputText id="userName" formControlName="userName" class="w-full" />
+            </div>
+
+            <div>
+              <label for="fullName" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                Nombre Completo <span class="text-red-500">*</span>
+              </label>
+              <input pInputText id="fullName" formControlName="fullName" class="w-full" />
+            </div>
+
+            <div>
+              <label for="headquarterId" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                Base Asignada <span class="text-red-500">*</span>
+              </label>
+              <p-select
+                id="headquarterId"
+                formControlName="headquarterId"
+                [options]="headquarters()"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Selecciona una sede"
+                styleClass="w-full"
+              />
+            </div>
+
+            <div>
+              <label for="phone" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                Teléfono <span class="text-red-500">*</span>
+              </label>
+              <input pInputText id="phone" formControlName="phone" class="w-full" />
+            </div>
+
+            <div>
+              <label for="email" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                Email <span class="text-red-500">*</span>
+              </label>
+              <input pInputText id="email" formControlName="email" type="email" class="w-full" />
+            </div>
+
+            <div>
+              <label for="countryId" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                País <span class="text-red-500">*</span>
+              </label>
+              <p-select
+                id="countryId"
+                formControlName="countryId"
+                [options]="countries()"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Selecciona un país"
+                styleClass="w-full"
+                (onChange)="onCountryChange($event)"
+              />
+            </div>
+
+            <div>
+              <label for="cityId" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                Ciudad <span class="text-red-500">*</span>
+              </label>
+              <p-select
+                id="cityId"
+                formControlName="cityId"
+                [options]="cities()"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Selecciona una ciudad"
+                styleClass="w-full"
+                [disabled]="!driverForm.value.countryId"
+              />
+            </div>
+
+            <div>
+              <label for="dni" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                DNI <span class="text-red-500">*</span>
+              </label>
+              <input pInputText id="dni" formControlName="dni" class="w-full" />
+            </div>
+
+            <div>
+              <label for="bloodTypeId" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                Tipo de Sangre <span class="text-red-500">*</span>
+              </label>
+              <p-select
+                id="bloodTypeId"
+                formControlName="bloodTypeId"
+                [options]="bloodTypes()"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Selecciona tipo de sangre"
+                styleClass="w-full"
+              />
+            </div>
+
+            <div class="md:col-span-2">
+              <label for="address" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                Dirección <span class="text-red-500">*</span>
+              </label>
+              <input pInputText id="address" formControlName="address" class="w-full" />
+            </div>
+          </form>
+        }
+      </div>
+
+      <!-- Datos de Pago -->
+      <div class="border-b border-gray-300 px-4 py-4">
+        <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Datos de Pago</h3>
+
+        <!-- VIEW MODE -->
+        @if (mode() === 'view') {
+          @if (driverDetail()!.paymentMethod) {
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              <div>
+                <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Método</label>
+                <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.paymentMethod.method }}</p>
+              </div>
+
+              <div>
+                <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Banco</label>
+                <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.paymentMethod.bank }}</p>
+              </div>
+
+              <div>
+                <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Titular</label>
+                <p class="text-base font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.paymentMethod.accountOwner }}</p>
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Número de Cuenta</label>
+                <p class="text-base font-mono font-medium text-gray-900 dark:text-white m-0">{{ driverDetail()!.paymentMethod.accountNumber }}</p>
+              </div>
+            </div>
+          } @else {
+            <p class="text-gray-500 dark:text-gray-400 m-0">No hay método de pago registrado</p>
+          }
+        }
+
+        <!-- EDIT MODE -->
+        @if (mode() === 'edit') {
+          <form [formGroup]="driverForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div>
+              <label for="paymentMethodId" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                Método de Pago
+              </label>
+              <p-select
+                id="paymentMethodId"
+                formControlName="paymentMethodId"
+                [options]="paymentMethods()"
+                optionLabel="method"
+                optionValue="id"
+                placeholder="Selecciona método"
+                styleClass="w-full"
+              />
+            </div>
+
+            <div>
+              <label for="bankId" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                Banco
+              </label>
+              <p-select
+                id="bankId"
+                formControlName="bankId"
+                [options]="banks()"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Selecciona banco"
+                styleClass="w-full"
+              />
+            </div>
+
+            <div>
+              <label for="accountOwner" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                Titular de la Cuenta
+              </label>
+              <input pInputText id="accountOwner" formControlName="accountOwner" class="w-full" />
+            </div>
+
+            <div class="md:col-span-2">
+              <label for="accountNumber" class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+                Número de Cuenta
+              </label>
+              <input pInputText id="accountNumber" formControlName="accountNumber" class="w-full font-mono" />
+            </div>
+          </form>
         }
       </div>
 
       <!-- Documentos -->
       <div class="px-4 py-4">
-        <h3 class="text-base font-semibold mb-4">Documentos:</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          @if (driverDetail()!.pathImageDni) {
+        <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Documentos</h3>
+
+        <!-- VIEW MODE -->
+        @if (mode() === 'view') {
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            @if (driverDetail()!.pathImageDni) {
+              <div>
+                <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">DNI</label>
+                <img
+                  [src]="driverDetail()!.pathImageDni"
+                  alt="DNI"
+                  class="w-full h-auto max-h-48 object-contain border border-gray-300 rounded cursor-pointer hover:shadow-md transition-shadow"
+                  (click)="openImagePreview(driverDetail()!.pathImageDni, 'DNI')"
+                />
+              </div>
+            }
+
+            @if (driverDetail()!.pathImageDriverLicense) {
+              <div>
+                <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Licencia de Conducir</label>
+                <img
+                  [src]="driverDetail()!.pathImageDriverLicense"
+                  alt="Licencia"
+                  class="w-full h-auto max-h-48 object-contain border border-gray-300 rounded cursor-pointer hover:shadow-md transition-shadow"
+                  (click)="openImagePreview(driverDetail()!.pathImageDriverLicense, 'Licencia de Conducir')"
+                />
+              </div>
+            }
+
+            @if (driverDetail()!.pathImageCriminalRecords) {
+              <div>
+                <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">Antecedentes Penales</label>
+                <img
+                  [src]="driverDetail()!.pathImageCriminalRecords"
+                  alt="Antecedentes"
+                  class="w-full h-auto max-h-48 object-contain border border-gray-300 rounded cursor-pointer hover:shadow-md transition-shadow"
+                  (click)="openImagePreview(driverDetail()!.pathImageCriminalRecords, 'Antecedentes Penales')"
+                />
+              </div>
+            }
+          </div>
+
+          @if (!driverDetail()!.pathImageDni && !driverDetail()!.pathImageDriverLicense && !driverDetail()!.pathImageCriminalRecords) {
+            <p class="text-gray-500 dark:text-gray-400 m-0">No hay documentos disponibles</p>
+          }
+        }
+
+        <!-- EDIT MODE -->
+        @if (mode() === 'edit') {
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <!-- DNI Photo -->
             <div>
-              <label class="text-sm text-muted block mb-2">DNI</label>
-              <img
-                [src]="driverDetail()!.pathImageDni"
-                alt="DNI"
-                class="w-full h-auto max-h-48 object-contain border border-surface-border rounded cursor-pointer hover:shadow-md transition-shadow"
-                (click)="openImagePreview(driverDetail()!.pathImageDni, 'DNI')"
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-3">
+                Foto DNI
+              </label>
+              @if (dniPhotoPreview()) {
+                <div class="relative">
+                  <img
+                    [src]="dniPhotoPreview()!"
+                    alt="DNI Preview"
+                    class="w-full h-auto max-h-48 object-contain border border-gray-300 rounded mb-2"
+                  />
+                  <p-button
+                    icon="pi pi-times"
+                    [rounded]="true"
+                    severity="danger"
+                    size="small"
+                    class="absolute top-2 right-2"
+                    (onClick)="clearDniPhoto()"
+                  />
+                </div>
+              }
+              <input
+                type="file"
+                accept="image/*"
+                class="hidden"
+                #dniPhotoInput
+                (change)="onDniPhotoSelected($event)"
+              />
+              <p-button
+                label="Seleccionar Imagen"
+                icon="pi pi-upload"
+                [outlined]="true"
+                size="small"
+                class="w-full"
+                (onClick)="dniPhotoInput.click()"
+                [loading]="uploadingDniPhoto()"
               />
             </div>
-          }
 
-          @if (driverDetail()!.pathImageDriverLicense) {
+            <!-- Driver License Photo -->
             <div>
-              <label class="text-sm text-muted block mb-2">Licencia de Conducir</label>
-              <img
-                [src]="driverDetail()!.pathImageDriverLicense"
-                alt="Licencia"
-                class="w-full h-auto max-h-48 object-contain border border-surface-border rounded cursor-pointer hover:shadow-md transition-shadow"
-                (click)="openImagePreview(driverDetail()!.pathImageDriverLicense, 'Licencia de Conducir')"
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-3">
+                Foto Licencia
+              </label>
+              @if (licensePhotoPreview()) {
+                <div class="relative">
+                  <img
+                    [src]="licensePhotoPreview()!"
+                    alt="Licencia Preview"
+                    class="w-full h-auto max-h-48 object-contain border border-gray-300 rounded mb-2"
+                  />
+                  <p-button
+                    icon="pi pi-times"
+                    [rounded]="true"
+                    severity="danger"
+                    size="small"
+                    class="absolute top-2 right-2"
+                    (onClick)="clearLicensePhoto()"
+                  />
+                </div>
+              }
+              <input
+                type="file"
+                accept="image/*"
+                class="hidden"
+                #licensePhotoInput
+                (change)="onLicensePhotoSelected($event)"
+              />
+              <p-button
+                label="Seleccionar Imagen"
+                icon="pi pi-upload"
+                [outlined]="true"
+                size="small"
+                class="w-full"
+                (onClick)="licensePhotoInput.click()"
+                [loading]="uploadingLicensePhoto()"
               />
             </div>
-          }
 
-          @if (driverDetail()!.pathImageCriminalRecords) {
+            <!-- Criminal Records Photo -->
             <div>
-              <label class="text-sm text-muted block mb-2">Antecedentes Penales</label>
-              <img
-                [src]="driverDetail()!.pathImageCriminalRecords"
-                alt="Antecedentes"
-                class="w-full h-auto max-h-48 object-contain border border-surface-border rounded cursor-pointer hover:shadow-md transition-shadow"
-                (click)="openImagePreview(driverDetail()!.pathImageCriminalRecords, 'Antecedentes Penales')"
+              <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-3">
+                Antecedentes Penales
+              </label>
+              @if (recordsPhotoPreview()) {
+                <div class="relative">
+                  <img
+                    [src]="recordsPhotoPreview()!"
+                    alt="Antecedentes Preview"
+                    class="w-full h-auto max-h-48 object-contain border border-gray-300 rounded mb-2"
+                  />
+                  <p-button
+                    icon="pi pi-times"
+                    [rounded]="true"
+                    severity="danger"
+                    size="small"
+                    class="absolute top-2 right-2"
+                    (onClick)="clearCriminalRecordsPhoto()"
+                  />
+                </div>
+              }
+              <input
+                type="file"
+                accept="image/*"
+                class="hidden"
+                #criminalRecordsPhotoInput
+                (change)="onRecordsPhotoSelected($event)"
+              />
+              <p-button
+                label="Seleccionar Imagen"
+                icon="pi pi-upload"
+                [outlined]="true"
+                size="small"
+                class="w-full"
+                (onClick)="criminalRecordsPhotoInput.click()"
+                [loading]="uploadingRecordsPhoto()"
               />
             </div>
-          }
-        </div>
-
-        @if (!driverDetail()!.pathImageDni && !driverDetail()!.pathImageDriverLicense && !driverDetail()!.pathImageCriminalRecords) {
-          <p class="text-muted m-0">No hay documentos disponibles</p>
+          </div>
         }
       </div>
     </div>

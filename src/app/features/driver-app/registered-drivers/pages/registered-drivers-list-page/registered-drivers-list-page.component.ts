@@ -20,6 +20,7 @@ import {
 } from '../../models/registered-driver.model';
 import { RegisteredDriverTableComponent } from '../../components/registered-driver-table/registered-driver-table.component';
 import { RegisteredDriverCardComponent } from '../../components/registered-driver-card/registered-driver-card.component';
+import { BreadcrumbComponent, BreadcrumbItem } from '@shared/components/breadcrumb';
 
 /**
  * Página principal de lista de drivers registrados
@@ -45,6 +46,7 @@ import { RegisteredDriverCardComponent } from '../../components/registered-drive
     SkeletonModule,
     ConfirmDialogModule,
     ToastModule,
+    BreadcrumbComponent,
     RegisteredDriverTableComponent,
     RegisteredDriverCardComponent
   ],
@@ -62,6 +64,12 @@ export class RegisteredDriversListPageComponent {
   // ============================================================================
   // STATE SIGNALS
   // ============================================================================
+
+  /** Breadcrumb items */
+  breadcrumbItems = signal<BreadcrumbItem[]>([
+    { label: 'Driver App', link: '/driver-app' },
+    { label: 'Drivers Registrados', link: '' },
+  ]);
 
   /** Lista de drivers */
   drivers = signal<RegisteredDriverListItem[]>([]);

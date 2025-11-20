@@ -12,7 +12,10 @@ import {
   UpdateDriverRequest,
   PenalizeDriverRequest,
   AddCouponRequest,
-  PenaltyReason
+  PenaltyReason,
+  PenaltyHistoryResponse,
+  OrderHistoryResponse,
+  EdgeOrdersResponse
 } from '../models/registered-driver.model';
 import {
   Headquarter,
@@ -219,9 +222,7 @@ export class RegisteredDriverService {
    * @returns Observable void
    */
   despenalizeDriver(id: number): Observable<void> {
-    return this.dataService.delete$<void>('Driver/unpenalize', {
-      driverId: id
-    });
+    return this.dataService.put$<void>(`Driver/depenalize?driverId=${id}`, {});
   }
 
   /**
@@ -231,7 +232,7 @@ export class RegisteredDriverService {
    * @returns Observable void
    */
   addCoupon(data: AddCouponRequest): Observable<void> {
-    return this.dataService.post$<void>('Driver/coupon', {
+    return this.dataService.post$<void>('Driver/coupons', {
       driverId: data.driverId,
       reason: data.reason,
       quantity: data.quantity
@@ -306,5 +307,121 @@ export class RegisteredDriverService {
     return this.dataService.get$<City[]>('City/by-country', {
       countryId: countryId
     });
+  }
+
+  // ============================================================================
+  // HISTORY
+  // ============================================================================
+
+  /**
+   * Obtener historial de penalizaciones de un driver
+   *
+   * @param driverId - ID del driver
+   * @param page - Número de página
+   * @param pageSize - Tamaño de página
+   * @param status - Filtro de status (opcional): 0 = Todas, 1 = Activas, 2 = Finalizadas
+   * @returns Observable con historial de penalizaciones
+   */
+  getPenaltiesHistory(
+    driverId: number,
+    page: number,
+    pageSize: number,
+    status?: number
+  ): Observable<PenaltyHistoryResponse> {
+    let params: Record<string, string | number> = {
+      pageNumber: page,
+      pageSize: pageSize
+    };
+
+    if (status !== undefined && status !== 0) {
+      params['status'] = status;
+    }
+
+    const queryParams = Object.keys(params)
+      .map(key => `${key}=${params[key]}`)
+      .join('&');
+
+    return this.dataService.get$<PenaltyHistoryResponse>(
+      `Driver/penalties/${driverId}?${queryParams}`
+    );
+  }
+
+  /**
+   * Buscar en el historial de penalizaciones
+   *
+   * @param driverId - ID del driver
+   * @param search - Término de búsqueda
+   * @param page - Número de página
+   * @param pageSize - Tamaño de página
+   * @param status - Filtro de status (opcional)
+   * @returns Observable con resultados de búsqueda
+   */
+  searchPenaltiesHistory(
+    driverId: number,
+    search: string,
+    page: number,
+    pageSize: number,
+    status?: number
+  ): Observable<PenaltyHistoryResponse> {
+    let params: Record<string, string | number> = {
+      pageNumber: page,
+      pageSize: pageSize,
+      filter: search
+    };
+
+    if (status !== undefined && status !== 0) {
+      params['status'] = status;
+    }
+
+    const queryParams = Object.keys(params)
+      .map(key => `${key}=${params[key]}`)
+      .join('&');
+
+    return this.dataService.get$<PenaltyHistoryResponse>(
+      `Driver/penalties/${driverId}?${queryParams}`
+    );
+  }
+
+  /**
+   * Obtener historial de pedidos de un driver
+   *
+   * @param driverId - ID del driver
+   * @param page - Número de página
+   * @param pageSize - Tamaño de página
+   * @param status - Filtro de status (opcional): 'in_progress', 'completed', 'cancelled'
+   * @returns Observable con historial de pedidos
+   */
+  getOrdersHistory(
+    driverId: number,
+    page: number,
+    pageSize: number,
+    status?: string
+  ): Observable<OrderHistoryResponse> {
+    let params: Record<string, string | number> = {
+      pageNumber: page,
+      pageSize: pageSize
+    };
+
+    if (status) {
+      params['status'] = status;
+    }
+
+    const queryParams = Object.keys(params)
+      .map(key => `${key}=${params[key]}`)
+      .join('&');
+
+    return this.dataService.get$<OrderHistoryResponse>(
+      `Driver/orders/${driverId}?${queryParams}`
+    );
+  }
+
+  /**
+   * Obtener primera y última orden de un driver
+   *
+   * @param driverId - ID del driver
+   * @returns Observable con primera y última orden
+   */
+  getEdgeOrders(driverId: number): Observable<EdgeOrdersResponse> {
+    return this.dataService.get$<EdgeOrdersResponse>(`Driver/edgeOrders/${driverId}`);
   }
 }

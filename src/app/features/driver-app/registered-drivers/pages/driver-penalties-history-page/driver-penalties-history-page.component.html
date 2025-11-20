@@ -1,0 +1,221 @@
+<div class="p-4">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems()" />
+
+  <!-- Card Container -->
+  <div class="card">
+    <!-- Header -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+      <div class="flex items-center gap-3">
+        <p-button
+          icon="pi pi-arrow-left"
+          [text]="true"
+          [rounded]="true"
+          (onClick)="goBack()"
+        />
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white m-0">
+            Historial de Penalizaciones
+          </h2>
+          <p class="text-gray-600 dark:text-gray-400 mt-1">
+            Driver #{{ driverId() }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="flex flex-wrap gap-3 mb-4 border-[1px] border-gray-300 dark:border-gray-600 rounded-lg p-3 items-center">
+      <!-- Status Buttons -->
+      <div class="flex gap-2 flex-wrap">
+        <p-button
+          label="Todas ({{ totalCount() }})"
+          [outlined]="selectedStatus() !== 0"
+          [raised]="selectedStatus() === 0"
+          size="small"
+          (onClick)="filterByStatus(0)"
+        />
+        <p-button
+          label="Activas ({{ totalActive() }})"
+          [outlined]="selectedStatus() !== 1"
+          [raised]="selectedStatus() === 1"
+          severity="danger"
+          size="small"
+          (onClick)="filterByStatus(1)"
+        />
+        <p-button
+          label="Inactivas ({{ totalInactive() }})"
+          [outlined]="selectedStatus() !== 2"
+          [raised]="selectedStatus() === 2"
+          severity="secondary"
+          size="small"
+          (onClick)="filterByStatus(2)"
+        />
+      </div>
+
+      <!-- Search -->
+      <div class="flex-1 min-w-[250px]">
+        <p-iconfield iconPosition="left">
+          <p-inputicon styleClass="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            [formControl]="searchControl"
+            placeholder="Buscar por razón, descripción o base..."
+            class="w-full"
+          />
+        </p-iconfield>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading()) {
+      <div class="loading-container">
+        <p-skeleton height="400px" />
+      </div>
+    }
+
+    <!-- Content -->
+    @if (!loading()) {
+      <!-- Desktop: Table -->
+      <div class="hidden md:block">
+        <p-table
+          [value]="penalties()"
+          [tableStyle]="{ 'min-width': '50rem' }"
+          styleClass="p-datatable-sm"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Razón</th>
+              <th>Descripción</th>
+              <th>Fecha Inicio</th>
+              <th>Fecha Fin</th>
+              <th>Base</th>
+              <th>Status</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-penalty>
+            <tr>
+              <td>
+                <span class="font-semibold">{{ penalty.reason }}</span>
+              </td>
+              <td>
+                <span class="text-sm text-gray-600 dark:text-gray-400">
+                  {{ penalty.description | slice:0:50 }}{{ (penalty.description?.length ?? 0) > 50 ? '...' : '' }}
+                </span>
+              </td>
+              <td>{{ penalty.startTime | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ penalty.endTime | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ penalty.headquarter }}</td>
+              <td>
+                @if (penalty.status === 'Activa') {
+                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                    Activa
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                    Inactiva
+                  </span>
+                }
+              </td>
+              <td class="text-center">
+                <p-button
+                  label="Ver Detalles"
+                  icon="pi pi-eye"
+                  [text]="true"
+                  size="small"
+                  (onClick)="viewDetails(penalty)"
+                />
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="7" class="text-center py-8">
+                <div class="empty-state">
+                  <i class="pi pi-inbox text-6xl text-gray-400 mb-4"></i>
+                  <p class="text-gray-600 dark:text-gray-400">No se encontraron penalizaciones</p>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Mobile: Cards -->
+      <div class="block md:hidden">
+        @for (penalty of penalties(); track trackByPenaltyId($index, penalty)) {
+          <div class="card mb-3 p-4 border border-surface-border rounded-lg">
+            <div class="flex justify-between items-start mb-3">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white m-0">
+                {{ penalty.reason }}
+              </h3>
+              @if (penalty.status === 'Activa') {
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                  Activa
+                </span>
+              } @else {
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                  Inactiva
+                </span>
+              }
+            </div>
+
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+              {{ penalty.description | slice:0:100 }}{{ (penalty.description?.length ?? 0) > 100 ? '...' : '' }}
+            </p>
+
+            <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+              <div>
+                <span class="text-gray-500 dark:text-gray-400">Inicio:</span>
+                <span class="ml-1 font-medium">{{ penalty.startTime | date: 'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div>
+                <span class="text-gray-500 dark:text-gray-400">Fin:</span>
+                <span class="ml-1 font-medium">{{ penalty.endTime | date: 'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="col-span-2">
+                <span class="text-gray-500 dark:text-gray-400">Base:</span>
+                <span class="ml-1 font-medium">{{ penalty.headquarter }}</span>
+              </div>
+            </div>
+
+            <p-button
+              label="Ver Detalles"
+              icon="pi pi-eye"
+              [outlined]="true"
+              size="small"
+              class="w-full"
+              (onClick)="viewDetails(penalty)"
+            />
+          </div>
+        } @empty {
+          <div class="empty-state text-center py-12">
+            <i class="pi pi-inbox text-6xl text-gray-400 mb-4"></i>
+            <p class="text-gray-600 dark:text-gray-400">No se encontraron penalizaciones</p>
+          </div>
+        }
+      </div>
+
+      <!-- Paginator -->
+      @if (totalCount() > 0) {
+        <div class="mt-4">
+          <p-paginator
+            [first]="(currentPage() - 1) * pageSize()"
+            [rows]="pageSize()"
+            [totalRecords]="totalCount()"
+            [rowsPerPageOptions]="[10, 20, 50, 100]"
+            (onPageChange)="onPageChange($event)"
+          />
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Toast -->
+  <p-toast position="top-right" />
+
+  <!-- Details Dialog -->
+  <app-penalty-details-dialog />
+</div>

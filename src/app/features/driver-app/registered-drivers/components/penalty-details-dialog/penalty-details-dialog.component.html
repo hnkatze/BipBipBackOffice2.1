@@ -1,0 +1,87 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="true"
+  header="Detalles de la Penalización"
+  [style]="{ width: '90vw', maxWidth: '800px' }"
+>
+  @if (penalty()) {
+    <div class="flex flex-col gap-6">
+      <!-- Status Badge -->
+      <div class="flex items-center gap-3">
+        @if (penalty()!.status === 'Activa') {
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+            <i class="pi pi-exclamation-circle mr-2"></i>
+            Activa
+          </span>
+        } @else {
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+            <i class="pi pi-check-circle mr-2"></i>
+            Inactiva
+          </span>
+        }
+      </div>
+
+      <!-- Reason -->
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+          Motivo
+        </label>
+        <p class="text-lg font-semibold text-gray-900 dark:text-white m-0">
+          {{ penalty()!.reason }}
+        </p>
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+          Descripción
+        </label>
+        <p class="text-base text-gray-900 dark:text-white m-0 whitespace-pre-wrap">
+          {{ penalty()!.description }}
+        </p>
+      </div>
+
+      <!-- Dates Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+            Fecha de Inicio
+          </label>
+          <p class="text-base font-medium text-gray-900 dark:text-white m-0">
+            {{ penalty()!.startTime | date: 'dd MMM yyyy hh:mm a' }}
+          </p>
+        </div>
+
+        <div>
+          <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+            Fecha de Finalización
+          </label>
+          <p class="text-base font-medium text-gray-900 dark:text-white m-0">
+            {{ penalty()!.endTime | date: 'dd MMM yyyy hh:mm a' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Headquarter -->
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400 block mb-2">
+          Base Asignada
+        </label>
+        <p class="text-base font-medium text-gray-900 dark:text-white m-0">
+          {{ penalty()!.headquarter }}
+        </p>
+      </div>
+    </div>
+  }
+
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cerrar"
+      icon="pi pi-times"
+      (onClick)="close()"
+      [outlined]="true"
+    />
+  </ng-template>
+</p-dialog>

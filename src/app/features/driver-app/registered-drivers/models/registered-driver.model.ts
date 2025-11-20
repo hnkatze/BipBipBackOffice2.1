@@ -199,3 +199,83 @@ export interface PenalizedInfo {
   startDate: string;
   endDate: string;
 }
+
+/**
+ * Item del historial de penalizaciones
+ */
+export interface PenaltyHistoryItem {
+  reason: string;
+  description: string | null;
+  startTime: string;
+  endTime: string;
+  headquarter: string;
+  status: 'Activa' | 'Inactiva';
+}
+
+/**
+ * Respuesta del endpoint de historial de penalizaciones
+ */
+export interface PenaltyHistoryResponse {
+  data: PenaltyHistoryItem[];
+  metadata: {
+    totalActive: number;
+    totalInactive: number;
+    page: number;
+    perPage: number;
+    pageCount: number;
+    totalCount: number;
+  };
+}
+
+/**
+ * Item del historial de pedidos (respuesta del backend)
+ */
+export interface OrderHistoryItem {
+  orderId: string;
+  orderReceptionPlace: string;
+  orderDeliveryPlace: string;
+  orderStatus: string; // "Entregada" | "Pendiente" | "Cancelada"
+  cityName: string;
+  latitudeReceptionPlace: number;
+  longitudeReceptionPlace: number;
+  latitudeDeliveryPlace: number | null;
+  longitudeDeliveryPlace: number | null;
+  timeExpectedDelivery: string;
+  timeRealDelivery: string;
+}
+
+/**
+ * Respuesta del endpoint de historial de pedidos
+ */
+export interface OrderHistoryResponse {
+  data: OrderHistoryItem[];
+  metadata: {
+    totalOrdersDelivered: number;
+    totalOrdersPending: number;
+    totalOrdersCanceled: number;
+    page: number;
+    perPage: number;
+    pageCount: number;
+    totalCount: number;
+  };
+}
+
+/**
+ * Orden extrema (primera o última)
+ */
+export interface EdgeOrder {
+  orderId: number;
+  posgOrderId: number;
+  dateDelivery: string;
+  storeShortname: string;
+  brandShortName: string;
+  total: number;
+}
+
+/**
+ * Respuesta del endpoint de órdenes extremas
+ */
+export interface EdgeOrdersResponse {
+  firstOrder: EdgeOrder;
+  lastOrder: EdgeOrder;
+}

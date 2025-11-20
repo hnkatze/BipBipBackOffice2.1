@@ -185,6 +185,20 @@ export class DriverDetailPageComponent implements OnInit {
   /** Si está en modo edición */
   isEditMode = computed(() => this.mode() === 'edit');
 
+  /** Cupones del driver */
+  driverCoupons = computed(() => {
+    const detail = this.driverDetail();
+    if (!detail || !detail.driverCoupons) return [];
+
+    // Mapear cupones a formato amigable
+    return detail.driverCoupons.map(coupon => ({
+      id: coupon.codCoupons,
+      quantity: 1, // Backend no especifica cantidad individual
+      reason: 'Cupón', // Backend no especifica reason
+      createdAt: new Date(coupon.dateIssued).toISOString()
+    }));
+  });
+
   // ============================================================================
   // LIFECYCLE
   // ============================================================================
@@ -196,11 +210,11 @@ export class DriverDetailPageComponent implements OnInit {
       if (id) {
         this.driverId.set(id);
         this.loadDriverDetail();
-        this.loadCatalogs();
+        // Ya no cargamos catálogos aquí, solo cuando se active modo edición
       }
     });
 
-    // Escuchar cambios de país para cargar ciudades
+    // Escuchar cambios de país para cargar ciudades (necesario para edición)
     this.driverForm.get('countryId')?.valueChanges.subscribe((countryId) => {
       if (countryId) {
         this.loadCities(countryId);
@@ -238,7 +252,7 @@ export class DriverDetailPageComponent implements OnInit {
   }
 
   /**
-   * Cargar todos los catálogos necesarios
+   * Cargar todos los catálogos necesarios para modo edición
    */
   private loadCatalogs(): void {
     forkJoin({
@@ -262,7 +276,7 @@ export class DriverDetailPageComponent implements OnInit {
   }
 
   /**
-   * Cargar ciudades por país
+   * Cargar ciudades por país (necesario cuando el usuario cambia de país en edición)
    */
   private loadCities(countryId: number): void {
     this.driverService.getCitiesByCountry(countryId).subscribe({
@@ -296,10 +310,8 @@ export class DriverDetailPageComponent implements OnInit {
       accountNumber: detail.paymentMethod?.accountNumber || '',
     });
 
-    // Cargar ciudades del país seleccionado
-    if (detail.idCountry) {
-      this.loadCities(detail.idCountry);
-    }
+    // Ya no cargamos ciudades aquí, solo cuando estemos en modo edición
+    // Las ciudades se cargarán cuando el usuario active el modo edición
   }
 
   // ============================================================================
@@ -311,6 +323,14 @@ export class DriverDetailPageComponent implements OnInit {
    */
   enableEditMode(): void {
     this.mode.set('edit');
+    // Cargar catálogos solo cuando se activa el modo edición
+    this.loadCatalogs();
+
+    // Cargar ciudades del país del driver
+    const countryId = this.driverForm.value.countryId;
+    if (countryId) {
+      this.loadCities(countryId);
+    }
   }
 
   /**
@@ -634,5 +654,56 @@ export class DriverDetailPageComponent implements OnInit {
    */
   goBack(): void {
     this.router.navigate(['/driver-app/registered-users-drivers']);
+  }
+
+  /**
+   * Ir al historial de pedidos
+   */
+  goToOrdersHistory(): void {
+    this.router.navigate(['/driver-app/registered-users-drivers', this.driverId(), 'orders-history']);
+  }
+
+  /**
+   * Ir al historial de penalizaciones
+   */
+  goToPenaltiesHistory(): void {
+    this.router.navigate(['/driver-app/registered-users-drivers', this.driverId(), 'penalties-history']);
+  }
+
+  /**
+   * Handler para cambio de país (recargar ciudades)
+   */
+  onCountryChange(event: any): void {
+    const countryId = event.value;
+    if (countryId) {
+      // Limpiar ciudad seleccionada
+      this.driverForm.patchValue({ cityId: null });
+      // Cargar ciudades del nuevo país
+      this.loadCities(countryId);
+    }
+  }
+
+  /**
+   * Limpiar foto de DNI
+   */
+  clearDniPhoto(): void {
+    this.dniPhotoPreview.set(null);
+    this.dniPhotoFile.set(null);
+  }
+
+  /**
+   * Limpiar foto de licencia
+   */
+  clearLicensePhoto(): void {
+    this.licensePhotoPreview.set(null);
+    this.licensePhotoFile.set(null);
+  }
+
+  /**
+   * Limpiar foto de antecedentes
+   */
+  clearCriminalRecordsPhoto(): void {
+    this.recordsPhotoPreview.set(null);
+    this.recordsPhotoFile.set(null);
   }
 }
