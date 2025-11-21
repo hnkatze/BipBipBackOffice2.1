@@ -42,23 +42,28 @@
           }
         </div>
 
-        <!-- Fecha (OBLIGATORIO) -->
+        <!-- Rango de Fechas (OBLIGATORIO) -->
         <div class="flex flex-col">
           <label class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 flex items-center gap-1">
             <i class="pi pi-calendar text-[#fb0021]"></i>
-            <span>Fecha de Entrega</span>
+            <span>Rango de Fechas</span>
             <span class="text-red-500 dark:text-red-400">*</span>
           </label>
           <p-datepicker
-            formControlName="deliveryDate"
+            formControlName="dateRange"
             [showIcon]="true"
-            placeholder="Seleccionar fecha..."
+            placeholder="Seleccionar rango..."
             dateFormat="dd/mm/yy"
+            selectionMode="range"
+            [readonlyInput]="true"
             styleClass="w-full"
           ></p-datepicker>
-          @if (filtersForm.get('deliveryDate')?.invalid && filtersForm.get('deliveryDate')?.touched) {
-            <span class="text-xs text-red-500 dark:text-red-400 mt-1">La fecha es obligatoria</span>
+          @if (filtersForm.get('dateRange')?.invalid && filtersForm.get('dateRange')?.touched) {
+            <span class="text-xs text-red-500 dark:text-red-400 mt-1">El rango de fechas es obligatorio</span>
           }
+          <p class="text-xs text-surface-500 dark:text-surface-400 mt-1">
+            Selecciona desde - hasta
+          </p>
         </div>
 
       </div>

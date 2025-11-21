@@ -6,19 +6,22 @@ import { Subscription } from 'rxjs';
 import { DriverStatus } from '../../models/saao.model';
 import { SaaoService } from '../../services/saao.service';
 import { DriverLocationService, DriverLocation } from '../../services/driver-location.service';
-import { MapComponent, MapMarker } from '@shared/components';
+import { GoogleMapComponent } from '@shared/components/google-map/google-map.component';
+import { GoogleMapMarker } from '@shared/components/google-map/google-map.types';
+import { MapboxDirectionsService } from '@shared/services/mapbox-directions.service';
 
 @Component({
   selector: 'app-driver-detail-drawer',
   templateUrl: './driver-detail-drawer.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MapComponent]
+  imports: [CommonModule, GoogleMapComponent]
 })
 export class DriverDetailDrawerComponent {
 
   // Dependency Injection
   private saaoService = inject(SaaoService);
   private driverLocationService = inject(DriverLocationService);
+  private mapboxDirections = inject(MapboxDirectionsService);
   private destroyRef = inject(DestroyRef);
 
   // Inputs
@@ -43,7 +46,7 @@ export class DriverDetailDrawerComponent {
   // Signals - Mapa
   showMap = signal<boolean>(false);
   loadingMap = signal<boolean>(false);
-  mapMarkers = signal<MapMarker[]>([]);
+  mapMarkers = signal<GoogleMapMarker[]>([]);
   driverLocation = signal<DriverLocation | null>(null);
   orderLocation = signal<{ lat: number; lng: number } | null>(null);
   distance = signal<number | null>(null);
@@ -173,25 +176,29 @@ export class DriverDetailDrawerComponent {
   private updateMapMarkers(): void {
     const driverLoc = this.driverLocation();
     const orderLoc = this.orderLocation();
-    const markers: MapMarker[] = [];
+    const markers: GoogleMapMarker[] = [];
 
     // Marcador del driver (icono de moto)
     if (driverLoc) {
       markers.push({
+        id: 'driver',
         lat: driverLoc.lat,
         lng: driverLoc.lng,
         icon: 'https://i.postimg.cc/PqBmTFRC/casco-de-carreras.png', // Icono de moto
-        info: `Driver|${this.driverStatus().fullname}/${this.driverStatus().driverCode}` // Formato: Header|Title/Code
+        title: this.driverStatus().fullname,
+        info: this.driverStatus().driverCode
       });
     }
 
     // Marcador de la orden (icono de pin de entrega)
     if (orderLoc) {
       markers.push({
+        id: 'order',
         lat: orderLoc.lat,
         lng: orderLoc.lng,
         icon: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // Icono de ubicación
-        info: `Orden|Entrega/Orden #${this.orderId()}` // Formato: Header|Title/Code
+        title: 'Entrega',
+        info: `Orden #${this.orderId()}`
       });
     }
 
@@ -199,21 +206,37 @@ export class DriverDetailDrawerComponent {
   }
 
   /**
-   * Calcular distancia entre driver y punto de entrega
+   * Calcular distancia entre driver y punto de entrega usando Mapbox Directions API
    */
   private calculateDistance(): void {
     const driverLoc = this.driverLocation();
     const orderLoc = this.orderLocation();
 
     if (driverLoc && orderLoc) {
-      const dist = this.driverLocationService.calculateDistance(
-        driverLoc.lat,
-        driverLoc.lng,
-        orderLoc.lat,
-        orderLoc.lng
-      );
-
-      this.distance.set(dist);
+      // Usar Mapbox Directions API para obtener la distancia real por carretera
+      this.mapboxDirections
+        .getRoute(
+          { lat: driverLoc.lat, lng: driverLoc.lng },
+          { lat: orderLoc.lat, lng: orderLoc.lng },
+          'driving'
+        )
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (route) => {
+            if (route) {
+              // Convertir de metros a kilómetros y redondear a 2 decimales
+              const distanceKm = Math.round((route.distance / 1000) * 100) / 100;
+              this.distance.set(distanceKm);
+            } else {
+              console.warn('No se pudo calcular la ruta con Mapbox');
+              this.distance.set(null);
+            }
+          },
+          error: (err) => {
+            console.error('❌ Error calculando distancia con Mapbox:', err);
+            this.distance.set(null);
+          }
+        });
     }
   }
 

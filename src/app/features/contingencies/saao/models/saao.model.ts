@@ -50,11 +50,12 @@ export interface SaaoFilters {
 
 /**
  * Parámetros del API para el endpoint /api/OrderTracking/saao/report
- * cityId y deliveryDate son OBLIGATORIOS
+ * cityId y rango de fechas (dateFrom - dateTo) son OBLIGATORIOS
  */
 export interface SaaoReportParams {
   cityId: number; // ID de la ciudad (OBLIGATORIO)
-  deliveryDate: string; // Fecha de entrega en formato YYYY-MM-DD (OBLIGATORIO)
+  dateFrom: string; // Fecha inicio en formato YYYY-MM-DD (OBLIGATORIO)
+  dateTo: string; // Fecha fin en formato YYYY-MM-DD (OBLIGATORIO)
   storeId?: number; // ID del comercio/restaurante (OPCIONAL)
   driverId?: number; // ID del driver (OPCIONAL)
   brandId?: number; // ID de la marca (OPCIONAL)

@@ -15,6 +15,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { PopoverModule } from 'primeng/popover';
+import { PaginatorModule } from 'primeng/paginator';
 import { MenuItem, MessageService, ConfirmationService } from 'primeng/api';
 
 // Models & Services
@@ -43,6 +44,7 @@ import { EditOccurrenceDialogComponent } from '../../components/edit-occurrence-
     ConfirmDialogModule,
     TooltipModule,
     PopoverModule,
+    PaginatorModule,
     SolutionDialogComponent,
     EditOccurrenceDialogComponent
   ],

@@ -19,6 +19,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { PopoverModule } from 'primeng/popover';
 import { TooltipModule } from 'primeng/tooltip';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { PaginatorModule } from 'primeng/paginator';
 import { MessageService } from 'primeng/api';
 import { ConfirmationService } from 'primeng/api';
 
@@ -43,7 +44,8 @@ import { GlobalDataService } from '@core/services/global-data.service';
     ConfirmDialogModule,
     PopoverModule,
     TooltipModule,
-    ToggleSwitchModule
+    ToggleSwitchModule,
+    PaginatorModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './promotional-discounts-list-page.component.html',

@@ -46,8 +46,8 @@
     </div>
   </div>
 
-  <!-- Tabla -->
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+  <!-- Tabla (Desktop/Tablet) -->
+  <div class="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-sm">
     <p-table
       [value]="productRewards()"
       [loading]="isLoading()"
@@ -236,6 +236,188 @@
         </tr>
       </ng-template>
     </p-table>
+  </div>
+
+  <!-- Cards (Mobile) -->
+  <div class="block md:hidden">
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="flex justify-center items-center py-12">
+        <i class="pi pi-spin pi-spinner text-4xl text-primary-500"></i>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading() && productRewards().length === 0) {
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+        <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+          <i class="pi pi-inbox text-4xl mb-3"></i>
+          <p class="text-lg font-medium">No hay regalías por producto</p>
+          <p class="text-sm">Crea tu primera regalía por producto</p>
+        </div>
+      </div>
+    }
+
+    <!-- Cards List -->
+    @if (!isLoading() && productRewards().length > 0) {
+      <div class="flex flex-col gap-4">
+        @for (reward of productRewards(); track reward.id) {
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <!-- Header: ID + Estado -->
+            <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+              <span class="text-sm font-mono text-gray-600 dark:text-gray-400">
+                #{{ reward.id }}
+              </span>
+              <p-tag
+                [value]="getStatusLabel(reward.isActive || false)"
+                [severity]="getStatusSeverity(reward.isActive || false)"
+              />
+            </div>
+
+            <!-- Tipo de Recompensa -->
+            <div class="mb-3">
+              <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                Tipo de Recompensa
+              </label>
+              <div class="flex items-center gap-2">
+                <i [class]="getRewardTypeIcon(reward.rewardType) + ' text-purple-600 dark:text-purple-400'"></i>
+                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {{ getRewardTypeLabel(reward.rewardType) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Producto / Marca / Canal -->
+            <div class="mb-3">
+              <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                @if (reward.triggerId === 1) { Producto }
+                @else if (reward.triggerId === 2) { Marca y Canal }
+                @else { Marca }
+              </label>
+
+              <!-- triggerId = 1: Por Producto -->
+              @if (reward.triggerId === 1) {
+                <div class="flex items-center gap-3">
+                  @if (reward.productImage) {
+                    <img
+                      [src]="reward.productImage"
+                      [alt]="reward.productName || reward.productCode"
+                      class="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-gray-700"
+                    />
+                  }
+                  <div class="flex flex-col gap-1">
+                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      {{ reward.productName || reward.productCode }}
+                    </span>
+                    <span class="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                      {{ reward.productCode }}
+                    </span>
+                  </div>
+                </div>
+              }
+
+              <!-- triggerId = 2: Por Marca y Canal -->
+              @if (reward.triggerId === 2) {
+                <div class="flex flex-col gap-2">
+                  <!-- Marca -->
+                  <div class="flex items-center gap-2">
+                    @if (getBrandLogo(reward.brandId)) {
+                      <img
+                        [src]="getBrandLogo(reward.brandId)"
+                        [alt]="getBrandName(reward.brandId)"
+                        class="w-6 h-6 rounded-full object-cover"
+                      />
+                    }
+                    <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                      {{ getBrandName(reward.brandId) }}
+                    </span>
+                  </div>
+                  <!-- Canal -->
+                  @if (reward.channelId) {
+                    <div class="flex items-center gap-2">
+                      <i class="pi pi-building text-purple-600 dark:text-purple-400"></i>
+                      <span class="text-sm text-gray-700 dark:text-gray-300">
+                        {{ getChannelName(reward.channelId) }}
+                      </span>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- triggerId = 3: Por Marca -->
+              @if (reward.triggerId === 3) {
+                <div class="flex items-center gap-2">
+                  @if (getBrandLogo(reward.brandId)) {
+                    <img
+                      [src]="getBrandLogo(reward.brandId)"
+                      [alt]="getBrandName(reward.brandId)"
+                      class="w-6 h-6 rounded-full object-cover"
+                    />
+                  }
+                  <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                    {{ getBrandName(reward.brandId) }}
+                  </span>
+                </div>
+              }
+            </div>
+
+            <!-- Fechas -->
+            <div class="mb-3">
+              <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                Vigencia
+              </label>
+              <div class="flex flex-col gap-1">
+                <div class="flex items-center gap-2 text-sm">
+                  <i class="pi pi-calendar-plus text-green-600 dark:text-green-400"></i>
+                  <span class="text-gray-600 dark:text-gray-400">
+                    {{ formatDate(reward.startTime) }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-2 text-sm">
+                  <i class="pi pi-calendar-minus text-red-600 dark:text-red-400"></i>
+                  <span class="text-gray-600 dark:text-gray-400">
+                    {{ formatDate(reward.endTime) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <p-button
+                label="Editar"
+                icon="pi pi-pencil"
+                size="small"
+                [outlined]="true"
+                (onClick)="goToEdit(reward.id)"
+                styleClass="flex-1"
+              />
+              <p-button
+                [label]="reward.isActive ? 'Desactivar' : 'Activar'"
+                [icon]="reward.isActive ? 'pi pi-times-circle' : 'pi pi-check-circle'"
+                size="small"
+                [outlined]="true"
+                [severity]="reward.isActive ? 'danger' : 'success'"
+                (onClick)="toggleStatus(reward)"
+                styleClass="flex-1"
+              />
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Paginador Mobile -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mt-4">
+        <p-paginator
+          [rows]="pageSizeSignal()"
+          [totalRecords]="metadata().totalCount"
+          [rowsPerPageOptions]="[5, 10, 25, 50]"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+          (onPageChange)="onPageChange($event)"
+        />
+      </div>
+    }
   </div>
 </div>
 

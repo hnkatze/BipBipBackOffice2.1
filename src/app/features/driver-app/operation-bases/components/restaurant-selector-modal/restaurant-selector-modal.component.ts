@@ -16,7 +16,7 @@ import { TableModule, Table } from 'primeng/table';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { RadioButtonModule } from 'primeng/radiobutton';
+import { RadioButton } from 'primeng/radiobutton';
 
 // Services
 import { OperationBaseService } from '../../services/operation-base.service';
@@ -41,7 +41,7 @@ import { RestaurantForBase } from '../../models/operation-base.model';
     InputTextModule,
     IconFieldModule,
     InputIconModule,
-    RadioButtonModule,
+    RadioButton,
   ],
   templateUrl: './restaurant-selector-modal.component.html',
   styleUrls: ['./restaurant-selector-modal.component.scss'],

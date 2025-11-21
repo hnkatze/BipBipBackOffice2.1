@@ -26,18 +26,19 @@
   </p-iconfield>
 </div>
 
-<!-- Tabla -->
-<p-table
-  [value]="filteredPromotions()"
-  [loading]="isLoading()"
-  [paginator]="true"
-  [rows]="10"
-  [rowsPerPageOptions]="[5, 10, 20, 50]"
-  [showCurrentPageReport]="true"
-  currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} activaciones"
-  [tableStyle]="{ 'min-width': '60rem' }"
-  styleClass="p-datatable-sm"
-  responsiveLayout="scroll">
+<!-- Tabla (Desktop/Tablet) -->
+<div class="hidden md:block">
+  <p-table
+    [value]="filteredPromotions()"
+    [loading]="isLoading()"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[5, 10, 20, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} activaciones"
+    [tableStyle]="{ 'min-width': '60rem' }"
+    styleClass="p-datatable-sm"
+    responsiveLayout="scroll">
 
   <!-- Empty State -->
   <ng-template pTemplate="emptymessage">
@@ -148,6 +149,133 @@
     </tr>
   </ng-template>
 </p-table>
+</div>
+
+<!-- Cards (Mobile) -->
+<div class="block md:hidden">
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="flex justify-center items-center py-12">
+      <i class="pi pi-spin pi-spinner text-4xl text-primary-500"></i>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && filteredPromotions().length === 0) {
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+      <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+        @if (!hasPromotions()) {
+          <i class="pi pi-inbox text-4xl mb-3"></i>
+          <p class="text-lg font-medium">No hay activaciones creadas</p>
+          <p-button
+            label="Crear Primera Activación"
+            icon="pi pi-plus"
+            [outlined]="true"
+            (onClick)="onCreateNew()"
+            styleClass="mt-3" />
+        } @else if (!hasFilteredResults()) {
+          <i class="pi pi-search text-4xl mb-3"></i>
+          <p class="text-lg font-medium">No se encontraron activaciones</p>
+          <p class="text-sm">con el término: <strong>{{ searchTerm() }}</strong></p>
+          <p-button
+            label="Limpiar Búsqueda"
+            icon="pi pi-times"
+            [outlined]="true"
+            (onClick)="clearSearch()"
+            styleClass="mt-3" />
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Cards List -->
+  @if (!isLoading() && filteredPromotions().length > 0) {
+    <div class="flex flex-col gap-4">
+      @for (promotion of filteredPromotions(); track promotion.id) {
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <!-- Header: ID + Estado -->
+          <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+            <span class="text-sm font-mono text-gray-600 dark:text-gray-400">
+              #{{ promotion.id }}
+            </span>
+            <p-tag
+              [value]="getStatusLabel(promotion.isActive)"
+              [severity]="getStatusSeverity(promotion.isActive)"
+            />
+          </div>
+
+          <!-- Público Objetivo -->
+          <div class="mb-3">
+            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+              Público Objetivo
+            </label>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-users text-primary-500"></i>
+              <span class="font-medium">{{ promotion.criteriaName || 'N/A' }}</span>
+            </div>
+          </div>
+
+          <!-- Tipo y Valor en grid -->
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <!-- Tipo -->
+            <div>
+              <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                Tipo
+              </label>
+              <div class="flex items-center gap-2">
+                @if (promotion.promocodeRequired !== null) {
+                  <i class="pi pi-ticket text-blue-500"></i>
+                } @else if (promotion.type === TurnOnDiscountType.PercentageDiscount) {
+                  <i class="pi pi-percentage text-green-500"></i>
+                } @else {
+                  <i class="pi pi-dollar text-orange-500"></i>
+                }
+                <span class="text-sm">{{ getDiscountTypeLabel(promotion) }}</span>
+              </div>
+            </div>
+
+            <!-- Valor -->
+            <div>
+              <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                Valor/Código
+              </label>
+              <span class="font-semibold text-sm">{{ getDiscountValue(promotion) }}</span>
+            </div>
+          </div>
+
+          <!-- Compra Mínima -->
+          <div class="mb-3">
+            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+              Compra Mínima
+            </label>
+            <span class="text-sm">{{ getMinimumPurchase(promotion) }}</span>
+          </div>
+
+          <!-- Acciones -->
+          <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <p-button
+              label="Editar"
+              icon="pi pi-pencil"
+              size="small"
+              [outlined]="true"
+              (onClick)="onEdit(promotion)"
+              styleClass="flex-1"
+            />
+            <p-button
+              label="Eliminar"
+              icon="pi pi-trash"
+              size="small"
+              [outlined]="true"
+              severity="danger"
+              (onClick)="onDelete(promotion)"
+              styleClass="flex-1"
+            />
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
 
 <!-- Toast para notificaciones -->
 <p-toast />

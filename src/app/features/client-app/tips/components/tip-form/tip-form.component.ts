@@ -5,7 +5,7 @@ import { DrawerModule } from 'primeng/drawer';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { RadioButtonModule } from 'primeng/radiobutton';
+import { RadioButton } from 'primeng/radiobutton';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 
@@ -22,7 +22,7 @@ import { TipDetail, TipPayload } from '../../models';
     ButtonModule,
     InputNumberModule,
     ToggleSwitchModule,
-    RadioButtonModule,
+    RadioButton,
     TooltipModule
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -8,7 +8,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
-import { RadioButtonModule } from 'primeng/radiobutton';
+import { RadioButton } from 'primeng/radiobutton';
 import { CheckboxModule } from 'primeng/checkbox';
 import { DatePickerModule } from 'primeng/datepicker';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
@@ -31,7 +31,7 @@ import { SmsAuthorizationDialogComponent } from '../../components/sms-authorizat
     InputTextModule,
     TextareaModule,
     SelectModule,
-    RadioButtonModule,
+    RadioButton,
     CheckboxModule,
     DatePickerModule,
     BreadcrumbModule,

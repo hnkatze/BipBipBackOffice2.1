@@ -91,13 +91,15 @@ export class SaaoFiltersComponent implements OnInit {
 
   /**
    * Inicializar formulario UNIFICADO
-   * Ciudad y Fecha son OBLIGATORIOS
+   * Ciudad y Rango de Fechas son OBLIGATORIOS
    */
   private initializeForm(): void {
+    const today = new Date();
+
     this.filtersForm = this.fb.group({
       // Filtros OBLIGATORIOS
       cityId: [null, Validators.required],
-      deliveryDate: [new Date(), Validators.required],
+      dateRange: [[today, today], Validators.required], // Rango de fechas (date from - date to)
 
       // Filtros OPCIONALES
       driverId: [null],
@@ -211,26 +213,30 @@ export class SaaoFiltersComponent implements OnInit {
   applyFilters(): void {
     // Validar que los campos obligatorios estén llenos
     if (this.filtersForm.invalid) {
-      console.warn('⚠️ Formulario inválido. Ciudad y fecha son obligatorios.');
+      console.warn('⚠️ Formulario inválido. Ciudad y rango de fechas son obligatorios.');
       this.filtersForm.markAllAsTouched();
       return;
     }
 
     const formValue = this.filtersForm.value;
 
-    // Formatear la fecha
-    let formattedDate = '';
-    if (formValue.deliveryDate) {
-      if (formValue.deliveryDate instanceof Date) {
-        formattedDate = this.formatDateToYYYYMMDD(formValue.deliveryDate);
-      } else if (typeof formValue.deliveryDate === 'string') {
-        formattedDate = formValue.deliveryDate;
+    // Formatear el rango de fechas
+    let dateFrom = '';
+    let dateTo = '';
+
+    if (formValue.dateRange && Array.isArray(formValue.dateRange) && formValue.dateRange.length === 2) {
+      const [startDate, endDate] = formValue.dateRange;
+      if (startDate instanceof Date) {
+        dateFrom = this.formatDateToYYYYMMDD(startDate);
+      }
+      if (endDate instanceof Date) {
+        dateTo = this.formatDateToYYYYMMDD(endDate);
       }
     }
 
-    // Validar que tengamos ciudad y fecha
-    if (!formValue.cityId || !formattedDate) {
-      console.error('❌ Ciudad y fecha son obligatorios');
+    // Validar que tengamos ciudad y rango de fechas
+    if (!formValue.cityId || !dateFrom || !dateTo) {
+      console.error('❌ Ciudad y rango de fechas son obligatorios');
       return;
     }
 
@@ -246,7 +252,8 @@ export class SaaoFiltersComponent implements OnInit {
 
     const params: SaaoReportParams = {
       cityId: formValue.cityId,
-      deliveryDate: formattedDate,
+      dateFrom: dateFrom,
+      dateTo: dateTo,
       driverId: formValue.driverId || undefined,
       storeId: formValue.storeId || undefined,
       orderIds: orderIds && orderIds.length > 0 ? orderIds : undefined
@@ -259,10 +266,12 @@ export class SaaoFiltersComponent implements OnInit {
    * Limpiar TODOS los filtros y resetear a estado inicial
    */
   clearFilters(): void {
+    const today = new Date();
+
     // Resetear formulario completo
     this.filtersForm.reset({
       cityId: null,
-      deliveryDate: new Date(),
+      dateRange: [today, today],
       driverId: null,
       storeId: null,
       orderIds: ''
@@ -360,14 +369,14 @@ export class SaaoFiltersComponent implements OnInit {
   private applyDriverFilter(driverId: number, driver: DriverStatus): void {
     if (!driver) return;
 
-    // Obtener fecha actual en formato YYYY-MM-DD
+    // Obtener fecha actual
     const today = new Date();
     const formattedDate = this.formatDateToYYYYMMDD(today);
 
-    // Actualizar el formulario con cityId del driver y fecha actual
+    // Actualizar el formulario con cityId del driver y rango de fecha (hoy - hoy)
     this.filtersForm.patchValue({
       cityId: driver.cityId,
-      deliveryDate: today,
+      dateRange: [today, today],
       driverId: driverId
     }, { emitEvent: false }); // No emitir eventos para evitar loops
 
@@ -377,7 +386,8 @@ export class SaaoFiltersComponent implements OnInit {
     // Aplicar los filtros automáticamente
     const params: SaaoReportParams = {
       cityId: driver.cityId,
-      deliveryDate: formattedDate,
+      dateFrom: formattedDate,
+      dateTo: formattedDate,
       driverId: driverId
     };
 

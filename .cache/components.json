@@ -64,5 +64,68 @@
       "timestamp": 1763675943034,
       "ttl": 86400000
     }
+  ],
+  [
+    "calendar",
+    {
+      "data": {
+        "name": "calendar",
+        "description": "Componente calendar de PrimeNG",
+        "importStatement": "import { Calendar } from 'primeng/calendar';",
+        "moduleImport": "import { CalendarModule } from 'primeng/calendar';",
+        "basicUsage": "<p-calendar [(ngModel)]=\"date\" />",
+        "properties": [],
+        "events": [],
+        "methods": []
+      },
+      "timestamp": 1763745009343,
+      "ttl": 86400000
+    }
+  ],
+  [
+    "dropdown",
+    {
+      "data": {
+        "name": "dropdown",
+        "description": "Componente dropdown de PrimeNG",
+        "importStatement": "import { Dropdown } from 'primeng/dropdown';",
+        "moduleImport": "import { DropdownModule } from 'primeng/dropdown';",
+        "basicUsage": "<p-dropdown [options]=\"cities\" [(ngModel)]=\"selectedCity\" optionLabel=\"name\" />",
+        "properties": [],
+        "events": [],
+        "methods": []
+      },
+      "timestamp": 1763745011194,
+      "ttl": 86400000
+    }
+  ],
+  [
+    "radiobutton",
+    {
+      "data": {
+        "name": "radiobutton",
+        "description": "RadioButton is an extension to standard radio button element with theming.",
+        "importStatement": "import { Radiobutton } from 'primeng/radiobutton';",
+        "moduleImport": "import { RadiobuttonModule } from 'primeng/radiobutton';",
+        "basicUsage": "import { RadioButtonModule } from 'primeng/radiobutton';",
+        "examples": [
+          "import { RadioButtonModule } from 'primeng/radiobutton';",
+          "<div class=\"flex flex-wrap gap-4\">\n    <div class=\"flex items-center\">\n        <p-radiobutton name=\"pizza\" value=\"Cheese\" [(ngModel)]=\"ingredient\" inputId=\"ingredient1\" />\n        <label for=\"ingredient1\" class=\"ml-2\">Cheese</label>\n    </div>\n\n    <div class=\"flex items-center\">\n        <p-radiobutton name=\"pizza\" value=\"Mushroom\" [(ngModel)]=\"ingredient\" inputId=\"ingredient2\" />\n        <label for=\"ingredient2\" class=\"ml-2\">Mushroom</label>\n    </div>\n\n    <div class=\"flex items-center\">\n        <p-radiobutton name=\"pizza\" value=\"Pepper\" [(ngModel)]=\"ingredient\" inputId=\"ingredient3\" />\n        <label for=\"ingredient3\" class=\"ml-2\">Pepper</label>\n    </div>\n\n    <div class=\"flex items-center\">\n        <p-radiobutton name=\"pizza\" value=\"Onion\" [(ngModel)]=\"ingredient\" inputId=\"ingredient4\" />\n        <label for=\"ingredient4\" class=\"ml-2\">Onion</label>\n    </div>\n</div>",
+          "<div class=\"flex flex-col gap-4\">\n    <div *ngFor=\"let category of categories\" class=\"field-checkbox\">\n        <p-radiobutton [inputId]=\"category.key\" name=\"category\" [value]=\"category\" [(ngModel)]=\"selectedCategory\" />\n        <label [for]=\"category.key\" class=\"ml-2\">{{ category.name }}</label>\n    </div>\n</div>",
+          "<p-radiobutton [(ngModel)]=\"checked\" variant=\"filled\" />",
+          "<div class=\"flex flex-wrap gap-4\">\n    <div class=\"flex items-center gap-2\">\n        <p-radiobutton [(ngModel)]=\"size\" inputId=\"size_small\" name=\"size\" value=\"Small\" size=\"small\" />\n        <label for=\"size_small\" class=\"text-sm\">Small</label>\n    </div>\n    <div class=\"flex items-center gap-2\">\n        <p-radiobutton [(ngModel)]=\"size\" inputId=\"size_normal\" name=\"size\" value=\"Normal\" />\n        <label for=\"size_normal\">Normal</label>\n    </div>\n    <div class=\"flex items-center gap-2\">\n        <p-radiobutton [(ngModel)]=\"size\" inputId=\"size_large\" name=\"size\" value=\"Large\" size=\"large\" />\n        <label for=\"size_large\" class=\"text-lg\">Large</label>\n    </div>\n</div>",
+          "<p-radiobutton [(ngModel)]=\"value\" [value]=\"1\" [disabled]=\"true\" />\n<p-radiobutton [(ngModel)]=\"value\" [value]=\"2\" [disabled]=\"true\" />",
+          "<p-radiobutton [(ngModel)]=\"value\" [invalid]=\"!value\"  />",
+          "<form #exampleForm=\"ngForm\" (ngSubmit)=\"onSubmit(exampleForm)\" class=\"flex flex-col gap-4\">\n    <div class=\"flex flex-wrap gap-4\">\n        @for (category of categories; track category.name) {\n            <div class=\"flex items-center gap-2\">\n                <p-radiobutton [(ngModel)]=\"ingredient\" [inputId]=\"category.key\" [value]=\"category\" [invalid]=\"isInvalid(exampleForm)\" name=\"ingredient\" />\n                <label [for]=\"category.key\"> {{ category.name }} </label>\n            </div>\n        }\n    </div>\n    @if (isInvalid(exampleForm)) {\n        <p-message severity=\"error\" size=\"small\" variant=\"simple\"> At least one ingredient must be selected. </p-message>\n    }\n\n    <button pButton severity=\"secondary\" type=\"submit\">\n        <span pButtonLabel>Submit</span>\n    </button>\n</form>",
+          "<form [formGroup]=\"exampleForm\" (ngSubmit)=\"onSubmit()\" class=\"flex flex-col gap-4\">\n    <div class=\"flex flex-wrap gap-4\">\n        @for (category of categories; track category) {\n            <div class=\"flex items-center gap-2\">\n                <p-radiobutton formControlName=\"selectedCategory\" name=\"selectedCategory\" [inputId]=\"category.key\" [value]=\"category\" [invalid]=\"isInvalid('selectedCategory')\" />\n                <label [for]=\"category.key\"> {{ category.name }} </label>\n            </div>\n        }\n    </div>\n    @if (isInvalid('selectedCategory')) {\n        <p-message severity=\"error\" size=\"small\" variant=\"simple\"> At least one ingredient must be selected. </p-message>\n    }\n    <button pButton severity=\"secondary\" type=\"submit\">\n        <span pButtonLabel>Submit</span>\n    </button>\n</form>",
+          "<label for=\"rb1\">One</label>\n<p-radiobutton inputId=\"rb1\" />\n\n<span id=\"rb2\">Two</span>\n<p-radiobutton ariaLabelledBy=\"rb2\" />\n\n<p-radiobutton ariaLabel=\"Three\" />"
+        ],
+        "properties": [],
+        "events": [],
+        "methods": []
+      },
+      "timestamp": 1763745790701,
+      "ttl": 86400000
+    }
   ]
 ]

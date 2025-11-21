@@ -13,7 +13,7 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { RadioButtonModule } from 'primeng/radiobutton';
+import { RadioButton } from 'primeng/radiobutton';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
@@ -50,7 +50,7 @@ enum PromotionMode {
     DatePickerModule,
     ToggleSwitchModule,
     MultiSelectModule,
-    RadioButtonModule,
+    RadioButton,
     ToastModule
   ],
   providers: [MessageService],

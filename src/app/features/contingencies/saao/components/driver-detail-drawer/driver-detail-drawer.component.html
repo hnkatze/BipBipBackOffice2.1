@@ -142,13 +142,12 @@
             </div>
           }
 
-          <!-- Mapa con Mapbox GL -->
+          <!-- Mapa con Google Maps -->
           <div class="border border-gray-300 dark:border-gray-700 rounded-md overflow-hidden" style="height: 300px;">
             @if (!loadingMap() && mapMarkers().length > 0) {
-              <app-map
-                [mapMarkers]="mapMarkers()"
-                [showSearch]="false"
-              ></app-map>
+              <app-google-map
+                [markers]="mapMarkers()"
+              />
             } @else if (loadingMap()) {
               <div class="h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
                 <div class="text-center">

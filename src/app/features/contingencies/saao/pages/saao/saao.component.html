@@ -1,13 +1,13 @@
-<div class="w-full min-h-screen bg-surface-50 dark:bg-surface-950 p-6">
+<div class="w-full min-h-screen bg-surface-50 dark:bg-surface-950 p-4 md:p-6">
   <!-- Breadcrumb Navigation -->
-  <p-breadcrumb [model]="breadcrumbs" styleClass="mb-6"></p-breadcrumb>
+  <p-breadcrumb [model]="breadcrumbs" styleClass="mb-4 md:mb-6"></p-breadcrumb>
 
   <!-- Header -->
-  <div class="mb-8">
+  <div class="mb-6 md:mb-8">
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-50">SAAO - Sistema de Análisis de Órdenes</h1>
-        <p class="mt-2 text-sm text-surface-600 dark:text-surface-400">
+        <h1 class="text-2xl md:text-3xl font-bold text-surface-900 dark:text-surface-50">SAAO - Sistema de Análisis de Órdenes</h1>
+        <p class="mt-2 text-xs md:text-sm text-surface-600 dark:text-surface-400">
           Análisis de asignación y liquidación de órdenes por driver
         </p>
       </div>
@@ -74,12 +74,12 @@
   <!-- Orders Table -->
   <p-card>
     <ng-template pTemplate="header">
-      <div class="flex items-center justify-between p-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4">
         <h3 class="text-lg font-semibold">Órdenes SAAO</h3>
 
         <!-- Search Bar -->
         @if (orders().length > 0) {
-          <span class="p-input-icon-left">
+          <span class="p-input-icon-left w-full md:w-80">
             <i class="pi pi-search"></i>
             <input
               pInputText
@@ -87,7 +87,7 @@
               [value]="searchTerm()"
               (input)="onSearch($event)"
               placeholder="Buscar por orden, driver, restaurante..."
-              class="w-80"
+              class="w-full"
             />
           </span>
         }
@@ -121,118 +121,211 @@
       </div>
     }
 
-    <!-- Table Content -->
+    <!-- Table Content (Desktop) -->
     @if (!loading() && !error() && filteredOrders().length > 0) {
-      <p-table
-        [value]="filteredOrders()"
-        [paginator]="true"
-        [rows]="10"
-        [rowsPerPageOptions]="[5, 10, 15, 20, 50]"
-        [showCurrentPageReport]="true"
-        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} órdenes"
-        [tableStyle]="{ 'min-width': '100%' }"
-        [globalFilterFields]="['orderId', 'driverNombre', 'driverCode', 'storeShortName']"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th pSortableColumn="orderId">
-              Orden <p-sortIcon field="orderId"></p-sortIcon>
-            </th>
-            <th pSortableColumn="driverNombre">
-              Driver <p-sortIcon field="driverNombre"></p-sortIcon>
-            </th>
-            <th pSortableColumn="storeShortName">
-              Restaurante <p-sortIcon field="storeShortName"></p-sortIcon>
-            </th>
-            <th pSortableColumn="hora">
-              Hora Creación <p-sortIcon field="hora"></p-sortIcon>
-            </th>
-            <th pSortableColumn="minutos">
-              Tiempo Asignación <p-sortIcon field="minutos"></p-sortIcon>
-            </th>
-            <th>Estado Mesa</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </ng-template>
+      <div class="hidden md:block">
+        <p-table
+          [value]="filteredOrders()"
+          [paginator]="true"
+          [rows]="10"
+          [rowsPerPageOptions]="[5, 10, 15, 20, 50]"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} órdenes"
+          [tableStyle]="{ 'min-width': '100%' }"
+          [globalFilterFields]="['orderId', 'driverNombre', 'driverCode', 'storeShortName']"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="orderId">
+                Orden <p-sortIcon field="orderId"></p-sortIcon>
+              </th>
+              <th pSortableColumn="driverNombre">
+                Driver <p-sortIcon field="driverNombre"></p-sortIcon>
+              </th>
+              <th pSortableColumn="storeShortName">
+                Restaurante <p-sortIcon field="storeShortName"></p-sortIcon>
+              </th>
+              <th pSortableColumn="hora">
+                Hora Creación <p-sortIcon field="hora"></p-sortIcon>
+              </th>
+              <th pSortableColumn="minutos">
+                Tiempo Asignación <p-sortIcon field="minutos"></p-sortIcon>
+              </th>
+              <th>Estado Mesa</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </ng-template>
 
-        <ng-template pTemplate="body" let-order>
-          <tr>
-            <!-- Order ID -->
-            <td>
-              <div class="flex flex-col gap-1">
-                <div class="flex items-center gap-2">
-                  <span class="font-semibold">#{{ order.orderId }}</span>
+          <ng-template pTemplate="body" let-order>
+            <tr>
+              <!-- Order ID -->
+              <td>
+                <div class="flex flex-col gap-1">
+                  <div class="flex items-center gap-2">
+                    <span class="font-semibold">#{{ order.orderId }}</span>
+                    @if (hasIncident(order)) {
+                      <p-tag value="Incidente" severity="danger" icon="pi pi-exclamation-triangle"></p-tag>
+                    }
+                  </div>
+                  <span class="text-xs text-surface-500 dark:text-surface-400">{{ order.fechaOrden }}</span>
+                </div>
+              </td>
+
+              <!-- Driver -->
+              <td>
+                <div class="flex flex-col gap-1">
+                  <span class="font-medium">{{ order.driverNombre }}</span>
+                  <span class="text-xs text-surface-500 dark:text-surface-400">{{ order.driverCode }}</span>
+                </div>
+              </td>
+
+              <!-- Restaurant -->
+              <td>
+                <span class="font-medium">{{ order.storeShortName }}</span>
+              </td>
+
+              <!-- Hora Creación -->
+              <td>
+                <span>{{ order.hora }}</span>
+              </td>
+
+              <!-- Tiempo Asignación -->
+              <td>
+                <p-tag
+                  [value]="order.minutos + ' min'"
+                  [severity]="getTimingSeverity(order.minutos)"
+                ></p-tag>
+              </td>
+
+              <!-- Estado Mesa -->
+              <td>
+                <span class="text-sm">{{ order.codMesa || 'N/A' }}</span>
+              </td>
+
+              <!-- Estado -->
+              <td>
+                <p-tag
+                  [value]="getStatus(order)"
+                  [severity]="getStatusSeverity(order)"
+                ></p-tag>
+              </td>
+
+              <!-- Acciones -->
+              <td>
+                <p-button
+                  icon="pi pi-eye"
+                  [text]="true"
+                  [rounded]="true"
+                  severity="info"
+                  (onClick)="openDriverDetails(order)"
+                  pTooltip="Ver detalles del driver"
+                  tooltipPosition="left"
+                ></p-button>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="8" class="text-center py-8">
+                <p class="text-surface-500 dark:text-surface-400">No se encontraron resultados para "{{ searchTerm() }}"</p>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Mobile Cards -->
+      <div class="md:hidden space-y-4 p-4">
+        @for (order of filteredOrders(); track order.orderId) {
+          <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg p-4 shadow-sm">
+            <!-- Order Header -->
+            <div class="flex items-start justify-between mb-3 pb-3 border-b border-surface-200 dark:border-surface-700">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-bold text-lg text-surface-900 dark:text-surface-50">#{{ order.orderId }}</span>
                   @if (hasIncident(order)) {
                     <p-tag value="Incidente" severity="danger" icon="pi pi-exclamation-triangle"></p-tag>
                   }
                 </div>
                 <span class="text-xs text-surface-500 dark:text-surface-400">{{ order.fechaOrden }}</span>
               </div>
-            </td>
-
-            <!-- Driver -->
-            <td>
-              <div class="flex flex-col gap-1">
-                <span class="font-medium">{{ order.driverNombre }}</span>
-                <span class="text-xs text-surface-500 dark:text-surface-400">{{ order.driverCode }}</span>
-              </div>
-            </td>
-
-            <!-- Restaurant -->
-            <td>
-              <span class="font-medium">{{ order.storeShortName }}</span>
-            </td>
-
-            <!-- Hora Creación -->
-            <td>
-              <span>{{ order.hora }}</span>
-            </td>
-
-            <!-- Tiempo Asignación -->
-            <td>
-              <p-tag
-                [value]="order.minutos + ' min'"
-                [severity]="getTimingSeverity(order.minutos)"
-              ></p-tag>
-            </td>
-
-            <!-- Estado Mesa -->
-            <td>
-              <span class="text-sm">{{ order.codMesa || 'N/A' }}</span>
-            </td>
-
-            <!-- Estado -->
-            <td>
-              <p-tag
-                [value]="getStatus(order)"
-                [severity]="getStatusSeverity(order)"
-              ></p-tag>
-            </td>
-
-            <!-- Acciones -->
-            <td>
               <p-button
                 icon="pi pi-eye"
                 [text]="true"
                 [rounded]="true"
                 severity="info"
                 (onClick)="openDriverDetails(order)"
-                pTooltip="Ver detalles del driver"
-                tooltipPosition="left"
               ></p-button>
-            </td>
-          </tr>
-        </ng-template>
+            </div>
 
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="8" class="text-center py-8">
-              <p class="text-surface-500 dark:text-surface-400">No se encontraron resultados para "{{ searchTerm() }}"</p>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+            <!-- Order Details Grid -->
+            <div class="space-y-3">
+              <!-- Driver Info -->
+              <div class="flex items-start gap-2">
+                <i class="pi pi-car text-[#fb0021] mt-1"></i>
+                <div class="flex-1">
+                  <p class="text-xs font-semibold text-surface-600 dark:text-surface-400 uppercase">Driver</p>
+                  <p class="text-sm font-medium text-surface-900 dark:text-surface-50">{{ order.driverNombre }}</p>
+                  <p class="text-xs text-surface-500 dark:text-surface-400">{{ order.driverCode }}</p>
+                </div>
+              </div>
+
+              <!-- Restaurant -->
+              <div class="flex items-start gap-2">
+                <i class="pi pi-shop text-[#fb0021] mt-1"></i>
+                <div class="flex-1">
+                  <p class="text-xs font-semibold text-surface-600 dark:text-surface-400 uppercase">Restaurante</p>
+                  <p class="text-sm font-medium text-surface-900 dark:text-surface-50">{{ order.storeShortName }}</p>
+                </div>
+              </div>
+
+              <!-- Timing Info -->
+              <div class="grid grid-cols-2 gap-3">
+                <div class="flex items-start gap-2">
+                  <i class="pi pi-clock text-[#fb0021] mt-1"></i>
+                  <div class="flex-1">
+                    <p class="text-xs font-semibold text-surface-600 dark:text-surface-400 uppercase">Hora</p>
+                    <p class="text-sm font-medium text-surface-900 dark:text-surface-50">{{ order.hora }}</p>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-2">
+                  <i class="pi pi-stopwatch text-[#fb0021] mt-1"></i>
+                  <div class="flex-1">
+                    <p class="text-xs font-semibold text-surface-600 dark:text-surface-400 uppercase">Asignación</p>
+                    <p-tag
+                      [value]="order.minutos + ' min'"
+                      [severity]="getTimingSeverity(order.minutos)"
+                    ></p-tag>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Status Info -->
+              <div class="flex items-center justify-between pt-2 border-t border-surface-200 dark:border-surface-700">
+                <div>
+                  <p class="text-xs font-semibold text-surface-600 dark:text-surface-400 uppercase mb-1">Estado Mesa</p>
+                  <span class="text-sm font-medium text-surface-900 dark:text-surface-50">{{ order.codMesa || 'N/A' }}</span>
+                </div>
+                <div>
+                  <p class="text-xs font-semibold text-surface-600 dark:text-surface-400 uppercase mb-1 text-right">Estado</p>
+                  <p-tag
+                    [value]="getStatus(order)"
+                    [severity]="getStatusSeverity(order)"
+                  ></p-tag>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Mobile Pagination Info -->
+        <div class="text-center text-sm text-surface-600 dark:text-surface-400 mt-4">
+          Mostrando {{ filteredOrders().length }} órdenes
+        </div>
+      </div>
     }
   </p-card>
 
@@ -240,7 +333,7 @@
   <p-drawer
     [(visible)]="drawerVisible"
     position="right"
-    [style]="{ width: '500px' }"
+    styleClass="!w-full md:!w-[650px]"
     [modal]="true"
     [showCloseIcon]="false"
   >

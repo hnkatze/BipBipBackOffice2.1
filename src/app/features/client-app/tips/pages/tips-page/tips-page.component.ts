@@ -13,6 +13,7 @@ import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TooltipModule } from 'primeng/tooltip';
 import { DrawerModule } from 'primeng/drawer';
+import { PaginatorModule } from 'primeng/paginator';
 import { MessageService, MenuItem } from 'primeng/api';
 
 import { TipService } from '../../services/tip.service';
@@ -37,6 +38,7 @@ import { TipFormComponent } from '../../components/tip-form/tip-form.component';
     SkeletonModule,
     TooltipModule,
     DrawerModule,
+    PaginatorModule,
     TipFormComponent
   ],
   providers: [MessageService],

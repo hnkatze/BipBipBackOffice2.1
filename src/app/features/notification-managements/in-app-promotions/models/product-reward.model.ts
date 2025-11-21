@@ -162,44 +162,40 @@ export interface ProductRewardResponse {
  * Create Product Reward - DTO para crear
  */
 export interface CreateProductReward {
-  type: number; // Promotion type identifier (4 = Product Reward)
   productCode: string;
   startTime: string;
   endTime: string;
-  modifierCode?: string;
+  modifierCode: string | null;
   brandId: number;
   rewardType: RewardType;
-  channelId?: number;
+  channelId: number | null;
   triggerId: number;
   productToReward: string | null;
   modifiersToReward: string[] | null;
   productToRewardQty: number | null;
   discount: number | null;
   deliveryCharge: number | null;
-  constraint?: Constraint | null;
-  isActive: boolean;
+  constraint: Constraint | null;
 }
 
 /**
  * Update Product Reward - DTO para actualizar
  */
 export interface UpdateProductReward {
-  type: number; // Promotion type identifier (4 = Product Reward)
   productCode: string;
   startTime: string;
   endTime: string;
-  modifierCode?: string;
+  modifierCode: string | null;
   brandId: number;
   rewardType: RewardType;
-  channelId?: number;
+  channelId: number | null;
   triggerId: number;
   productToReward: string | null;
   modifiersToReward: string[] | null;
   productToRewardQty: number | null;
   discount: number | null;
   deliveryCharge: number | null;
-  constraint?: Constraint | null;
-  isActive: boolean;
+  constraint: Constraint | null;
 }
 
 // ============================================================================

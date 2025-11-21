@@ -12,6 +12,7 @@ import { ToastModule } from 'primeng/toast';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TooltipModule } from 'primeng/tooltip';
+import { PaginatorModule } from 'primeng/paginator';
 import { MessageService } from 'primeng/api';
 import { MenuItem } from 'primeng/api';
 
@@ -46,6 +47,7 @@ import { ChannelFormComponent } from '../../components/channel-form/channel-form
     BreadcrumbModule,
     SkeletonModule,
     TooltipModule,
+    PaginatorModule,
     ChannelFormComponent
   ],
   providers: [MessageService],

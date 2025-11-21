@@ -18,6 +18,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { PopoverModule } from 'primeng/popover';
 import { TooltipModule } from 'primeng/tooltip';
+import { PaginatorModule } from 'primeng/paginator';
 import { MessageService } from 'primeng/api';
 import { ConfirmationService } from 'primeng/api';
 
@@ -40,7 +41,8 @@ import { DragDropPromotionResponse, PromotionType, ActionType, PROMOTION_TYPE_OP
     ToastModule,
     ConfirmDialogModule,
     PopoverModule,
-    TooltipModule
+    TooltipModule,
+    PaginatorModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './drag-drop-promotions-list-page.component.html',

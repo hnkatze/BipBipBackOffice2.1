@@ -18,6 +18,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { PopoverModule } from 'primeng/popover';
 import { TooltipModule } from 'primeng/tooltip';
+import { PaginatorModule } from 'primeng/paginator';
 import { MessageService } from 'primeng/api';
 import { ConfirmationService } from 'primeng/api';
 
@@ -41,7 +42,8 @@ import { GlobalDataService } from '@core/services/global-data.service';
     ToastModule,
     ConfirmDialogModule,
     PopoverModule,
-    TooltipModule
+    TooltipModule,
+    PaginatorModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './promo-codes-list-page.component.html',

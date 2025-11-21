@@ -39,22 +39,28 @@ import { Modifier } from '@features/notification-managements/loyalty-program/mod
       <p-multiselect
         [id]="fieldId"
         [formControl]="control"
-        [options]="modifierOptions()"
+        [options]="groupedOptions()"
         optionLabel="label"
         optionValue="value"
+        optionGroupLabel="label"
+        optionGroupChildren="items"
         [placeholder]="placeholder"
         [filter]="true"
-        filterPlaceholder="Buscar modificador..."
+        filterPlaceholder="Buscar opción..."
         [loading]="isLoadingModifiers()"
         [disabled]="!isEnabled()"
         display="chip"
-        [showClear]="true">
+        [showClear]="true"
+        [group]="true">
+        <ng-template let-group pTemplate="group">
+          <div class="flex items-center gap-2">
+            <i class="pi pi-list text-primary-500"></i>
+            <span class="font-semibold">{{ group.label }}</span>
+          </div>
+        </ng-template>
         <ng-template let-option pTemplate="item">
           <div class="flex flex-col">
-            <span class="font-semibold">{{ option.label }}</span>
-            @if (option.options && option.options.length > 0) {
-              <span class="text-sm text-gray-600">{{ option.options.length }} opciones</span>
-            }
+            <span>{{ option.label }}</span>
           </div>
         </ng-template>
       </p-multiselect>
@@ -101,11 +107,50 @@ export class SimpleModifierSelectorComponent implements OnInit {
   });
 
   readonly modifierOptions = computed(() => {
-    return this.modifiers().map(modifier => ({
-      value: modifier.modifierId,
-      label: modifier.name,
-      options: modifier.options || []
-    }));
+    // Aplanar: convertir cada modifier con sus options en múltiples items
+    const allOptions: { value: string; label: string; group: string }[] = [];
+
+    this.modifiers().forEach(modifier => {
+      if (modifier.options && modifier.options.length > 0) {
+        modifier.options.forEach(option => {
+          allOptions.push({
+            value: option.modifierOptionId,  // El ID que vamos a guardar
+            label: option.name,              // El nombre de la opción
+            group: modifier.name             // Nombre del modificador padre (para agrupar)
+          });
+        });
+      }
+    });
+
+    console.log('📋 SimpleModifierSelector - modifierOptions:', allOptions.length, allOptions);
+    return allOptions;
+  });
+
+  readonly groupedOptions = computed(() => {
+    // Agrupar opciones por modificador padre
+    const grouped: { label: string; items: { value: string; label: string }[] }[] = [];
+    const groups = new Map<string, { value: string; label: string }[]>();
+
+    this.modifiers().forEach(modifier => {
+      if (modifier.options && modifier.options.length > 0) {
+        const items = modifier.options.map(option => ({
+          value: option.modifierOptionId,
+          label: option.name
+        }));
+        groups.set(modifier.name, items);
+      }
+    });
+
+    // Convertir Map a array para p-multiselect
+    groups.forEach((items, modifierName) => {
+      grouped.push({
+        label: modifierName,
+        items: items
+      });
+    });
+
+    console.log('🗂️ SimpleModifierSelector - groupedOptions:', grouped.length, grouped);
+    return grouped;
   });
 
   readonly showError = computed(() => {

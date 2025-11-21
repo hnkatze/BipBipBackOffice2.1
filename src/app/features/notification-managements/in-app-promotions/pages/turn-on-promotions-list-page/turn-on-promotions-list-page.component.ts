@@ -13,6 +13,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 // Services & Models
@@ -31,7 +32,8 @@ import { TurnOnPromotionResponse, TurnOnDiscountType } from '../../models';
     ConfirmDialogModule,
     InputTextModule,
     IconFieldModule,
-    InputIconModule
+    InputIconModule,
+    TooltipModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './turn-on-promotions-list-page.component.html',

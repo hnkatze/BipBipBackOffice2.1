@@ -12,7 +12,7 @@ import { Routes } from '@angular/router';
  * - Invoices (Facturas) ✅
  * - Reports (Reportes) ✅
  * - Settlements (Liquidaciones) ✅
- * - Spreadsheets (Hojas de Cálculo) - TODO
+ * - Spreadsheets (Planillas) ✅
  *
  * Estructura:
  * /accounting/companies -> CompaniesComponent
@@ -69,13 +69,11 @@ export const ACCOUNTING_ROUTES: Routes = [
     path: 'settlements',
     loadChildren: () => import('./settlements/settlements.routes').then(m => m.SETTLEMENTS_ROUTES),
     title: 'Liquidaciones'
-  }
-  // TODO: Agregar más submódulos de contabilidad aquí
-  /*
+  },
   {
     path: 'spreadsheets',
     loadChildren: () => import('./spreadsheets/spreadsheets.routes').then(m => m.SPREADSHEETS_ROUTES),
-    title: 'Hojas de Cálculo'
+    title: 'Planillas'
   }
-  */
+  // TODO: Agregar más submódulos de contabilidad aquí
 ];

@@ -514,14 +514,13 @@ export class ProductRewardFormPageComponent implements OnInit {
     // Preparar modifiers (ya vienen como arrays)
     const modifierCodeValue = formValue.triggerId === TriggerType.Product && formValue.modifierCode && formValue.modifierCode.length > 0
       ? formValue.modifierCode[0]  // Backend espera un string, tomamos el primero
-      : undefined;
+      : null;
 
     const modifiersToReward = formValue.rewardType === RewardType.FreeProduct && formValue.modifiersToReward && formValue.modifiersToReward.length > 0
       ? formValue.modifiersToReward  // Backend espera un array
       : null;
 
     const formData: CreateProductReward = {
-      type: 4, // Product Reward
       triggerId: formValue.triggerId,
       brandId: formValue.brandId,
       rewardType: formValue.rewardType,
@@ -529,14 +528,13 @@ export class ProductRewardFormPageComponent implements OnInit {
       endTime: this.formatDateToBackend(formValue.endTime),
       productCode: formValue.triggerId === TriggerType.Product ? formValue.productCode : '',
       modifierCode: modifierCodeValue,
-      channelId: formValue.triggerId === TriggerType.BrandAndChannel ? formValue.channelId : undefined,
+      channelId: formValue.triggerId === TriggerType.BrandAndChannel ? formValue.channelId : null,
       productToReward: formValue.rewardType === RewardType.FreeProduct ? formValue.productToReward : null,
       modifiersToReward: modifiersToReward,
       productToRewardQty: formValue.rewardType === RewardType.FreeProduct ? formValue.productToRewardQty : null,
       deliveryCharge: formValue.rewardType === RewardType.ShippingDiscount ? formValue.deliveryCharge : null,
       discount: this.convertDiscountValue(),
-      constraint: constraint,
-      isActive: formValue.isActive
+      constraint: constraint
     };
 
     this.productRewardService.createProductReward(formData)
@@ -593,14 +591,13 @@ export class ProductRewardFormPageComponent implements OnInit {
     // Preparar modifiers (ya vienen como arrays)
     const modifierCodeValue = formValue.triggerId === TriggerType.Product && formValue.modifierCode && formValue.modifierCode.length > 0
       ? formValue.modifierCode[0]  // Backend espera un string, tomamos el primero
-      : undefined;
+      : null;
 
     const modifiersToReward = formValue.rewardType === RewardType.FreeProduct && formValue.modifiersToReward && formValue.modifiersToReward.length > 0
       ? formValue.modifiersToReward  // Backend espera un array
       : null;
 
     const formData: UpdateProductReward = {
-      type: 4, // Product Reward
       triggerId: formValue.triggerId,
       brandId: formValue.brandId,
       rewardType: formValue.rewardType,
@@ -608,14 +605,13 @@ export class ProductRewardFormPageComponent implements OnInit {
       endTime: this.formatDateToBackend(formValue.endTime),
       productCode: formValue.triggerId === TriggerType.Product ? formValue.productCode : '',
       modifierCode: modifierCodeValue,
-      channelId: formValue.triggerId === TriggerType.BrandAndChannel ? formValue.channelId : undefined,
+      channelId: formValue.triggerId === TriggerType.BrandAndChannel ? formValue.channelId : null,
       productToReward: formValue.rewardType === RewardType.FreeProduct ? formValue.productToReward : null,
       modifiersToReward: modifiersToReward,
       productToRewardQty: formValue.rewardType === RewardType.FreeProduct ? formValue.productToRewardQty : null,
       deliveryCharge: formValue.rewardType === RewardType.ShippingDiscount ? formValue.deliveryCharge : null,
       discount: this.convertDiscountValue(),
-      constraint: constraint,
-      isActive: formValue.isActive
+      constraint: constraint
     };
 
     this.productRewardService.updateProductReward(id, formData)

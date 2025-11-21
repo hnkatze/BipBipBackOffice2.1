@@ -121,8 +121,11 @@ export class SaaoService {
     if (params?.cityId !== undefined) {
       httpParams = httpParams.set('cityId', params.cityId.toString());
     }
-    if (params?.deliveryDate) {
-      httpParams = httpParams.set('deliveryDate', params.deliveryDate);
+    if (params?.dateFrom) {
+      httpParams = httpParams.set('dateFrom', params.dateFrom);
+    }
+    if (params?.dateTo) {
+      httpParams = httpParams.set('dateTo', params.dateTo);
     }
     if (params?.brandId !== undefined) {
       httpParams = httpParams.set('brandId', params.brandId.toString());

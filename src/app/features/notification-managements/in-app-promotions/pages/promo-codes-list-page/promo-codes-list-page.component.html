@@ -43,19 +43,20 @@
     }
   </div>
 
-  <!-- Tabla -->
-  <p-table
-    [value]="promoCodes()"
-    [loading]="isLoading()"
-    [lazy]="true"
-    [paginator]="true"
-    [rows]="pageSizeSignal()"
-    [totalRecords]="metadata().totalCount"
-    [rowsPerPageOptions]="[10, 25, 50]"
-    [first]="0"
-    (onLazyLoad)="onPageChange($event)"
-    styleClass="p-datatable-striped"
-    [tableStyle]="{ 'min-width': '75rem' }">
+  <!-- Tabla (Desktop/Tablet) -->
+  <div class="hidden md:block">
+    <p-table
+      [value]="promoCodes()"
+      [loading]="isLoading()"
+      [lazy]="true"
+      [paginator]="true"
+      [rows]="pageSizeSignal()"
+      [totalRecords]="metadata().totalCount"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [first]="0"
+      (onLazyLoad)="onPageChange($event)"
+      styleClass="p-datatable-striped"
+      [tableStyle]="{ 'min-width': '75rem' }">
 
     <ng-template pTemplate="header">
       <tr>
@@ -171,6 +172,127 @@
       </tr>
     </ng-template>
   </p-table>
+  </div>
+
+  <!-- Cards (Mobile) -->
+  <div class="block md:hidden">
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="flex justify-center items-center py-12">
+        <i class="pi pi-spin pi-spinner text-4xl text-primary-500"></i>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoading() && promoCodes().length === 0) {
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+        <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+          <i class="pi pi-inbox text-4xl mb-3"></i>
+          <p class="text-lg font-medium">No se encontraron códigos promocionales</p>
+        </div>
+      </div>
+    }
+
+    <!-- Cards List -->
+    @if (!isLoading() && promoCodes().length > 0) {
+      <div class="flex flex-col gap-4">
+        @for (promoCode of promoCodes(); track promoCode.id) {
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <!-- Header: ID + Estado -->
+            <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+              <span class="text-sm font-mono text-gray-600 dark:text-gray-400">
+                #{{ promoCode.id }}
+              </span>
+              <p-tag
+                [value]="getStatusLabel(promoCode.isActive)"
+                [severity]="getStatusSeverity(promoCode.isActive)"
+              />
+            </div>
+
+            <!-- Código Promocional -->
+            <div class="mb-3">
+              <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                Código Promocional
+              </label>
+              <div class="flex flex-col gap-1">
+                <span class="font-bold text-lg text-primary">{{ promoCode.code }}</span>
+                @if (promoCode.description) {
+                  <span class="text-xs text-gray-600 dark:text-gray-400">{{ promoCode.description }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- Tipo de Descuento -->
+            <div class="mb-3">
+              <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                Tipo
+              </label>
+              <div class="flex items-center gap-2">
+                <i [class]="getDiscountTypeIcon(promoCode.type) + ' text-blue-600 dark:text-blue-400'"></i>
+                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {{ getDiscountTypeLabel(promoCode.type) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Fechas -->
+            <div class="mb-3">
+              <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                Vigencia
+              </label>
+              <div class="flex flex-col gap-1">
+                <div class="flex items-center gap-2 text-sm">
+                  <i class="pi pi-calendar-plus text-green-600 dark:text-green-400"></i>
+                  <span class="text-gray-600 dark:text-gray-400">
+                    {{ formatDate(promoCode.startDate) }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-2 text-sm">
+                  <i class="pi pi-calendar-minus text-red-600 dark:text-red-400"></i>
+                  <span class="text-gray-600 dark:text-gray-400">
+                    {{ formatDate(promoCode.endDate) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <p-button
+                label="Editar"
+                icon="pi pi-pencil"
+                size="small"
+                [outlined]="true"
+                (onClick)="goToEdit(promoCode.id)"
+                styleClass="flex-1"
+              />
+              <p-button
+                [label]="promoCode.isActive ? 'Desactivar' : 'Activar'"
+                [icon]="promoCode.isActive ? 'pi pi-times-circle' : 'pi pi-check-circle'"
+                size="small"
+                [outlined]="true"
+                [severity]="promoCode.isActive ? 'danger' : 'success'"
+                (onClick)="toggleStatus(promoCode)"
+                styleClass="flex-1"
+              />
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Paginador Mobile -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mt-4">
+        <p-paginator
+          [rows]="pageSizeSignal()"
+          [totalRecords]="metadata().totalCount"
+          [rowsPerPageOptions]="[10, 25, 50]"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+          (onPageChange)="onPageChange($event)"
+        />
+      </div>
+    }
+  </div>
 </div>
 
 <!-- Toast para notificaciones -->

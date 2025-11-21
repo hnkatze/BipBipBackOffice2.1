@@ -80,7 +80,13 @@
 
   <!-- Sección: Producto Disparador (solo si trigger = 1) -->
   @if (showProductTrigger()) {
-    <p-card header="Producto Disparador">
+    <p-card class="border-l-4 border-primary-500">
+      <ng-template pTemplate="header">
+        <div class="flex items-center gap-2 p-4">
+          <i class="pi pi-bolt text-primary-500 text-xl"></i>
+          <span class="font-semibold text-lg">Producto Disparador</span>
+        </div>
+      </ng-template>
       <!-- Product Selector Component -->
       <app-simple-product-selector
         [form]="form"
@@ -186,7 +192,13 @@
 
   <!-- Sección: Producto de Recompensa (solo si reward = 1) -->
   @if (showProductReward()) {
-    <p-card header="Producto de Recompensa">
+    <p-card class="border-l-4 border-success-500">
+      <ng-template pTemplate="header">
+        <div class="flex items-center gap-2 p-4">
+          <i class="pi pi-gift text-success-500 text-xl"></i>
+          <span class="font-semibold text-lg">Producto de Recompensa</span>
+        </div>
+      </ng-template>
       <!-- Product Selector Component -->
       <app-simple-product-selector
         [form]="form"

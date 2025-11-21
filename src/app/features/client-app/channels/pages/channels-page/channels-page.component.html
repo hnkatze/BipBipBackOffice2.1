@@ -66,8 +66,8 @@
 
   </div>
 
-  <!-- Table -->
-  <div class="bg-white rounded-lg shadow-sm">
+  <!-- Table (Desktop/Tablet) -->
+  <div class="hidden md:block bg-white rounded-lg shadow-sm">
     @if (isLoading()) {
       <!-- Loading Skeleton -->
       <div class="p-6">
@@ -213,6 +213,160 @@
           </tr>
         </ng-template>
       </p-table>
+    }
+  </div>
+
+  <!-- Cards (Mobile) -->
+  <div class="block md:hidden">
+    @if (isLoading()) {
+      <!-- Loading Skeleton -->
+      <div class="flex flex-col gap-4">
+        @for (item of [1, 2, 3]; track item) {
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <p-skeleton width="100%" height="10rem" />
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Empty State -->
+      @if (filteredChannels().length === 0) {
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+          <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <i class="pi pi-inbox text-4xl mb-3"></i>
+            <p class="text-lg font-medium">No se encontraron canales</p>
+            @if (statusFilter() !== 'all' || searchTerm()) {
+              <p-button
+                label="Limpiar filtros"
+                [outlined]="true"
+                size="small"
+                (onClick)="statusFilter.set('all'); searchTerm.set('')"
+                styleClass="mt-3"
+              />
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Cards List -->
+      @if (filteredChannels().length > 0) {
+        <div class="flex flex-col gap-4">
+          @for (channel of filteredChannels(); track channel.idChannel) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+              <!-- Header: Icono + Nombre + Estado -->
+              <div class="flex items-start gap-3 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                <!-- Icono -->
+                @if (channel.iconUrlChannel) {
+                  <img
+                    [src]="channel.iconUrlChannel"
+                    [alt]="channel.descriptionChannel"
+                    class="w-12 h-12 object-contain rounded-lg flex-shrink-0"
+                  />
+                } @else {
+                  <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="pi pi-image text-gray-400"></i>
+                  </div>
+                }
+
+                <!-- Nombre y Tipo -->
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-gray-900 dark:text-white">{{ channel.descriptionChannel }}</div>
+                  @if (!channel.isVisibleChannel) {
+                    <span class="text-xs text-gray-500 dark:text-gray-400">(Oculto en app)</span>
+                  }
+                  <div class="mt-1">
+                    <p-tag
+                      [value]="channel.typeChannel"
+                      severity="info"
+                      styleClass="text-xs"
+                    />
+                  </div>
+                </div>
+
+                <!-- Estado Toggle -->
+                <div class="flex-shrink-0">
+                  <p-toggleSwitch
+                    [(ngModel)]="channel.isActiveChannel"
+                    (ngModelChange)="toggleChannelStatus(channel)"
+                  />
+                </div>
+              </div>
+
+              <!-- Grid de info -->
+              <div class="grid grid-cols-2 gap-3 mb-3">
+                <!-- Posición -->
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                    Posición
+                  </label>
+                  <span class="text-sm font-medium">{{ channel.positionChannel }}</span>
+                </div>
+
+                <!-- Estado -->
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                    Estado
+                  </label>
+                  <p-tag
+                    [value]="getStatusLabel(channel.isActiveChannel)"
+                    [severity]="getStatusSeverity(channel.isActiveChannel)"
+                  />
+                </div>
+              </div>
+
+              <!-- Marcas Asociadas -->
+              <div class="mb-3">
+                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                  Marcas Asociadas
+                </label>
+                <div class="flex flex-wrap gap-2">
+                  @if (channel.brandsList.length > 0) {
+                    @for (brand of channel.brandsList; track brand.idBrand) {
+                      @if (brand.isSelected) {
+                        <img
+                          [src]="brand.logoUrl"
+                          [alt]="brand.brandName"
+                          [pTooltip]="brand.brandName"
+                          tooltipPosition="top"
+                          class="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
+                        />
+                      }
+                    }
+                    @if (!hasSelectedBrands(channel)) {
+                      <span class="text-sm text-gray-500 dark:text-gray-400">Sin marcas</span>
+                    }
+                  } @else {
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Sin marcas</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div class="pt-3 border-t border-gray-200 dark:border-gray-700">
+                <p-button
+                  label="Editar"
+                  icon="pi pi-pencil"
+                  [outlined]="true"
+                  severity="info"
+                  size="small"
+                  (onClick)="editChannel(channel)"
+                  styleClass="w-full"
+                />
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Paginador Mobile -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mt-4">
+          <p-paginator
+            [rows]="10"
+            [totalRecords]="filteredChannels().length"
+            [rowsPerPageOptions]="[10, 25, 50]"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+          />
+        </div>
+      }
     }
   </div>
 

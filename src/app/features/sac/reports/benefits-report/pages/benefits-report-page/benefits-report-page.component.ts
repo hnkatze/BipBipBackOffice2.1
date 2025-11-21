@@ -8,7 +8,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { CardModule } from 'primeng/card';
 import { ToastModule } from 'primeng/toast';
-import { RadioButtonModule } from 'primeng/radiobutton';
+import { RadioButton } from 'primeng/radiobutton';
 import { MenuItem, MessageService } from 'primeng/api';
 
 // Services & Models
@@ -31,7 +31,7 @@ import {
     BreadcrumbModule,
     CardModule,
     ToastModule,
-    RadioButtonModule
+    RadioButton
   ],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
