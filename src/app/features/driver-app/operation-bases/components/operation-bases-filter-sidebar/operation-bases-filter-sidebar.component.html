@@ -1,0 +1,163 @@
+<p-drawer
+  [visible]="visible()"
+  (visibleChange)="visibleChange.emit($event)"
+  position="left"
+  [style]="{ width: '400px' }"
+>
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-2">
+      <i class="pi pi-filter text-xl"></i>
+      <span class="font-semibold text-lg">Filtros</span>
+      @if (activeFiltersCount > 0) {
+        <p-badge [value]="activeFiltersCount.toString()" severity="info" />
+      }
+    </div>
+  </ng-template>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="space-y-4">
+      <p-skeleton height="60px" />
+      <p-skeleton height="60px" />
+      <p-skeleton height="60px" />
+    </div>
+  } @else {
+    <!-- Formulario de Filtros -->
+    <form [formGroup]="filterForm" class="space-y-6">
+      <!-- Filtro de Países -->
+      <div>
+        <label
+          for="selectedCountries"
+          class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
+        >
+          Países
+        </label>
+        <p-multiSelect
+          id="selectedCountries"
+          formControlName="selectedCountries"
+          [options]="countries()"
+          optionLabel="countryName"
+          optionValue="countryId"
+          placeholder="Selecciona países"
+          [filter]="true"
+          filterPlaceHolder="Buscar país"
+          styleClass="w-full"
+          display="chip"
+          [showClear]="true"
+        >
+          <ng-template let-country pTemplate="item">
+            <div class="flex items-center gap-2">
+              <img
+                [src]="country.countryUrlFlag"
+                [alt]="country.countryName"
+                class="w-5 h-5 rounded object-cover"
+              />
+              <span>{{ country.countryName }}</span>
+            </div>
+          </ng-template>
+        </p-multiSelect>
+      </div>
+
+      <!-- Filtro de Ciudades -->
+      <div>
+        <label
+          for="selectedCities"
+          class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
+        >
+          Ciudades
+        </label>
+        @if (loadingCities()) {
+          <p-skeleton height="45px" />
+        } @else {
+          <p-multiSelect
+            id="selectedCities"
+            formControlName="selectedCities"
+            [options]="cities()"
+            optionLabel="cityName"
+            optionValue="cityId"
+            placeholder="Selecciona ciudades"
+            [filter]="true"
+            filterPlaceHolder="Buscar ciudad"
+            styleClass="w-full"
+            display="chip"
+            [showClear]="true"
+            [disabled]="cities().length === 0"
+          >
+            <ng-template let-city pTemplate="item">
+              <div class="flex items-center gap-2">
+                @if (city.countryUrlFlag) {
+                  <img
+                    [src]="city.countryUrlFlag"
+                    [alt]="city.cityName"
+                    class="w-5 h-5 rounded object-cover"
+                  />
+                }
+                <span>{{ city.cityName }}</span>
+              </div>
+            </ng-template>
+          </p-multiSelect>
+        }
+        @if (filterForm.value.selectedCountries?.length === 0) {
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            Selecciona un país primero
+          </p>
+        }
+      </div>
+
+      <!-- Filtro de Marcas -->
+      <div>
+        <label
+          for="selectedBrands"
+          class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300"
+        >
+          Marcas
+        </label>
+        <p-multiSelect
+          id="selectedBrands"
+          formControlName="selectedBrands"
+          [options]="brands()"
+          optionLabel="nameBrand"
+          optionValue="idBrand"
+          placeholder="Selecciona marcas"
+          [filter]="true"
+          filterPlaceHolder="Buscar marca"
+          styleClass="w-full"
+          display="chip"
+          [showClear]="true"
+        >
+          <ng-template let-brand pTemplate="item">
+            <div class="flex items-center gap-2">
+              <img
+                [src]="brand.logoBrand"
+                [alt]="brand.nameBrand"
+                class="w-6 h-6 rounded object-cover"
+              />
+              <span>{{ brand.nameBrand }}</span>
+            </div>
+          </ng-template>
+        </p-multiSelect>
+      </div>
+    </form>
+  }
+
+  <!-- Footer con Botones -->
+  <ng-template pTemplate="footer">
+    <div class="flex justify-between gap-3">
+      <p-button
+        label="Limpiar"
+        icon="pi pi-times"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="clearFilters()"
+        styleClass="flex-1"
+      />
+      <p-button
+        label="Aplicar"
+        icon="pi pi-check"
+        severity="primary"
+        (onClick)="applyFilters()"
+        styleClass="flex-1"
+      />
+    </div>
+  </ng-template>
+</p-drawer>

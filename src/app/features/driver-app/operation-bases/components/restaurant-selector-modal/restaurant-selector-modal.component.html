@@ -1,0 +1,98 @@
+<p-dialog
+  header="Seleccionar Restaurante"
+  [(visible)]="visible"
+  [modal]="true"
+  [style]="{ width: '90vw', maxWidth: '900px' }"
+  [breakpoints]="{ '960px': '95vw' }"
+>
+  <!-- Search -->
+  <div class="mb-4">
+    <p-iconfield iconPosition="left" class="w-full">
+      <p-inputicon class="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar por nombre o acrónimo..."
+        class="w-full"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </p-iconfield>
+  </div>
+
+  <!-- Table -->
+  <p-table
+    #dt
+    [value]="restaurants()"
+    [loading]="loading()"
+    [globalFilterFields]="['restName', 'restShortName', 'restAddress']"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} restaurantes"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 3rem"></th>
+        <th style="width: 80px">Logo</th>
+        <th>Nombre</th>
+        <th>Dirección</th>
+        <th style="width: 150px">Acrónimo</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-restaurant>
+      <tr>
+        <td>
+          <p-radiobutton
+            [value]="restaurant"
+            [(ngModel)]="selectedRestaurant"
+          />
+        </td>
+        <td>
+          <img
+            [src]="restaurant.restBrandLogo"
+            [alt]="restaurant.restName"
+            class="w-12 h-12 rounded object-cover"
+          />
+        </td>
+        <td>{{ restaurant.restName }}</td>
+        <td>{{ restaurant.restAddress }}</td>
+        <td>
+          <span class="font-mono font-semibold">{{ restaurant.restShortName }}</span>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center py-8">
+          <i class="pi pi-inbox text-4xl text-gray-400 mb-3"></i>
+          <p class="text-gray-500 dark:text-gray-400 m-0">
+            No se encontraron restaurantes disponibles
+          </p>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <!-- Footer -->
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-3">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="close()"
+      />
+      <p-button
+        label="Seleccionar"
+        icon="pi pi-check"
+        (onClick)="confirm()"
+        [disabled]="!selectedRestaurant()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

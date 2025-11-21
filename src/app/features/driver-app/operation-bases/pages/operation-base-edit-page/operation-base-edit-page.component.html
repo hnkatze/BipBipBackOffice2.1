@@ -1,0 +1,223 @@
+<div class="operation-base-edit-page p-4">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems()" />
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="space-y-4">
+      <p-skeleton height="60px" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <p-skeleton height="400px" />
+        <p-skeleton height="400px" />
+      </div>
+    </div>
+  } @else if (originalBase()) {
+    <!-- Header -->
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+      <div class="flex items-center gap-3">
+        <img
+          [src]="originalBase()!.pathLogoHeadquarter"
+          [alt]="originalBase()!.headquarterName"
+          class="w-16 h-16 rounded-lg object-cover shadow-md"
+        />
+        <div>
+          <h1 class="text-2xl font-bold m-0 mb-1">
+            Editar Base: {{ originalBase()!.headquarterName }}
+          </h1>
+          <p class="text-sm text-gray-600 dark:text-gray-400 m-0">
+            {{ originalBase()!.headquarterAddress }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <form [formGroup]="baseForm" class="space-y-4">
+      <!-- Información de Boxes -->
+      <p-fieldset legend="Información de Boxes" [toggleable]="true">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+          <!-- Tamaño Base -->
+          <div class="field">
+            <label for="headquarterSize" class="block mb-2 font-semibold">
+              Tamaño de la Base
+              <span class="text-red-500">*</span>
+            </label>
+            <p-inputnumber
+              inputId="headquarterSize"
+              formControlName="headquarterSize"
+              [min]="1"
+              [showButtons]="true"
+              class="w-full"
+            />
+            @if (headquarterSizeError()) {
+              <small class="text-red-500 mt-1 block">
+                El tamaño debe ser mayor a la cantidad de drivers ({{ driversCount() }})
+              </small>
+            }
+          </div>
+
+          <!-- Box Actual -->
+          <div class="field">
+            <label for="numberCurrent" class="block mb-2 font-semibold">
+              Número de Box Actual
+              <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="numberCurrent"
+              type="text"
+              pInputText
+              formControlName="numberCurrent"
+              class="w-full"
+            />
+          </div>
+
+          <!-- Box Inicio -->
+          <div class="field">
+            <label for="numberBoxBegin" class="block mb-2 font-semibold">
+              Número de Box Inicio
+              <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="numberBoxBegin"
+              type="text"
+              pInputText
+              formControlName="numberBoxBegin"
+              class="w-full"
+            />
+          </div>
+
+          <!-- Box Fin -->
+          <div class="field">
+            <label for="numberBoxEnd" class="block mb-2 font-semibold">
+              Número de Box Fin
+              <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="numberBoxEnd"
+              type="text"
+              pInputText
+              formControlName="numberBoxEnd"
+              class="w-full"
+            />
+          </div>
+        </div>
+      </p-fieldset>
+
+      <!-- Información de Contacto -->
+      <p-fieldset legend="Información de Contacto" [toggleable]="true">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+          <!-- Nombre de Contacto -->
+          <div class="field">
+            <label for="contactName" class="block mb-2 font-semibold">
+              Nombre de Contacto
+              <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="contactName"
+              type="text"
+              pInputText
+              formControlName="contactName"
+              class="w-full"
+            />
+          </div>
+
+          <!-- Número de Contacto -->
+          <div class="field">
+            <label for="contactNumber" class="block mb-2 font-semibold">
+              Número de Contacto
+              <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="contactNumber"
+              type="text"
+              pInputText
+              formControlName="contactNumber"
+              class="w-full"
+            />
+          </div>
+        </div>
+      </p-fieldset>
+
+      <!-- Drivers Asignados -->
+      <p-fieldset legend="Drivers Asignados" [toggleable]="true">
+        <div class="p-4">
+          <div class="flex justify-between items-center mb-4">
+            <p class="m-0 text-sm text-gray-600 dark:text-gray-400">
+              {{ driversCount() }} driver(s) seleccionado(s)
+            </p>
+            <p-button
+              label="Agregar/Remover Drivers"
+              icon="pi pi-users"
+              [outlined]="true"
+              size="small"
+              (onClick)="openDriverSelector()"
+            />
+          </div>
+
+          @if (selectedDrivers().length === 0) {
+            <div class="text-center py-6 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded">
+              <i class="pi pi-users text-3xl text-gray-400 mb-2"></i>
+              <p class="text-sm text-gray-500 dark:text-gray-400 m-0">
+                No hay drivers asignados
+              </p>
+            </div>
+          } @else {
+            <div class="flex flex-wrap gap-2">
+              @for (driver of selectedDrivers(); track driver.driverId) {
+                <p-chip
+                  [label]="driver.driverFullName"
+                  [removable]="true"
+                  (onRemove)="removeDriver(driver.driverId)"
+                />
+              }
+            </div>
+          }
+
+          <!-- Indicadores de cambios -->
+          @if (driversToAssign().length > 0 || driversToUnassign().length > 0) {
+            <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p class="font-semibold text-sm mb-2 text-blue-900 dark:text-blue-100">
+                Cambios pendientes:
+              </p>
+              @if (driversToAssign().length > 0) {
+                <p class="text-xs m-0 mb-1 text-blue-800 dark:text-blue-200">
+                  <i class="pi pi-plus-circle mr-1"></i>
+                  {{ driversToAssign().length }} driver(s) a agregar
+                </p>
+              }
+              @if (driversToUnassign().length > 0) {
+                <p class="text-xs m-0 text-blue-800 dark:text-blue-200">
+                  <i class="pi pi-minus-circle mr-1"></i>
+                  {{ driversToUnassign().length }} driver(s) a remover
+                </p>
+              }
+            </div>
+          }
+        </div>
+      </p-fieldset>
+
+      <!-- Acciones -->
+      <div class="flex justify-end gap-2 pt-4">
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="cancel()"
+          [disabled]="saving()"
+        />
+        <p-button
+          label="Guardar Cambios"
+          icon="pi pi-save"
+          [loading]="saving()"
+          [disabled]="!canSave() || saving()"
+          (onClick)="save()"
+        />
+      </div>
+    </form>
+  }
+
+  <!-- Toast para notificaciones -->
+  <p-toast />
+
+  <!-- Modal de Drivers -->
+  <app-driver-selector-modal (driversSelected)="onDriversSelected($event)" />
+</div>

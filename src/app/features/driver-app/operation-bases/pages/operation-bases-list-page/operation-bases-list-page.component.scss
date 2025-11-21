@@ -1,0 +1,13 @@
+// Estilos para la página de listado de bases de operaciones
+
+.operation-bases-list-page {
+  // TailwindCSS maneja la mayoría de los estilos
+
+  // Utility para limitar texto a 2 líneas
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

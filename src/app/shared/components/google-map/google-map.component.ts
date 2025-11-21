@@ -28,19 +28,21 @@ import {
   MapRadius,
   MapMarker as CustomMapMarker,
 } from '../map/map.types';
-import { PlacePrediction } from './google-map.types';
+import { PlacePrediction, GoogleMapMarker, MapCenter } from './google-map.types';
 
 /**
  * Standalone Google Maps component
  *
  * Features:
  * - Interactive map with custom marker icon
+ * - Multiple markers support with custom icons
  * - Place search with autocomplete (Google Places API)
  * - Click to select coordinates
  * - Device geolocation
  * - Responsive sizing (takes 100% width and height of container)
  *
  * @example
+ * Single marker mode:
  * ```html
  * <div style="height: 500px;">
  *   <app-google-map
@@ -48,6 +50,16 @@ import { PlacePrediction } from './google-map.types';
  *     [initialCoordinates]="coords"
  *     [markerIconUrl]="logoUrl"
  *     (coordinatesSelected)="handleCoordinates($event)"
+ *   />
+ * </div>
+ * ```
+ *
+ * Multiple markers mode:
+ * ```html
+ * <div style="height: 500px;">
+ *   <app-google-map
+ *     [markers]="markersArray"
+ *     (markerClick)="handleMarkerClick($event)"
  *   />
  * </div>
  * ```
@@ -78,17 +90,22 @@ export class GoogleMapComponent implements AfterViewInit, OnDestroy {
   readonly showSearch = input<boolean>(false);
   readonly initialCoordinates = input<Coordinates>(); // Para mostrar marcador cuando se edita
   readonly markerIconUrl = input<string>(); // URL de la imagen para el marcador custom
+  readonly markers = input<GoogleMapMarker[]>([]); // Array de marcadores para vista de múltiples marcadores
+  readonly centerOn = input<MapCenter | null>(); // Coordenadas para centrar/panear el mapa programáticamente
 
   // Outputs
   readonly coordinatesSelected = output<Coordinates>();
+  readonly markerClick = output<string>(); // Emite el ID del marcador clickeado
 
   // Signals
   readonly predictions = signal<PlacePrediction[]>([]);
   readonly showPredictions = signal<boolean>(false);
   readonly searchMarkerPosition = signal<Coordinates | null>(null);
+  readonly mapInitialized = signal<boolean>(false); // Track if map is fully initialized
 
-  // Advanced Marker
-  private advancedMarker?: google.maps.marker.AdvancedMarkerElement;
+  // Advanced Markers
+  private advancedMarker?: google.maps.marker.AdvancedMarkerElement; // Marcador único (modo búsqueda)
+  private advancedMarkers = new Map<string, google.maps.marker.AdvancedMarkerElement>(); // Múltiples marcadores
 
   // Google Maps configuration
   readonly mapOptions: google.maps.MapOptions = {
@@ -131,12 +148,38 @@ export class GoogleMapComponent implements AfterViewInit, OnDestroy {
         this.updateAdvancedMarker(position);
       }
     });
+
+    // Effect to update multiple markers when markers input changes
+    effect(() => {
+      const markersData = this.markers();
+      const initialized = this.mapInitialized();
+      if (markersData && markersData.length > 0 && initialized && this.googleMap?.googleMap) {
+        this.updateMultipleMarkers(markersData);
+      }
+    });
+
+    // Effect to pan/zoom map when centerOn input changes
+    effect(() => {
+      const center = this.centerOn();
+      const initialized = this.mapInitialized();
+      if (center && initialized && this.googleMap?.googleMap) {
+        this.googleMap.googleMap.panTo({ lat: center.lat, lng: center.lng });
+        if (center.zoom !== undefined) {
+          this.googleMap.googleMap.setZoom(center.zoom);
+        }
+      }
+    });
   }
 
   ngAfterViewInit(): void {
     // Initialize services
     if (this.googleMap?.googleMap) {
       this.geocoder = new google.maps.Geocoder();
+
+      // Mark map as initialized after a small delay to ensure it's fully ready
+      setTimeout(() => {
+        this.mapInitialized.set(true);
+      }, 100);
     }
 
     // Handle search input changes
@@ -161,7 +204,11 @@ export class GoogleMapComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Cleanup handled by Angular
+    // Cleanup markers
+    this.clearMultipleMarkers();
+    if (this.advancedMarker) {
+      this.advancedMarker.map = null;
+    }
   }
 
   /**
@@ -332,6 +379,128 @@ export class GoogleMapComponent implements AfterViewInit, OnDestroy {
       position: { lat: coords.lat, lng: coords.lng },
       content: markerContent,
     });
+  }
+
+  /**
+   * Update multiple markers on the map
+   */
+  private updateMultipleMarkers(markersData: GoogleMapMarker[]): void {
+    if (!this.googleMap?.googleMap) return;
+
+    // Clear existing markers
+    this.clearMultipleMarkers();
+
+    // Create new markers
+    markersData.forEach((markerData) => {
+      const markerContent = this.createMarkerContent(markerData.icon, markerData.title);
+
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        map: this.googleMap.googleMap,
+        position: { lat: markerData.lat, lng: markerData.lng },
+        content: markerContent,
+        title: markerData.title,
+      });
+
+      // Add click listener
+      marker.addListener('click', () => {
+        this.markerClick.emit(markerData.id);
+      });
+
+      this.advancedMarkers.set(markerData.id, marker);
+    });
+
+    // Adjust map bounds to show all markers
+    this.fitBoundsToMarkers(markersData);
+  }
+
+  /**
+   * Clear all multiple markers from the map
+   */
+  private clearMultipleMarkers(): void {
+    this.advancedMarkers.forEach((marker) => {
+      marker.map = null;
+    });
+    this.advancedMarkers.clear();
+  }
+
+  /**
+   * Create marker content element
+   */
+  private createMarkerContent(iconUrl: string, title?: string): HTMLElement {
+    const container = document.createElement('div');
+    container.style.cursor = 'pointer';
+    container.style.position = 'relative';
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.alignItems = 'center';
+
+    // Pin/pointer container (teardrop shape)
+    const pin = document.createElement('div');
+    pin.style.position = 'relative';
+    pin.style.width = '48px';
+    pin.style.height = '48px';
+    pin.style.backgroundColor = '#ffffff';
+    pin.style.borderRadius = '50% 50% 50% 0';
+    pin.style.transform = 'rotate(-45deg)';
+    pin.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+    pin.style.display = 'flex';
+    pin.style.alignItems = 'center';
+    pin.style.justifyContent = 'center';
+    pin.style.border = '3px solid #e74c3c'; // Red border for the pin
+
+    // Logo container (circular, inside the pin)
+    const logoContainer = document.createElement('div');
+    logoContainer.style.width = '36px';
+    logoContainer.style.height = '36px';
+    logoContainer.style.borderRadius = '50%';
+    logoContainer.style.overflow = 'hidden';
+    logoContainer.style.transform = 'rotate(45deg)'; // Counter-rotate to keep logo upright
+    logoContainer.style.display = 'flex';
+    logoContainer.style.alignItems = 'center';
+    logoContainer.style.justifyContent = 'center';
+    logoContainer.style.backgroundColor = '#ffffff';
+
+    // Logo image
+    const img = document.createElement('img');
+    img.src = iconUrl;
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.objectFit = 'cover';
+    img.alt = title || 'Marker';
+
+    logoContainer.appendChild(img);
+    pin.appendChild(logoContainer);
+    container.appendChild(pin);
+
+    return container;
+  }
+
+  /**
+   * Fit map bounds to show all markers, then center on first marker
+   */
+  private fitBoundsToMarkers(markersData: GoogleMapMarker[]): void {
+    if (!this.googleMap?.googleMap || markersData.length === 0) return;
+
+    const bounds = new google.maps.LatLngBounds();
+    markersData.forEach((marker) => {
+      bounds.extend({ lat: marker.lat, lng: marker.lng });
+    });
+
+    this.googleMap.googleMap.fitBounds(bounds);
+
+    // Add some padding and center on first marker
+    if (markersData.length === 1) {
+      // If only one marker, set a reasonable zoom level
+      this.googleMap.googleMap.setZoom(14);
+    } else if (markersData.length > 1) {
+      // After fitting bounds, pan to first marker to ensure it's in view
+      setTimeout(() => {
+        if (this.googleMap?.googleMap) {
+          const firstMarker = markersData[0];
+          this.googleMap.googleMap.panTo({ lat: firstMarker.lat, lng: firstMarker.lng });
+        }
+      }, 500); // Small delay to allow fitBounds to complete
+    }
   }
 
   /**

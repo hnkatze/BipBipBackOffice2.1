@@ -1,0 +1,191 @@
+<div class="operation-base-detail-page p-4">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems()" />
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="space-y-4">
+      <p-skeleton height="60px" />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <p-skeleton height="300px" />
+        <p-skeleton height="300px" />
+      </div>
+      <p-skeleton height="400px" />
+    </div>
+  } @else if (baseDetails()) {
+    <!-- Header -->
+    <div class="flex flex-wrap justify-between items-start gap-4 mb-6">
+      <div class="flex items-start gap-4">
+        <img
+          [src]="baseDetails()!.pathLogoHeadquarter"
+          [alt]="baseDetails()!.headquarterName"
+          class="w-20 h-20 rounded-lg object-cover shadow-md"
+        />
+        <div>
+          <h1 class="text-2xl font-bold m-0 mb-2">
+            {{ baseDetails()!.headquarterName }}
+          </h1>
+          <div class="flex flex-wrap gap-2">
+            <p-tag
+              [value]="baseDetails()!.headquarterAcronym"
+              icon="pi pi-tag"
+            />
+            <p-chip
+              [label]="baseDetails()!.locationDriver.cityName + ', ' + baseDetails()!.locationDriver.countryName"
+              icon="pi pi-map-marker"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <p-button
+          label="Editar"
+          icon="pi pi-pencil"
+          (onClick)="editBase()"
+        />
+        <p-button
+          label="Volver"
+          icon="pi pi-arrow-left"
+          [outlined]="true"
+          severity="secondary"
+          (onClick)="goBack()"
+        />
+      </div>
+    </div>
+
+    <!-- Información General -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <!-- Ubicación y Estadísticas -->
+      <p-card header="Información General">
+        <div class="space-y-4">
+          <div>
+            <label class="text-sm font-semibold text-gray-600 dark:text-gray-400">Dirección</label>
+            <p class="m-0 mt-1">{{ baseDetails()!.headquarterAddress }}</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-semibold text-gray-600 dark:text-gray-400">Pedidos por Hora</label>
+              <p class="m-0 mt-1 text-lg font-bold">{{ baseDetails()!.pedidoPorHora }}</p>
+            </div>
+            <div>
+              <label class="text-sm font-semibold text-gray-600 dark:text-gray-400">Drivers por Hora</label>
+              <p class="m-0 mt-1 text-lg font-bold">{{ baseDetails()!.VolDriverPorHora }}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-semibold text-gray-600 dark:text-gray-400">País</label>
+              <p class="m-0 mt-1">{{ baseDetails()!.locationDriver.countryName }}</p>
+            </div>
+            <div>
+              <label class="text-sm font-semibold text-gray-600 dark:text-gray-400">Ciudad</label>
+              <p class="m-0 mt-1">{{ baseDetails()!.locationDriver.cityName }}</p>
+            </div>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Boxes y Contacto -->
+      <p-card header="Boxes y Contacto">
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-semibold text-gray-600 dark:text-gray-400">Tamaño Base</label>
+              <p class="m-0 mt-1 text-lg font-bold">{{ baseDetails()!.headquarterSize }}</p>
+            </div>
+            <div>
+              <label class="text-sm font-semibold text-gray-600 dark:text-gray-400">Box Actual</label>
+              <p class="m-0 mt-1">{{ baseDetails()!.numberCurrent }}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-semibold text-gray-600 dark:text-gray-400">Box Inicio</label>
+              <p class="m-0 mt-1">{{ baseDetails()!.numberBoxBegin }}</p>
+            </div>
+            <div>
+              <label class="text-sm font-semibold text-gray-600 dark:text-gray-400">Box Fin</label>
+              <p class="m-0 mt-1">{{ baseDetails()!.numberBoxEnd }}</p>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+            <label class="text-sm font-semibold text-gray-600 dark:text-gray-400">Contacto</label>
+            <p class="m-0 mt-1 font-semibold">{{ baseDetails()!.contactName }}</p>
+            <p class="m-0 mt-1 text-sm">{{ baseDetails()!.contactNumber }}</p>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Drivers Asignados -->
+    <p-card header="Drivers Asignados">
+      @if (baseDetails()!.listDriver.length === 0) {
+        <div class="text-center py-8">
+          <i class="pi pi-users text-4xl text-gray-400 mb-3"></i>
+          <p class="text-gray-500 dark:text-gray-400 m-0">
+            No hay drivers asignados a esta base
+          </p>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          @for (driver of baseDetails()!.listDriver; track driver.driverId) {
+            <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow">
+              <div class="flex items-start gap-3">
+                <div class="flex-shrink-0">
+                  <div class="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                    <i class="pi pi-user text-xl text-primary-600 dark:text-primary-400"></i>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-semibold text-sm m-0 mb-1 truncate">
+                    {{ driver.driverName }}
+                  </h3>
+                  <p class="text-xs text-gray-600 dark:text-gray-400 m-0 mb-1">
+                    <i class="pi pi-phone text-xs mr-1"></i>
+                    {{ driver.driverPhoneNumb }}
+                  </p>
+                  <p class="text-xs text-gray-600 dark:text-gray-400 m-0 mb-2 truncate">
+                    <i class="pi pi-envelope text-xs mr-1"></i>
+                    {{ driver.driverEmail }}
+                  </p>
+                  <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <span class="flex items-center gap-1">
+                      <i class="pi pi-map-marker text-xs"></i>
+                      {{ driver.driverCityName }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </p-card>
+  } @else {
+    <!-- Estado de Error -->
+    <p-card>
+      <div class="text-center py-8">
+        <i class="pi pi-exclamation-triangle text-4xl text-orange-400 mb-3"></i>
+        <p class="text-gray-500 dark:text-gray-400 m-0">
+          No se pudieron cargar los detalles de la base
+        </p>
+        <p-button
+          label="Volver"
+          icon="pi pi-arrow-left"
+          [outlined]="true"
+          severity="secondary"
+          class="mt-4"
+          (onClick)="goBack()"
+        />
+      </div>
+    </p-card>
+  }
+
+  <!-- Toast para notificaciones -->
+  <p-toast />
+</div>

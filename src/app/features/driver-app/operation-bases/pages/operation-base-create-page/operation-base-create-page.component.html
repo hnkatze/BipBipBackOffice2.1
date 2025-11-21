@@ -1,0 +1,276 @@
+<div class="operation-base-create-page p-4">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="breadcrumbItems()" />
+
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold m-0">Crear Base de Operaciones</h1>
+  </div>
+
+  <!-- Form Container -->
+  <form [formGroup]="baseForm" class="max-w-4xl space-y-4">
+
+    <!-- SECCIÓN 1: UBICACIÓN Y RESTAURANTE -->
+    <p-fieldset legend="📍 Ubicación y Restaurante" [toggleable]="true">
+      <div class="space-y-4">
+        <!-- País y Ciudad -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- País -->
+          <div>
+            <label for="country" class="block text-sm font-medium mb-2">
+              País <span class="text-red-500">*</span>
+            </label>
+            <p-select
+              inputId="country"
+              formControlName="countryId"
+              [options]="countries()"
+              optionLabel="countryName"
+              optionValue="countryId"
+              placeholder="Selecciona un país"
+              styleClass="w-full"
+              [filter]="true"
+              filterPlaceholder="Buscar país"
+            />
+          </div>
+
+          <!-- Ciudad -->
+          <div>
+            <label for="city" class="block text-sm font-medium mb-2">
+              Ciudad <span class="text-red-500">*</span>
+            </label>
+            @if (loadingCities()) {
+              <p-select
+                disabled
+                placeholder="Cargando ciudades..."
+                styleClass="w-full"
+              />
+            } @else {
+              <p-select
+                inputId="city"
+                formControlName="cityId"
+                [options]="cities()"
+                optionLabel="cityName"
+                optionValue="cityId"
+                placeholder="Selecciona una ciudad"
+                styleClass="w-full"
+                [filter]="true"
+                filterPlaceholder="Buscar ciudad"
+                [disabled]="!baseForm.value.countryId"
+              />
+            }
+          </div>
+        </div>
+
+        <!-- Restaurante Seleccionado -->
+        <div>
+          <label class="block text-sm font-medium mb-2">
+            Restaurante <span class="text-red-500">*</span>
+          </label>
+
+          @if (selectedRestaurant(); as restaurant) {
+            <!-- Chip con restaurante seleccionado -->
+            <div class="flex items-center gap-3 p-3 border border-gray-300 dark:border-gray-600 rounded">
+              <img
+                [src]="restaurant.restBrandLogo"
+                [alt]="restaurant.restName"
+                class="w-10 h-10 rounded object-cover"
+              />
+              <div class="flex-1">
+                <p class="font-semibold text-sm m-0">{{ restaurant.restName }}</p>
+                <p class="text-xs text-gray-600 dark:text-gray-400 m-0">{{ restaurant.restAddress }}</p>
+              </div>
+              <p-button
+                icon="pi pi-times"
+                [rounded]="true"
+                [text]="true"
+                severity="danger"
+                size="small"
+                (onClick)="removeRestaurant()"
+              />
+            </div>
+          } @else {
+            <!-- Botón para seleccionar restaurante -->
+            <p-button
+              label="Seleccionar Restaurante"
+              icon="pi pi-search"
+              [outlined]="true"
+              (onClick)="openRestaurantSelector()"
+              [disabled]="!canSelectRestaurant()"
+            />
+            @if (!canSelectRestaurant()) {
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Selecciona una ciudad primero
+              </p>
+            }
+          }
+        </div>
+      </div>
+    </p-fieldset>
+
+    <!-- SECCIÓN 2: CONDUCTORES -->
+    <p-fieldset legend="👥 Conductores" [toggleable]="true">
+      <div class="space-y-3">
+        <!-- Drivers seleccionados -->
+        @if (selectedDrivers().length > 0) {
+          <div class="flex flex-wrap gap-2 mb-3">
+            @for (driver of selectedDrivers(); track driver.driverId) {
+              <p-chip
+                [label]="driver.driverFullName"
+                [removable]="true"
+                (onRemove)="removeDriver(driver.driverId)"
+              />
+            }
+          </div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            <i class="pi pi-users mr-1"></i>
+            {{ driversCount() }} conductor(es) seleccionado(s)
+          </div>
+        } @else {
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            No hay conductores seleccionados
+          </div>
+        }
+
+        <!-- Botón para agregar drivers -->
+        <p-button
+          label="Agregar Conductores"
+          icon="pi pi-plus"
+          [outlined]="true"
+          (onClick)="openDriverSelector()"
+          [disabled]="!canSelectDrivers()"
+        />
+        @if (!canSelectDrivers()) {
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            Selecciona una ciudad primero
+          </p>
+        }
+      </div>
+    </p-fieldset>
+
+    <!-- SECCIÓN 3: BOXES Y CONTACTO -->
+    <p-fieldset legend="📦 Información de Boxes y Contacto" [toggleable]="true">
+      <div class="space-y-4">
+        <!-- Números de Box -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="boxBegin" class="block text-sm font-medium mb-2">
+              Número Inicial <span class="text-red-500">*</span>
+            </label>
+            <input
+              pInputText
+              id="boxBegin"
+              formControlName="numberBoxBegin"
+              placeholder="Ej: 001"
+              class="w-full"
+            />
+          </div>
+
+          <div>
+            <label for="boxEnd" class="block text-sm font-medium mb-2">
+              Número Final <span class="text-red-500">*</span>
+            </label>
+            <input
+              pInputText
+              id="boxEnd"
+              formControlName="numberBoxEnd"
+              placeholder="Ej: 100"
+              class="w-full"
+            />
+          </div>
+
+          <div>
+            <label for="boxCurrent" class="block text-sm font-medium mb-2">
+              Número Actual <span class="text-red-500">*</span>
+            </label>
+            <input
+              pInputText
+              id="boxCurrent"
+              formControlName="numberCurrent"
+              placeholder="Ej: 001"
+              class="w-full"
+            />
+          </div>
+        </div>
+
+        <!-- Cantidad de Deliveries -->
+        <div>
+          <label for="headquarterSize" class="block text-sm font-medium mb-2">
+            Cantidad de Deliveries (Tamaño) <span class="text-red-500">*</span>
+          </label>
+          <p-inputnumber
+            inputId="headquarterSize"
+            formControlName="headquarterSize"
+            [min]="1"
+            placeholder="Cantidad de deliveries"
+            styleClass="w-full"
+          />
+          @if (headquarterSizeError()) {
+            <p class="text-xs text-red-500 mt-1">
+              La cantidad de deliveries debe ser mayor que la cantidad de conductores ({{ driversCount() }})
+            </p>
+          }
+        </div>
+
+        <!-- Información de Contacto -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="contactName" class="block text-sm font-medium mb-2">
+              Nombre del Encargado <span class="text-red-500">*</span>
+            </label>
+            <input
+              pInputText
+              id="contactName"
+              formControlName="contactName"
+              placeholder="Nombre completo"
+              class="w-full"
+            />
+          </div>
+
+          <div>
+            <label for="contactNumber" class="block text-sm font-medium mb-2">
+              Teléfono del Encargado <span class="text-red-500">*</span>
+            </label>
+            <input
+              pInputText
+              id="contactNumber"
+              formControlName="contactNumber"
+              type="tel"
+              placeholder="Número de teléfono"
+              class="w-full"
+            />
+          </div>
+        </div>
+      </div>
+    </p-fieldset>
+
+    <!-- Botones de Acción -->
+    <div class="flex justify-end gap-3 pt-4">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="cancel()"
+        [disabled]="saving()"
+      />
+      <p-button
+        label="Guardar Base de Operaciones"
+        icon="pi pi-check"
+        (onClick)="save()"
+        [loading]="saving()"
+        [disabled]="!canSave()"
+      />
+    </div>
+  </form>
+
+  <!-- Modals -->
+  <app-restaurant-selector-modal
+    (restaurantSelected)="onRestaurantSelected($event)"
+  />
+
+  <app-driver-selector-modal
+    (driversSelected)="onDriversSelected($event)"
+  />
+
+  <!-- Toast para notificaciones -->
+  <p-toast />
+</div>

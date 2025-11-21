@@ -15,6 +15,12 @@ export const DRIVER_APP_ROUTES: Routes = [
     loadChildren: () =>
       import('./registered-drivers/registered-drivers.routes').then((m) => m.REGISTERED_DRIVERS_ROUTES),
     title: 'Drivers Registrados'
+  },
+  {
+    path: 'operation-bases',
+    loadChildren: () =>
+      import('./operation-bases/operation-bases.routes').then((m) => m.OPERATION_BASES_ROUTES),
+    title: 'Bases de Operaciones'
   }
   // TODO: Agregar más sub-módulos de Driver App aquí
 ];
