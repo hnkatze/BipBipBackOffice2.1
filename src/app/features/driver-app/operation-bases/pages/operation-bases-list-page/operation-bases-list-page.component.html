@@ -3,8 +3,13 @@
   <app-breadcrumb [items]="breadcrumbItems()" />
 
   <!-- Header -->
-  <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
-    <h1 class="text-2xl font-bold m-0">Bases de Operaciones</h1>
+  <div class="flex flex-wrap justify-between items-start gap-3 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold m-0 mb-2">Bases de Operaciones</h1>
+      <p class="text-sm text-gray-600 dark:text-gray-400 m-0">
+        Gestiona las bases de operaciones, visualiza su ubicación en el mapa y administra los drivers asignados a cada base.
+      </p>
+    </div>
 
     <div class="flex gap-2">
       <p-button

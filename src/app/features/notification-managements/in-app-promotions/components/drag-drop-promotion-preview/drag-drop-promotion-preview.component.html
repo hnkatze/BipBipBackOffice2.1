@@ -34,10 +34,15 @@
         </div>
 
         <!-- Banner Rojo (40%) -->
-        <div class="bg-[#FB0021] p-2.5 flex flex-col gap-2 items-center" style="flex: 0 0 40%;">
+        <div class="bg-[#FB0021] p-2.5 flex flex-col gap-1 items-center" style="flex: 0 0 40%;">
           <p class="text-white text-center font-bold text-base leading-normal">
             {{ previewData().title || 'Título' }}
           </p>
+          @if (previewData().description) {
+            <p class="text-white text-center text-xs leading-tight">
+              {{ previewData().description }}
+            </p>
+          }
           @if (formattedBanner()) {
             <div class="bg-white px-2 py-1 rounded-full flex gap-1 items-center">
               @if (previewData().prefixBanner) {
@@ -55,15 +60,17 @@
       <div class="flex h-full">
         <!-- Banner Rojo (Izquierda - 40%) -->
         <div class="bg-[#FB0021] p-4 flex flex-col gap-2 items-center justify-center" style="flex: 0 0 40%;">
-          <!-- Badge -->
-          <div [class]="badgeClass() + ' px-2 py-1 rounded-full text-[10px] font-normal uppercase'">
-            {{ badgeText() }}
-          </div>
-
           <!-- Título -->
           <p class="text-white text-center font-bold text-2xl leading-9">
             {{ previewData().title || 'Título de la promoción' }}
           </p>
+
+          <!-- Descripción -->
+          @if (previewData().description) {
+            <p class="text-white text-center text-sm leading-tight">
+              {{ previewData().description }}
+            </p>
+          }
 
           <!-- Precio -->
           @if (formattedBanner()) {
@@ -87,13 +94,18 @@
             </div>
           }
 
-          <!-- Logo (arriba del producto) -->
+          <!-- Logo (arriba izquierda del producto) -->
           @if (previewData().brandLogo) {
             <div class="absolute top-2 left-2 w-12 h-12 rounded-full bg-white border-2 border-white">
               <img [src]="previewData().brandLogo" alt="Brand"
                    class="w-full h-full object-contain rounded-full" />
             </div>
           }
+
+          <!-- Badge (arriba derecha del producto) -->
+          <div [class]="badgeClass() + ' absolute top-2 right-2 px-2 py-1 rounded-full text-[10px] font-normal uppercase'">
+            {{ badgeText() }}
+          </div>
         </div>
       </div>
     }
@@ -112,26 +124,33 @@
             </div>
           }
 
-          <!-- Logo (arriba del producto) -->
+          <!-- Logo (arriba izquierda del producto) -->
           @if (previewData().brandLogo) {
             <div class="absolute top-2 left-2 w-12 h-12 rounded-full bg-white border-2 border-white">
               <img [src]="previewData().brandLogo" alt="Brand"
                    class="w-full h-full object-contain rounded-full" />
             </div>
           }
+
+          <!-- Badge (arriba derecha del producto) -->
+          <div [class]="badgeClass() + ' absolute top-2 right-2 px-2 py-1 rounded-full text-[10px] font-normal uppercase'">
+            {{ badgeText() }}
+          </div>
         </div>
 
         <!-- Banner Rojo (Derecha - 40%) -->
         <div class="bg-[#FB0021] p-4 flex flex-col gap-2 items-center justify-center" style="flex: 0 0 40%;">
-          <!-- Badge -->
-          <div [class]="badgeClass() + ' px-2 py-1 rounded-full text-[10px] font-normal uppercase'">
-            {{ badgeText() }}
-          </div>
-
           <!-- Título -->
           <p class="text-white text-center font-bold text-2xl leading-9">
             {{ previewData().title || 'Título de la promoción' }}
           </p>
+
+          <!-- Descripción -->
+          @if (previewData().description) {
+            <p class="text-white text-center text-sm leading-tight">
+              {{ previewData().description }}
+            </p>
+          }
 
           <!-- Precio -->
           @if (formattedBanner()) {
@@ -154,6 +173,11 @@
           <p class="text-white text-center font-bold text-base leading-normal">
             {{ previewData().title || 'Título' }}
           </p>
+          @if (previewData().description) {
+            <p class="text-white text-center text-xs leading-tight">
+              {{ previewData().description }}
+            </p>
+          }
           @if (formattedBanner()) {
             <div class="bg-white px-2 py-1 rounded-full flex gap-1 items-center">
               @if (previewData().prefixBanner) {
@@ -203,22 +227,30 @@
           </div>
         }
 
+        <!-- Logo (arriba izquierda) -->
+        @if (previewData().brandLogo) {
+          <div class="absolute top-2 left-2 w-12 h-12 rounded-full bg-white border-2 border-white">
+            <img [src]="previewData().brandLogo" alt="Brand"
+                 class="w-full h-full object-contain rounded-full" />
+          </div>
+        }
+
+        <!-- Badge (arriba derecha) -->
+        <div [class]="badgeClass() + ' absolute top-2 right-2 px-2 py-1 rounded-full text-[10px] font-normal uppercase'">
+          {{ badgeText() }}
+        </div>
+
         <!-- Overlay con información -->
         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-4">
-          @if (previewData().brandLogo) {
-            <div class="w-12 h-12 rounded-full bg-white border-2 border-white mb-2">
-              <img [src]="previewData().brandLogo" alt="Brand"
-                   class="w-full h-full object-contain rounded-full" />
-            </div>
-          }
-
-          <div [class]="badgeClass() + ' self-start px-2 py-1 rounded-full text-[10px] font-normal uppercase mb-2'">
-            {{ badgeText() }}
-          </div>
-
           <p class="text-white text-xl font-bold mb-1">
             {{ previewData().title || 'Título' }}
           </p>
+
+          @if (previewData().description) {
+            <p class="text-white text-sm leading-tight mb-2">
+              {{ previewData().description }}
+            </p>
+          }
 
           @if (formattedBanner()) {
             <div class="bg-yellow-400 self-start px-3 py-1.5 rounded-lg flex gap-1 items-center">

@@ -123,8 +123,15 @@
     </div>
 
     <!-- Drivers Asignados -->
-    <p-card header="Drivers Asignados">
-      @if (baseDetails()!.listDriver.length === 0) {
+    <p-card>
+      <ng-template pTemplate="header">
+        <div class="flex justify-between items-center px-6 py-4">
+          <span class="font-semibold text-lg">Drivers Asignados</span>
+          <p-chip [label]="totalDrivers() + ' total'" />
+        </div>
+      </ng-template>
+
+      @if (totalDrivers() === 0) {
         <div class="text-center py-8">
           <i class="pi pi-users text-4xl text-gray-400 mb-3"></i>
           <p class="text-gray-500 dark:text-gray-400 m-0">
@@ -132,8 +139,8 @@
           </p>
         </div>
       } @else {
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          @for (driver of baseDetails()!.listDriver; track driver.driverId) {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+          @for (driver of paginatedDrivers(); track driver.driverId) {
             <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow">
               <div class="flex items-start gap-3">
                 <div class="flex-shrink-0">
@@ -164,6 +171,20 @@
             </div>
           }
         </div>
+
+        <!-- Paginador -->
+        @if (totalDrivers() > driversPageSize()) {
+          <div class="flex justify-center pt-4 border-t border-gray-200 dark:border-gray-700">
+            <p-paginator
+              [rows]="driversPageSize()"
+              [totalRecords]="totalDrivers()"
+              [first]="driversPage() * driversPageSize()"
+              (onPageChange)="onDriversPageChange($event)"
+              [showCurrentPageReport]="true"
+              currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} drivers"
+            />
+          </div>
+        }
       }
     </p-card>
   } @else {

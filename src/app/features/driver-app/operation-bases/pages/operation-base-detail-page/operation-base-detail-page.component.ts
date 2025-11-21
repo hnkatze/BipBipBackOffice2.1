@@ -2,6 +2,7 @@ import {
   Component,
   ChangeDetectionStrategy,
   signal,
+  computed,
   inject,
   OnInit,
 } from '@angular/core';
@@ -15,6 +16,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { ChipModule } from 'primeng/chip';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { PaginatorModule } from 'primeng/paginator';
 import { MessageService } from 'primeng/api';
 
 // Shared Components
@@ -22,7 +24,7 @@ import { BreadcrumbComponent, BreadcrumbItem } from '@shared/components/breadcru
 
 // Models and Services
 import { OperationBaseService } from '../../services/operation-base.service';
-import { OperationBaseDetail } from '../../models/operation-base.model';
+import { OperationBaseDetail, DriverAssigned } from '../../models/operation-base.model';
 
 /**
  * Página para ver detalles completos de una base de operaciones
@@ -44,6 +46,7 @@ import { OperationBaseDetail } from '../../models/operation-base.model';
     ChipModule,
     TagModule,
     ToastModule,
+    PaginatorModule,
     BreadcrumbComponent,
   ],
   templateUrl: './operation-base-detail-page.component.html',
@@ -70,12 +73,43 @@ export class OperationBaseDetailPageComponent implements OnInit {
   /** ID de la base */
   readonly baseId = signal<number | null>(null);
 
+  /** Paginación de drivers */
+  readonly driversPage = signal(0);
+  readonly driversPageSize = signal(6);
+
   /** Breadcrumb */
   readonly breadcrumbItems = signal<BreadcrumbItem[]>([
     { label: 'Driver App', link: '/driver-app' },
     { label: 'Bases de Operaciones', link: '/driver-app/operation-bases' },
     { label: 'Detalle', link: '' },
   ]);
+
+  // ============================================================================
+  // COMPUTED SIGNALS
+  // ============================================================================
+
+  /**
+   * Drivers paginados (slice del array según página actual)
+   */
+  readonly paginatedDrivers = computed(() => {
+    const base = this.baseDetails();
+    if (!base) return [];
+
+    const page = this.driversPage();
+    const pageSize = this.driversPageSize();
+    const start = page * pageSize;
+    const end = start + pageSize;
+
+    return base.listDriver.slice(start, end);
+  });
+
+  /**
+   * Total de drivers
+   */
+  readonly totalDrivers = computed(() => {
+    const base = this.baseDetails();
+    return base ? base.listDriver.length : 0;
+  });
 
   ngOnInit(): void {
     // Obtener ID de la ruta
@@ -146,5 +180,12 @@ export class OperationBaseDetailPageComponent implements OnInit {
    */
   goBack(): void {
     this.router.navigate(['/driver-app/operation-bases']);
+  }
+
+  /**
+   * Manejar cambio de página en drivers
+   */
+  onDriversPageChange(event: any): void {
+    this.driversPage.set(event.page);
   }
 }

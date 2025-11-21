@@ -5,11 +5,11 @@ import {
   input,
   output,
   inject,
-  effect,
   OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DrawerModule } from 'primeng/drawer';
 import { ButtonModule } from 'primeng/button';
 import { MultiSelectModule } from 'primeng/multiselect';
@@ -74,16 +74,18 @@ export class OperationBasesFilterSidebarComponent implements OnInit {
   });
 
   constructor() {
-    // Effect para cargar ciudades cuando cambian los países seleccionados
-    effect(() => {
-      const selectedCountries = this.filterForm.value.selectedCountries || [];
-      if (selectedCountries.length > 0) {
-        this.loadCitiesForCountries(selectedCountries);
-      } else {
-        this.cities.set([]);
-        this.filterForm.patchValue({ selectedCities: [] });
-      }
-    });
+    // Escuchar cambios en países seleccionados para cargar ciudades
+    this.filterForm.get('selectedCountries')?.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((selectedCountries) => {
+        const countryIds = selectedCountries || [];
+        if (countryIds.length > 0) {
+          this.loadCitiesForCountries(countryIds);
+        } else {
+          this.cities.set([]);
+          this.filterForm.patchValue({ selectedCities: [] });
+        }
+      });
   }
 
   ngOnInit(): void {

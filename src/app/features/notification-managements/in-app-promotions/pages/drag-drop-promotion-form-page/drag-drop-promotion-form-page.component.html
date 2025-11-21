@@ -38,7 +38,7 @@
               Título <span class="text-danger-500">*</span>
             </label>
             <input pInputText id="title" formControlName="title"
-              placeholder="Ej: Promo especial 2x1" />
+              placeholder="Ej: Promo especial 2x1" maxlength="15" />
             @if (hasError('title')) {
               <small class="text-danger-500">{{ getErrorMessage('title') }}</small>
             }
@@ -50,7 +50,7 @@
               Descripción
             </label>
             <textarea pTextarea id="description" formControlName="description"
-              rows="3" placeholder="Descripción opcional de la promoción"></textarea>
+              rows="3" placeholder="Descripción opcional de la promoción" maxlength="30"></textarea>
           </div>
         </div>
       </p-card>

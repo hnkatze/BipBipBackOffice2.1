@@ -405,6 +405,7 @@ export class DragDropPromotionFormPageComponent implements OnInit {
         { value: 'right', label: 'Derecha' }
       ],
       '7x8': [
+        { value: 'left', label: 'Izquierda' },
         { value: 'full', label: 'Completo' }
       ]
     };

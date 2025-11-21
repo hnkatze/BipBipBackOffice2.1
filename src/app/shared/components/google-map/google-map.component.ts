@@ -392,7 +392,11 @@ export class GoogleMapComponent implements AfterViewInit, OnDestroy {
 
     // Create new markers
     markersData.forEach((markerData) => {
-      const markerContent = this.createMarkerContent(markerData.icon, markerData.title);
+      const markerContent = this.createMarkerContent(
+        markerData.icon,
+        markerData.title,
+        markerData.badgeValue
+      );
 
       const marker = new google.maps.marker.AdvancedMarkerElement({
         map: this.googleMap.googleMap,
@@ -426,13 +430,14 @@ export class GoogleMapComponent implements AfterViewInit, OnDestroy {
   /**
    * Create marker content element
    */
-  private createMarkerContent(iconUrl: string, title?: string): HTMLElement {
+  private createMarkerContent(iconUrl: string, title?: string, badgeValue?: number): HTMLElement {
     const container = document.createElement('div');
     container.style.cursor = 'pointer';
     container.style.position = 'relative';
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
     container.style.alignItems = 'center';
+    container.style.gap = '4px';
 
     // Pin/pointer container (teardrop shape)
     const pin = document.createElement('div');
@@ -471,6 +476,23 @@ export class GoogleMapComponent implements AfterViewInit, OnDestroy {
     logoContainer.appendChild(img);
     pin.appendChild(logoContainer);
     container.appendChild(pin);
+
+    // Badge con pedidos por hora (si existe)
+    if (badgeValue !== undefined) {
+      const badge = document.createElement('div');
+      badge.style.backgroundColor = '#e74c3c';
+      badge.style.color = '#ffffff';
+      badge.style.padding = '4px 8px';
+      badge.style.borderRadius = '12px';
+      badge.style.fontSize = '12px';
+      badge.style.fontWeight = '600';
+      badge.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+      badge.style.whiteSpace = 'nowrap';
+      badge.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+      badge.textContent = `+${badgeValue}`;
+
+      container.appendChild(badge);
+    }
 
     return container;
   }

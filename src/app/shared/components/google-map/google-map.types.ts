@@ -33,6 +33,8 @@ export interface GoogleMapMarker {
   title?: string;
   /** Optional info for tooltip */
   info?: string;
+  /** Optional badge value (e.g., orders per hour) */
+  badgeValue?: number;
 }
 
 /**

@@ -154,6 +154,7 @@ export class OperationBasesListPageComponent implements OnInit {
       icon: base.pathLogoHeadquarter,
       title: base.headquarterName,
       info: base.headquarterAddress,
+      badgeValue: base.pedidoPorHora,
     }));
   });
 
