@@ -25,7 +25,8 @@
       "Bash(ng add:*)",
       "Bash(ren promo-code-create-page promo-code-form-page)",
       "Bash(move:*)",
-      "Bash(npx ng build:*)"
+      "Bash(npx ng build:*)",
+      "Bash(Remove-Item -Recurse -Force \"C:\\Users\\henri\\CIT\\BipBipBackOffice2.1\\src\\app\\features\\notification-managements\\in-app-promotions\\pages\\product-reward-edit-page\")"
     ]
   },
   "enableAllProjectMcpServers": true,

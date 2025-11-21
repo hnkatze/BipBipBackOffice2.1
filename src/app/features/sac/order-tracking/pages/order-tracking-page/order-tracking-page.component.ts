@@ -90,6 +90,9 @@ export class OrderTrackingPageComponent implements OnInit {
     { type: 'time', label: 'Tiempo: Última hora', value: TimeFilterType.LAST_HOUR }
   ]);
 
+  // Flag to track if this is the initial lazy load
+  private initialLazyLoadDone = false;
+
   // Charts signals
   readonly showCharts = signal(true);
   readonly chartsLoading = signal(false);
@@ -122,7 +125,7 @@ export class OrderTrackingPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadOrders();
+    // onLazyLoad se encarga de la carga inicial de órdenes
     this.loadCharts();
   }
 
@@ -176,6 +179,9 @@ export class OrderTrackingPageComponent implements OnInit {
     };
 
     this.orderTrackingService.searchOrders(params).subscribe({
+      next: () => {
+        // Success - data is already set in the service
+      },
       error: (error) => {
         console.error('Error al cargar órdenes:', error);
         this.messageService.add({
@@ -231,6 +237,7 @@ export class OrderTrackingPageComponent implements OnInit {
   onTimeFilterChange(): void {
     this.currentPage.set(1);
     this.loadOrders();
+    this.loadCharts(); // Recargar gráficos con el nuevo filtro de tiempo
 
     // Update active filters
     const timeFilter = this.timeFilterControl.value;
@@ -250,10 +257,31 @@ export class OrderTrackingPageComponent implements OnInit {
    * Maneja el cambio de página
    */
   onPageChange(event: any): void {
-    // PrimeNG page es 0-indexed, pero la API espera 1-indexed
-    this.currentPage.set((event.page ?? 0) + 1);
-    this.pageSize.set(event.rows ?? 10);
-    this.loadOrders();
+    // La primera vez que se dispara onLazyLoad es en el ngOnInit de la tabla
+    // En ese caso, cargamos los datos iniciales
+    if (!this.initialLazyLoadDone) {
+      this.initialLazyLoadDone = true;
+      this.loadOrders();
+      return;
+    }
+
+    // Evitar bucle infinito: si ya estamos cargando, no hacer nada
+    if (this.isLoading()) {
+      return;
+    }
+
+    // PrimeNG envía 'first' (índice del primer registro) y 'rows' (registros por página)
+    // Calculamos el número de página: page = (first / rows) + 1
+    const rows = event.rows || 10;
+    const first = event.first || 0;
+    const page = Math.floor(first / rows) + 1;
+
+    // Solo cargar si realmente cambió la página o el tamaño
+    if (page !== this.currentPage() || rows !== this.pageSize()) {
+      this.currentPage.set(page);
+      this.pageSize.set(rows);
+      this.loadOrders();
+    }
   }
 
   /**

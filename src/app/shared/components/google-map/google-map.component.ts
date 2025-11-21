@@ -28,7 +28,8 @@ import {
   MapRadius,
   MapMarker as CustomMapMarker,
 } from '../map/map.types';
-import { PlacePrediction, GoogleMapMarker, MapCenter } from './google-map.types';
+import { PlacePrediction, GoogleMapMarker, MapCenter, MapRoute } from './google-map.types';
+import { MapboxDirectionsService } from '../../services/mapbox-directions.service';
 
 /**
  * Standalone Google Maps component
@@ -83,6 +84,7 @@ export class GoogleMapComponent implements AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly mapboxDirections = inject(MapboxDirectionsService);
 
   @ViewChild(GoogleMap) googleMap!: GoogleMap;
 
@@ -92,6 +94,7 @@ export class GoogleMapComponent implements AfterViewInit, OnDestroy {
   readonly markerIconUrl = input<string>(); // URL de la imagen para el marcador custom
   readonly markers = input<GoogleMapMarker[]>([]); // Array de marcadores para vista de múltiples marcadores
   readonly centerOn = input<MapCenter | null>(); // Coordenadas para centrar/panear el mapa programáticamente
+  readonly route = input<MapRoute | null>(); // Ruta para dibujar polyline entre 2 puntos
 
   // Outputs
   readonly coordinatesSelected = output<Coordinates>();
@@ -106,6 +109,9 @@ export class GoogleMapComponent implements AfterViewInit, OnDestroy {
   // Advanced Markers
   private advancedMarker?: google.maps.marker.AdvancedMarkerElement; // Marcador único (modo búsqueda)
   private advancedMarkers = new Map<string, google.maps.marker.AdvancedMarkerElement>(); // Múltiples marcadores
+
+  // Polyline
+  private polyline?: google.maps.Polyline; // Polyline para ruta
 
   // Google Maps configuration
   readonly mapOptions: google.maps.MapOptions = {
@@ -169,6 +175,19 @@ export class GoogleMapComponent implements AfterViewInit, OnDestroy {
         }
       }
     });
+
+    // Effect to draw/update route polyline when route input changes
+    effect(() => {
+      const routeData = this.route();
+      const initialized = this.mapInitialized();
+      if (routeData && initialized && this.googleMap?.googleMap) {
+        this.drawRoute(routeData);
+      } else if (!routeData && this.polyline) {
+        // Clear polyline if route is null
+        this.polyline.setMap(null);
+        this.polyline = undefined;
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -208,6 +227,10 @@ export class GoogleMapComponent implements AfterViewInit, OnDestroy {
     this.clearMultipleMarkers();
     if (this.advancedMarker) {
       this.advancedMarker.map = null;
+    }
+    // Cleanup polyline
+    if (this.polyline) {
+      this.polyline.setMap(null);
     }
   }
 
@@ -523,6 +546,90 @@ export class GoogleMapComponent implements AfterViewInit, OnDestroy {
         }
       }, 500); // Small delay to allow fitBounds to complete
     }
+  }
+
+  /**
+   * Draw or update route polyline between origin and destination using Mapbox Directions API
+   */
+  private drawRoute(routeData: MapRoute): void {
+    if (!this.googleMap?.googleMap) return;
+
+    // Clear existing polyline
+    if (this.polyline) {
+      this.polyline.setMap(null);
+      this.polyline = undefined;
+    }
+
+    // Request route from Mapbox Directions API
+    this.mapboxDirections
+      .getRoute(routeData.origin, routeData.destination, 'driving')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (routeGeometry) => {
+          if (routeGeometry && this.googleMap?.googleMap) {
+            // Convert Mapbox coordinates to Google Maps format
+            const path = this.mapboxDirections.convertToGoogleMapsFormat(
+              routeGeometry.coordinates
+            );
+
+            // Create polyline with the route geometry
+            this.polyline = new google.maps.Polyline({
+              path: path,
+              geodesic: true,
+              strokeColor: routeData.strokeColor || '#e74c3c',
+              strokeOpacity: routeData.strokeOpacity || 0.8,
+              strokeWeight: routeData.strokeWeight || 4,
+              map: this.googleMap.googleMap,
+            });
+
+            // Fit bounds to show the entire route
+            const bounds = new google.maps.LatLngBounds();
+            path.forEach((coord) => bounds.extend(coord));
+            this.googleMap.googleMap.fitBounds(bounds, 80);
+          } else {
+            // Fallback: draw straight line if Mapbox fails
+            this.drawStraightLine(routeData);
+          }
+        },
+        error: (error) => {
+          console.error('Error fetching Mapbox route:', error);
+          // Fallback: draw straight line if request fails
+          this.drawStraightLine(routeData);
+        },
+      });
+  }
+
+  /**
+   * Fallback method to draw straight line if Mapbox API fails
+   */
+  private drawStraightLine(routeData: MapRoute): void {
+    if (!this.googleMap?.googleMap) return;
+
+    // Clear existing polyline
+    if (this.polyline) {
+      this.polyline.setMap(null);
+    }
+
+    // Create straight polyline
+    const path = [
+      { lat: routeData.origin.lat, lng: routeData.origin.lng },
+      { lat: routeData.destination.lat, lng: routeData.destination.lng },
+    ];
+
+    this.polyline = new google.maps.Polyline({
+      path: path,
+      geodesic: true,
+      strokeColor: routeData.strokeColor || '#e74c3c',
+      strokeOpacity: routeData.strokeOpacity || 0.8,
+      strokeWeight: routeData.strokeWeight || 4,
+      map: this.googleMap.googleMap,
+    });
+
+    // Fit bounds to show both markers
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend(routeData.origin);
+    bounds.extend(routeData.destination);
+    this.googleMap.googleMap.fitBounds(bounds, 80);
   }
 
   /**

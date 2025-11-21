@@ -123,13 +123,15 @@
   } @else {
     <p-table
       [value]="orders()"
+      [lazy]="true"
       [paginator]="true"
+      [first]="(currentPage() - 1) * pageSize()"
       [rows]="pageSize()"
       [totalRecords]="totalRecords()"
       [rowsPerPageOptions]="[5, 10, 15, 20]"
       [showCurrentPageReport]="true"
       currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} órdenes"
-      (onPage)="onPageChange($event)"
+      (onLazyLoad)="onPageChange($event)"
       [tableStyle]="{ 'min-width': '80rem' }"
       styleClass="p-datatable-sm"
     >

@@ -48,3 +48,19 @@ export interface MapCenter {
   /** Optional zoom level (default: keeps current zoom) */
   zoom?: number;
 }
+
+/**
+ * Polyline route configuration
+ */
+export interface MapRoute {
+  /** Origin coordinates */
+  origin: { lat: number; lng: number };
+  /** Destination coordinates */
+  destination: { lat: number; lng: number };
+  /** Polyline stroke color (default: #e74c3c) */
+  strokeColor?: string;
+  /** Polyline stroke weight (default: 4) */
+  strokeWeight?: number;
+  /** Polyline stroke opacity (default: 0.8) */
+  strokeOpacity?: number;
+}

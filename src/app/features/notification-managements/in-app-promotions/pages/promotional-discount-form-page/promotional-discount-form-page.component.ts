@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, effect, DestroyRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -18,11 +18,17 @@ import { MessageService } from 'primeng/api';
 
 // Services & Models
 import { PromotionalDiscountService } from '../../services/promotional-discount.service';
-import { CreatePromotionalDiscount, DiscountType, DISCOUNT_TYPE_OPTIONS } from '../../models/promotional-discount.model';
+import {
+  CreatePromotionalDiscount,
+  UpdatePromotionalDiscount,
+  PromotionalDiscountResponse,
+  DiscountType,
+  DISCOUNT_TYPE_OPTIONS
+} from '../../models/promotional-discount.model';
 import { GlobalDataService } from '@core/services/global-data.service';
 
 @Component({
-  selector: 'app-promotional-discount-create-page',
+  selector: 'app-promotional-discount-form-page',
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -37,13 +43,14 @@ import { GlobalDataService } from '@core/services/global-data.service';
     ToastModule
   ],
   providers: [MessageService],
-  templateUrl: './promotional-discount-create-page.component.html',
-  styleUrl: './promotional-discount-create-page.component.scss',
+  templateUrl: './promotional-discount-form-page.component.html',
+  styleUrl: './promotional-discount-form-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PromotionalDiscountCreatePageComponent implements OnInit {
+export class PromotionalDiscountFormPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly messageService = inject(MessageService);
   private readonly promotionalDiscountService = inject(PromotionalDiscountService);
@@ -53,6 +60,9 @@ export class PromotionalDiscountCreatePageComponent implements OnInit {
   // SIGNALS - Estado
   // ============================================================================
 
+  readonly discountId = signal<number | null>(null);
+  readonly isEditMode = computed(() => this.discountId() !== null);
+  readonly isLoading = signal<boolean>(false);
   readonly isSaving = signal<boolean>(false);
   readonly selectedDiscountType = signal<DiscountType>(DiscountType.FixedDiscount);
 
@@ -73,6 +83,14 @@ export class PromotionalDiscountCreatePageComponent implements OnInit {
   // ============================================================================
   // COMPUTED
   // ============================================================================
+
+  readonly pageTitle = computed(() =>
+    this.isEditMode() ? 'Editar Descuento Promocional' : 'Nuevo Descuento Promocional'
+  );
+
+  readonly submitButtonLabel = computed(() =>
+    this.isEditMode() ? 'Guardar Cambios' : 'Crear Descuento Promocional'
+  );
 
   readonly brandsOptions = computed(() =>
     this.brands().map(brand => ({
@@ -142,6 +160,19 @@ export class PromotionalDiscountCreatePageComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
+    this.checkEditMode();
+  }
+
+  // ============================================================================
+  // MÉTODOS - Edit Mode Check
+  // ============================================================================
+
+  private checkEditMode(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.discountId.set(+id);
+      this.loadDiscount(+id);
+    }
   }
 
   // ============================================================================
@@ -163,7 +194,7 @@ export class PromotionalDiscountCreatePageComponent implements OnInit {
       availableBrands: [[], Validators.required],
       availableChannels: [[], Validators.required],
       availableCities: [[], Validators.required],
-      isActive: [false] // SIEMPRE se crea desactivado
+      isActive: [false]
     });
 
     // Configurar validador de end date
@@ -183,6 +214,63 @@ export class PromotionalDiscountCreatePageComponent implements OnInit {
 
     // Inicializar validaciones para tipo por defecto
     this.updateTypeValidations(DiscountType.FixedDiscount);
+  }
+
+  // ============================================================================
+  // MÉTODOS - Load Data
+  // ============================================================================
+
+  private loadDiscount(id: number): void {
+    this.isLoading.set(true);
+
+    this.promotionalDiscountService.getPromotionalDiscountById(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (discount) => {
+          this.populateForm(discount);
+          this.isLoading.set(false);
+        },
+        error: (error) => {
+          console.error('Error loading promotional discount:', error);
+          this.isLoading.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo cargar el descuento promocional'
+          });
+          this.router.navigate(['/notification-managements/in-app-promotions']);
+        }
+      });
+  }
+
+  private populateForm(discount: PromotionalDiscountResponse): void {
+    // Convertir discountValue de backend a frontend
+    let displayDiscountValue = 0;
+    if (discount.discountType === DiscountType.PercentageDiscount) {
+      // Backend: 0.15 → Frontend: 15
+      displayDiscountValue = discount.discountValue * 100;
+    } else {
+      // Backend: 50 → Frontend: 50
+      displayDiscountValue = discount.discountValue;
+    }
+
+    this.form.patchValue({
+      discountType: discount.discountType,
+      discountValue: displayDiscountValue,
+      deliveryCost: discount.deliveryCost,
+      startDate: discount.startDate ? new Date(discount.startDate) : new Date(),
+      endDate: discount.endDate ? new Date(discount.endDate) : new Date(),
+      availableBrands: discount.availableBrands || [],
+      availableChannels: discount.availableChannels || [],
+      availableCities: discount.availableCities || [],
+      isActive: discount.isActive
+    });
+
+    // Actualizar tipo seleccionado
+    this.selectedDiscountType.set(discount.discountType);
+
+    // Actualizar validaciones después de poblar
+    this.updateTypeValidations(discount.discountType);
   }
 
   // ============================================================================
@@ -281,6 +369,14 @@ export class PromotionalDiscountCreatePageComponent implements OnInit {
 
     this.isSaving.set(true);
 
+    if (this.isEditMode()) {
+      this.updateDiscount();
+    } else {
+      this.createDiscount();
+    }
+  }
+
+  private createDiscount(): void {
     const formData: CreatePromotionalDiscount = {
       type: 5, // Promotional Discount
       discountType: this.form.value.discountType,
@@ -325,6 +421,58 @@ export class PromotionalDiscountCreatePageComponent implements OnInit {
             severity: 'error',
             summary: 'Error',
             detail: 'No se pudo crear el descuento promocional'
+          });
+        }
+      });
+  }
+
+  private updateDiscount(): void {
+    const id = this.discountId();
+    if (!id) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'ID de descuento promocional no válido'
+      });
+      return;
+    }
+
+    const formData: UpdatePromotionalDiscount = {
+      type: 5, // Promotional Discount
+      discountType: this.form.value.discountType,
+      discountValue: this.convertDiscountValue(),
+      deliveryCost: this.form.value.discountType === DiscountType.DeliveryCost
+        ? this.form.value.deliveryCost
+        : 0,
+      startDate: this.formatDateToISO(this.form.value.startDate),
+      endDate: this.formatDateToISO(this.form.value.endDate),
+      availableBrands: this.form.value.availableBrands,
+      availableChannels: this.form.value.availableChannels,
+      availableCities: this.form.value.availableCities,
+      isActive: this.form.value.isActive
+    };
+
+    this.promotionalDiscountService.updatePromotionalDiscount(id, formData)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isSaving.set(false);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Descuento promocional actualizado correctamente'
+          });
+          setTimeout(() => {
+            this.router.navigate(['/notification-managements/in-app-promotions']);
+          }, 1500);
+        },
+        error: (error) => {
+          console.error('Error updating promotional discount:', error);
+          this.isSaving.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo actualizar el descuento promocional'
           });
         }
       });

@@ -1,23 +1,33 @@
-<!-- Header -->
-<div class="mb-6">
-  <div class="flex items-center gap-3 mb-2">
-    <p-button
-      icon="pi pi-arrow-left"
-      [rounded]="true"
-      [text]="true"
-      severity="secondary"
-      (onClick)="onCancel()"
-      pTooltip="Regresar"
-      tooltipPosition="bottom" />
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-white m-0">Nueva Recompensa de Producto</h1>
+<!-- Loading State -->
+@if (isLoading()) {
+  <div class="flex justify-center items-center h-64">
+    <i class="pi pi-spin pi-spinner text-4xl text-primary-500"></i>
   </div>
-  <p class="text-gray-600 dark:text-gray-400">
-    Crea una recompensa automática que se activa al comprar productos específicos
-  </p>
-</div>
+} @else {
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-3 mb-2">
+      <p-button
+        icon="pi pi-arrow-left"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        (onClick)="onCancel()"
+        pTooltip="Regresar"
+        tooltipPosition="bottom" />
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white m-0">{{ pageTitle() }}</h1>
+    </div>
+    <p class="text-gray-600 dark:text-gray-400">
+      @if (isEditMode()) {
+        Modifica la configuración de la recompensa automática
+      } @else {
+        Crea una recompensa automática que se activa al comprar productos específicos
+      }
+    </p>
+  </div>
 
-<!-- Form -->
-<form [formGroup]="form" class="flex flex-col gap-6">
+  <!-- Form -->
+  <form [formGroup]="form" class="flex flex-col gap-6">
 
   <!-- Sección: Configuración Básica -->
   <p-card header="Configuración Básica">
@@ -82,16 +92,19 @@
         brandPlaceholder="Seleccione marca"
         productPlaceholder="Seleccione producto"
         brandHelperText="Marca del producto que activa la recompensa"
-        productHelperText="Producto que activa la recompensa" />
+        productHelperText="Producto que activa la recompensa"
+        (productSelected)="onTriggerProductSelected($event)" />
 
-      <!-- Modifier Code (opcional) -->
-      <div class="flex flex-col gap-2 mt-4">
-        <label for="modifierCode" class="font-medium text-gray-900 dark:text-white">
-          Código de Modificador (Opcional)
-        </label>
-        <input pInputText id="modifierCode" formControlName="modifierCode"
-          placeholder="Ej: MOD-123, MOD-456" />
-        <small class="text-gray-500">Si el producto requiere un modificador específico, ingrésalo aquí</small>
+      <!-- Modifier Selector (opcional) -->
+      <div class="mt-4">
+        <app-simple-modifier-selector
+          [control]="$any(form.controls['modifierCode'])"
+          [productId]="selectedTriggerProduct()?.productId || ''"
+          [brandCode]="selectedTriggerProduct()?.brand || ''"
+          fieldId="modifierCode"
+          label="Modificadores del Producto Disparador (Opcional)"
+          placeholder="Seleccione modificadores"
+          helperText="Modificadores específicos del producto que activa la recompensa" />
       </div>
     </p-card>
   }
@@ -185,7 +198,8 @@
         brandPlaceholder="Seleccione marca"
         productPlaceholder="Seleccione producto gratis"
         brandHelperText="Marca del producto que se regala"
-        productHelperText="Producto que se regala como recompensa" />
+        productHelperText="Producto que se regala como recompensa"
+        (productSelected)="onRewardProductSelected($event)" />
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <!-- Product To Reward Qty -->
@@ -201,14 +215,16 @@
           <small class="text-gray-500">Cantidad de productos gratis que se regalan</small>
         </div>
 
-        <!-- Modifiers To Reward -->
+        <!-- Modifiers To Reward (usando el componente) -->
         <div class="flex flex-col gap-2">
-          <label for="modifiersToReward" class="font-medium text-gray-900 dark:text-white">
-            Códigos de Modificadores (Opcional)
-          </label>
-          <textarea pTextarea id="modifiersToReward" formControlName="modifiersToReward"
-            rows="3" placeholder="Ej: MOD-456, MOD-789"></textarea>
-          <small class="text-gray-500">IDs de modificadores separados por comas (opcional)</small>
+          <app-simple-modifier-selector
+            [control]="$any(form.controls['modifiersToReward'])"
+            [productId]="selectedRewardProduct()?.productId || ''"
+            [brandCode]="selectedRewardProduct()?.brand || ''"
+            fieldId="modifiersToReward"
+            label="Modificadores del Producto de Recompensa (Opcional)"
+            placeholder="Seleccione modificadores"
+            helperText="Modificadores del producto que se regala" />
         </div>
       </div>
     </p-card>
@@ -305,14 +321,15 @@
     </div>
   </p-card>
 
-  <!-- Botones de Acción -->
-  <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-    <p-button label="Cancelar" [outlined]="true" severity="secondary"
-      (onClick)="onCancel()" [disabled]="isSaving()" />
-    <p-button label="Crear Recompensa" icon="pi pi-check"
-      (onClick)="onSubmit()" [loading]="isSaving()" [disabled]="form.invalid" />
-  </div>
-</form>
+    <!-- Botones de Acción -->
+    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <p-button label="Cancelar" [outlined]="true" severity="secondary"
+        (onClick)="onCancel()" [disabled]="isSaving()" />
+      <p-button [label]="submitButtonLabel()" icon="pi pi-check"
+        (onClick)="onSubmit()" [loading]="isSaving()" [disabled]="form.invalid" />
+    </div>
+  </form>
+}
 
 <!-- Toast para notificaciones -->
 <p-toast />

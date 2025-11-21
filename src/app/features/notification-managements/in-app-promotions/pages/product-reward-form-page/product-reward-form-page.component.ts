@@ -19,6 +19,7 @@ import { MessageService } from 'primeng/api';
 // Services & Models
 import { ProductRewardService } from '../../services/product-reward.service';
 import {
+  CreateProductReward,
   UpdateProductReward,
   ProductRewardResponse,
   TriggerType,
@@ -30,9 +31,13 @@ import { GlobalDataService } from '@core/services/global-data.service';
 
 // Components
 import { SimpleProductSelectorComponent } from '../../components/simple-product-selector/simple-product-selector.component';
+import { SimpleModifierSelectorComponent } from '../../components/simple-modifier-selector/simple-modifier-selector.component';
+
+// Models
+import { Product } from '@features/notification-managements/loyalty-program/models';
 
 @Component({
-  selector: 'app-product-reward-edit-page',
+  selector: 'app-product-reward-form-page',
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -45,14 +50,15 @@ import { SimpleProductSelectorComponent } from '../../components/simple-product-
     DatePickerModule,
     ToggleSwitchModule,
     ToastModule,
-    SimpleProductSelectorComponent
+    SimpleProductSelectorComponent,
+    SimpleModifierSelectorComponent
   ],
   providers: [MessageService],
-  templateUrl: './product-reward-edit-page.component.html',
-  styleUrl: './product-reward-edit-page.component.scss',
+  templateUrl: './product-reward-form-page.component.html',
+  styleUrl: './product-reward-form-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductRewardEditPageComponent implements OnInit {
+export class ProductRewardFormPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -66,10 +72,15 @@ export class ProductRewardEditPageComponent implements OnInit {
   // ============================================================================
 
   readonly rewardId = signal<number | null>(null);
+  readonly isEditMode = computed(() => this.rewardId() !== null);
   readonly isLoading = signal<boolean>(false);
   readonly isSaving = signal<boolean>(false);
   readonly selectedTriggerType = signal<TriggerType>(TriggerType.Product);
   readonly selectedRewardType = signal<RewardType>(RewardType.None);
+
+  // Productos seleccionados (para obtener brandCode para modificadores)
+  readonly selectedTriggerProduct = signal<Product | null>(null);
+  readonly selectedRewardProduct = signal<Product | null>(null);
 
   // Data global
   readonly brands = this.globalDataService.brands;
@@ -86,17 +97,34 @@ export class ProductRewardEditPageComponent implements OnInit {
   readonly rewardTypeOptions = REWARD_TYPE_OPTIONS;
 
   // ============================================================================
-  // COMPUTED (igual que create-page)
+  // COMPUTED
   // ============================================================================
 
-  readonly brandsOptions = computed(() =>
-    this.brands().map(brand => ({ id: brand.id, name: brand.name }))
+  readonly pageTitle = computed(() =>
+    this.isEditMode() ? 'Editar Recompensa de Producto' : 'Nueva Recompensa de Producto'
   );
+
+  readonly submitButtonLabel = computed(() =>
+    this.isEditMode() ? 'Guardar Cambios' : 'Crear Recompensa'
+  );
+
+  readonly brandsOptions = computed(() => {
+    const options = this.brands().map(brand => ({
+      id: brand.id,
+      name: brand.name
+    }));
+    console.log('📋 brandsOptions computed:', options.length, options);
+    return options;
+  });
 
   readonly channelsOptions = computed(() =>
-    this.channels().map(channel => ({ id: channel.id, description: channel.description }))
+    this.channels().map(channel => ({
+      id: channel.id,
+      description: channel.description
+    }))
   );
 
+  // Mostrar/ocultar secciones según trigger type
   readonly showProductTrigger = computed(() =>
     this.selectedTriggerType() === TriggerType.Product
   );
@@ -110,6 +138,7 @@ export class ProductRewardEditPageComponent implements OnInit {
     return trigger === TriggerType.BrandAndChannel || trigger === TriggerType.Brand;
   });
 
+  // Mostrar/ocultar secciones según reward type
   readonly showProductReward = computed(() =>
     this.selectedRewardType() === RewardType.FreeProduct
   );
@@ -136,9 +165,19 @@ export class ProductRewardEditPageComponent implements OnInit {
   // ============================================================================
 
   constructor() {
+    // Cargar data global si no está cargada
     effect(() => {
-      if (this.brands().length === 0) this.globalDataService.forceRefresh('brands');
-      if (this.channels().length === 0) this.globalDataService.forceRefresh('channels');
+      console.log('🔄 Effect - brands length:', this.brands().length);
+      console.log('🔄 Effect - channels length:', this.channels().length);
+
+      if (this.brands().length === 0) {
+        console.log('⚠️ Brands vacío, forzando refresh...');
+        this.globalDataService.forceRefresh('brands');
+      }
+      if (this.channels().length === 0) {
+        console.log('⚠️ Channels vacío, forzando refresh...');
+        this.globalDataService.forceRefresh('channels');
+      }
     });
   }
 
@@ -148,11 +187,23 @@ export class ProductRewardEditPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
-    this.loadReward();
+    this.checkEditMode();
   }
 
   // ============================================================================
-  // MÉTODOS - Form Initialization (igual que create)
+  // MÉTODOS - Edit Mode Check
+  // ============================================================================
+
+  private checkEditMode(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.rewardId.set(+id);
+      this.loadReward(+id);
+    }
+  }
+
+  // ============================================================================
+  // MÉTODOS - Form Initialization
   // ============================================================================
 
   initForm(): void {
@@ -161,43 +212,65 @@ export class ProductRewardEditPageComponent implements OnInit {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     this.form = this.fb.group({
+      // Básicos
       type: [4], // Product Reward type
       triggerId: [TriggerType.Product, Validators.required],
       brandId: [null, Validators.required],
       rewardType: [RewardType.None, Validators.required],
       startTime: [today, Validators.required],
       endTime: [tomorrow, Validators.required],
+
+      // Campos para Trigger Type 1 (Producto)
       productCode: [''],
-      modifierCode: [''],
+      modifierCode: [[]],  // Array de modifier IDs
+
+      // Campos para Trigger Type 2 (Marca y Canal)
       channelId: [null],
+
+      // Campos para Constraints (Trigger Types 2 y 3)
       constraintType: ['minimum_purchase'],
       minimumPurchaseValue: [0],
       constraintDateFrom: [null],
       constraintDateTo: [null],
       constraintIsActive: [true],
+
+      // Campos para Reward Type 1 (Producto Gratis)
       productToReward: [''],
-      modifiersToReward: [''],
+      modifiersToReward: [[]],  // Array de modifier IDs
       productToRewardQty: [1],
+
+      // Campos para Reward Types 2, 3, 4 (Descuentos)
       deliveryCharge: [0],
       discount: [0],
+
+      // Estado
       isActive: [true]
     });
 
+    // Configurar validador de end time
     const endTimeControl = this.form.get('endTime');
-    endTimeControl?.setValidators([Validators.required, this.endTimeValidator.bind(this)]);
+    endTimeControl?.setValidators([
+      Validators.required,
+      this.endTimeValidator.bind(this)
+    ]);
 
-    this.form.get('triggerId')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+    // Suscribirse a cambios de triggerId
+    this.form.get('triggerId')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(type => {
         this.selectedTriggerType.set(type);
         this.updateTriggerValidations(type);
       });
 
-    this.form.get('rewardType')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+    // Suscribirse a cambios de rewardType
+    this.form.get('rewardType')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(type => {
         this.selectedRewardType.set(type);
         this.updateRewardValidations(type);
       });
 
+    // Inicializar validaciones para tipos por defecto
     this.updateTriggerValidations(TriggerType.Product);
     this.updateRewardValidations(RewardType.None);
   }
@@ -206,22 +279,10 @@ export class ProductRewardEditPageComponent implements OnInit {
   // MÉTODOS - Load Data
   // ============================================================================
 
-  private loadReward(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'ID de recompensa no válido'
-      });
-      this.router.navigate(['/notification-managements/in-app-promotions']);
-      return;
-    }
-
-    this.rewardId.set(+id);
+  private loadReward(id: number): void {
     this.isLoading.set(true);
 
-    this.productRewardService.getProductRewardById(+id)
+    this.productRewardService.getProductRewardById(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (reward) => {
@@ -250,8 +311,9 @@ export class ProductRewardEditPageComponent implements OnInit {
       displayDiscount = reward.discount;
     }
 
-    // Convertir modifiers array a string
-    const modifiersStr = reward.modifiersToReward ? reward.modifiersToReward.join(', ') : '';
+    // Convert modifiers to arrays
+    const modifierCodeArray = reward.modifierCode ? [reward.modifierCode] : [];
+    const modifiersToRewardArray = reward.modifiersToReward || [];
 
     this.form.patchValue({
       triggerId: reward.triggerId,
@@ -260,10 +322,10 @@ export class ProductRewardEditPageComponent implements OnInit {
       startTime: reward.startTime ? new Date(reward.startTime) : new Date(),
       endTime: reward.endTime ? new Date(reward.endTime) : new Date(),
       productCode: reward.productCode || '',
-      modifierCode: reward.modifierCode || '',
+      modifierCode: modifierCodeArray,
       channelId: reward.channelId || null,
       productToReward: reward.productToReward || '',
-      modifiersToReward: modifiersStr,
+      modifiersToReward: modifiersToRewardArray,
       productToRewardQty: reward.productToRewardQty || 1,
       deliveryCharge: reward.deliveryCharge || 0,
       discount: displayDiscount,
@@ -291,16 +353,20 @@ export class ProductRewardEditPageComponent implements OnInit {
   }
 
   // ============================================================================
-  // MÉTODOS - Validaciones (igual que create)
+  // MÉTODOS - Validaciones y Lógica Condicional
   // ============================================================================
 
   private endTimeValidator(control: AbstractControl): ValidationErrors | null {
     const startTime = this.form?.get('startTime')?.value;
     const endTime = control.value;
+
     if (startTime && endTime) {
       const start = startTime instanceof Date ? startTime : new Date(startTime);
       const end = endTime instanceof Date ? endTime : new Date(endTime);
-      if (end <= start) return { endTimeInvalid: true };
+
+      if (end <= start) {
+        return { endTimeInvalid: true };
+      }
     }
     return null;
   }
@@ -309,13 +375,26 @@ export class ProductRewardEditPageComponent implements OnInit {
     const productCodeControl = this.form.get('productCode');
     const minimumPurchaseValueControl = this.form.get('minimumPurchaseValue');
 
+    // Limpiar validadores
     productCodeControl?.clearValidators();
     minimumPurchaseValueControl?.clearValidators();
 
     if (triggerType === TriggerType.Product) {
+      // Para Producto: productCode es requerido
       productCodeControl?.setValidators([Validators.required]);
+
+      // Limpiar constraints
+      minimumPurchaseValueControl?.setValue(0);
     } else {
-      minimumPurchaseValueControl?.setValidators([Validators.required, Validators.min(0.01)]);
+      // Para Marca y Canal / Marca: minimumPurchaseValue es requerido
+      minimumPurchaseValueControl?.setValidators([
+        Validators.required,
+        Validators.min(0.01)
+      ]);
+
+      // Limpiar producto
+      productCodeControl?.setValue('');
+      this.form.get('modifierCode')?.setValue([]);
     }
 
     productCodeControl?.updateValueAndValidity();
@@ -328,23 +407,36 @@ export class ProductRewardEditPageComponent implements OnInit {
     const deliveryChargeControl = this.form.get('deliveryCharge');
     const discountControl = this.form.get('discount');
 
+    // Limpiar todos los validadores
     productToRewardControl?.clearValidators();
     productToRewardQtyControl?.clearValidators();
     deliveryChargeControl?.clearValidators();
     discountControl?.clearValidators();
 
+    // Aplicar validadores según el tipo
     if (rewardType === RewardType.FreeProduct) {
       productToRewardControl?.setValidators([Validators.required]);
-      productToRewardQtyControl?.setValidators([Validators.required, Validators.min(1)]);
+      productToRewardQtyControl?.setValidators([
+        Validators.required,
+        Validators.min(1)
+      ]);
     } else if (rewardType === RewardType.ShippingDiscount) {
-      deliveryChargeControl?.setValidators([Validators.required, Validators.min(0.01)]);
+      deliveryChargeControl?.setValidators([
+        Validators.required,
+        Validators.min(0.01)
+      ]);
     } else if (rewardType === RewardType.FixedDiscount || rewardType === RewardType.PercentageDiscount) {
-      discountControl?.setValidators([Validators.required, Validators.min(0.01)]);
+      discountControl?.setValidators([
+        Validators.required,
+        Validators.min(0.01)
+      ]);
+
       if (rewardType === RewardType.PercentageDiscount) {
         discountControl?.addValidators(Validators.max(100));
       }
     }
 
+    // Actualizar validadores
     productToRewardControl?.updateValueAndValidity();
     productToRewardQtyControl?.updateValueAndValidity();
     deliveryChargeControl?.updateValueAndValidity();
@@ -363,43 +455,148 @@ export class ProductRewardEditPageComponent implements OnInit {
   getErrorMessage(field: string): string {
     const control = this.form.get(field);
     if (!control?.errors) return '';
+
     if (control.hasError('required')) return 'Campo requerido';
-    if (control.hasError('min')) return `Valor mínimo: ${control.errors['min'].min}`;
-    if (control.hasError('max')) return `Valor máximo: ${control.errors['max'].max}`;
-    if (control.hasError('endTimeInvalid')) return 'La fecha/hora de fin debe ser posterior a la de inicio';
+    if (control.hasError('min')) {
+      const min = control.errors['min'].min;
+      return `Valor mínimo: ${min}`;
+    }
+    if (control.hasError('max')) {
+      const max = control.errors['max'].max;
+      return `Valor máximo: ${max}`;
+    }
+    if (control.hasError('endTimeInvalid')) {
+      return 'La fecha/hora de fin debe ser posterior a la de inicio';
+    }
+
     return 'Campo inválido';
   }
 
   // ============================================================================
-  // MÉTODOS - Submit
+  // MÉTODOS - Submit y Navegación
   // ============================================================================
 
   onSubmit(): void {
     if (this.form.invalid) {
       this.markFormGroupTouched();
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Complete todos los campos requeridos' });
-      return;
-    }
-
-    const id = this.rewardId();
-    if (!id) {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'ID no válido' });
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Por favor complete todos los campos requeridos'
+      });
       return;
     }
 
     this.isSaving.set(true);
 
+    if (this.isEditMode()) {
+      this.updateReward();
+    } else {
+      this.createReward();
+    }
+  }
+
+  private createReward(): void {
     const formValue = this.form.value;
-    const constraint = (formValue.triggerId === TriggerType.BrandAndChannel || formValue.triggerId === TriggerType.Brand) ? {
+
+    // Preparar constraint (solo para triggers 2 y 3)
+    const constraint = (formValue.triggerId === TriggerType.BrandAndChannel ||
+                       formValue.triggerId === TriggerType.Brand) ? {
       type: formValue.constraintType,
-      minimumPurchase: { value: formValue.minimumPurchaseValue },
+      minimumPurchase: {
+        value: formValue.minimumPurchaseValue
+      },
       dateFrom: formValue.constraintDateFrom ? this.formatDateToBackend(formValue.constraintDateFrom) : null,
       dateTo: formValue.constraintDateTo ? this.formatDateToBackend(formValue.constraintDateTo) : null,
       isActive: formValue.constraintIsActive
     } : null;
 
-    const modifiersToReward = formValue.modifiersToReward
-      ? formValue.modifiersToReward.split(',').map((m: string) => m.trim()).filter((m: string) => m !== '')
+    // Preparar modifiers (ya vienen como arrays)
+    const modifierCodeValue = formValue.triggerId === TriggerType.Product && formValue.modifierCode && formValue.modifierCode.length > 0
+      ? formValue.modifierCode[0]  // Backend espera un string, tomamos el primero
+      : undefined;
+
+    const modifiersToReward = formValue.rewardType === RewardType.FreeProduct && formValue.modifiersToReward && formValue.modifiersToReward.length > 0
+      ? formValue.modifiersToReward  // Backend espera un array
+      : null;
+
+    const formData: CreateProductReward = {
+      type: 4, // Product Reward
+      triggerId: formValue.triggerId,
+      brandId: formValue.brandId,
+      rewardType: formValue.rewardType,
+      startTime: this.formatDateToBackend(formValue.startTime),
+      endTime: this.formatDateToBackend(formValue.endTime),
+      productCode: formValue.triggerId === TriggerType.Product ? formValue.productCode : '',
+      modifierCode: modifierCodeValue,
+      channelId: formValue.triggerId === TriggerType.BrandAndChannel ? formValue.channelId : undefined,
+      productToReward: formValue.rewardType === RewardType.FreeProduct ? formValue.productToReward : null,
+      modifiersToReward: modifiersToReward,
+      productToRewardQty: formValue.rewardType === RewardType.FreeProduct ? formValue.productToRewardQty : null,
+      deliveryCharge: formValue.rewardType === RewardType.ShippingDiscount ? formValue.deliveryCharge : null,
+      discount: this.convertDiscountValue(),
+      constraint: constraint,
+      isActive: formValue.isActive
+    };
+
+    this.productRewardService.createProductReward(formData)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isSaving.set(false);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Recompensa de producto creada correctamente'
+          });
+          setTimeout(() => {
+            this.router.navigate(['/notification-managements/in-app-promotions']);
+          }, 1500);
+        },
+        error: (error) => {
+          console.error('Error creating product reward:', error);
+          this.isSaving.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo crear la recompensa de producto'
+          });
+        }
+      });
+  }
+
+  private updateReward(): void {
+    const id = this.rewardId();
+    if (!id) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'ID de recompensa no válido'
+      });
+      return;
+    }
+
+    const formValue = this.form.value;
+
+    // Preparar constraint (solo para triggers 2 y 3)
+    const constraint = (formValue.triggerId === TriggerType.BrandAndChannel ||
+                       formValue.triggerId === TriggerType.Brand) ? {
+      type: formValue.constraintType,
+      minimumPurchase: {
+        value: formValue.minimumPurchaseValue
+      },
+      dateFrom: formValue.constraintDateFrom ? this.formatDateToBackend(formValue.constraintDateFrom) : null,
+      dateTo: formValue.constraintDateTo ? this.formatDateToBackend(formValue.constraintDateTo) : null,
+      isActive: formValue.constraintIsActive
+    } : null;
+
+    // Preparar modifiers (ya vienen como arrays)
+    const modifierCodeValue = formValue.triggerId === TriggerType.Product && formValue.modifierCode && formValue.modifierCode.length > 0
+      ? formValue.modifierCode[0]  // Backend espera un string, tomamos el primero
+      : undefined;
+
+    const modifiersToReward = formValue.rewardType === RewardType.FreeProduct && formValue.modifiersToReward && formValue.modifiersToReward.length > 0
+      ? formValue.modifiersToReward  // Backend espera un array
       : null;
 
     const formData: UpdateProductReward = {
@@ -410,10 +607,10 @@ export class ProductRewardEditPageComponent implements OnInit {
       startTime: this.formatDateToBackend(formValue.startTime),
       endTime: this.formatDateToBackend(formValue.endTime),
       productCode: formValue.triggerId === TriggerType.Product ? formValue.productCode : '',
-      modifierCode: formValue.triggerId === TriggerType.Product && formValue.modifierCode ? formValue.modifierCode : undefined,
+      modifierCode: modifierCodeValue,
       channelId: formValue.triggerId === TriggerType.BrandAndChannel ? formValue.channelId : undefined,
       productToReward: formValue.rewardType === RewardType.FreeProduct ? formValue.productToReward : null,
-      modifiersToReward: formValue.rewardType === RewardType.FreeProduct ? modifiersToReward : null,
+      modifiersToReward: modifiersToReward,
       productToRewardQty: formValue.rewardType === RewardType.FreeProduct ? formValue.productToRewardQty : null,
       deliveryCharge: formValue.rewardType === RewardType.ShippingDiscount ? formValue.deliveryCharge : null,
       discount: this.convertDiscountValue(),
@@ -426,13 +623,23 @@ export class ProductRewardEditPageComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isSaving.set(false);
-          this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Recompensa actualizada correctamente' });
-          setTimeout(() => this.router.navigate(['/notification-managements/in-app-promotions']), 1500);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Recompensa actualizada correctamente'
+          });
+          setTimeout(() => {
+            this.router.navigate(['/notification-managements/in-app-promotions']);
+          }, 1500);
         },
         error: (error) => {
           console.error('Error updating product reward:', error);
           this.isSaving.set(false);
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo actualizar la recompensa' });
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo actualizar la recompensa'
+          });
         }
       });
   }
@@ -441,18 +648,59 @@ export class ProductRewardEditPageComponent implements OnInit {
     this.router.navigate(['/notification-managements/in-app-promotions']);
   }
 
-  private markFormGroupTouched(): void {
-    Object.keys(this.form.controls).forEach(key => this.form.get(key)?.markAsTouched());
+  // ============================================================================
+  // MÉTODOS - Manejo de Selección de Productos
+  // ============================================================================
+
+  onTriggerProductSelected(product: Product | null): void {
+    console.log('🎯 Trigger product selected:', product);
+    this.selectedTriggerProduct.set(product);
+
+    // Si se deselecciona el producto, limpiar el modificador
+    if (!product) {
+      this.form.get('modifierCode')?.setValue([]);
+    }
   }
 
+  onRewardProductSelected(product: Product | null): void {
+    console.log('🎁 Reward product selected:', product);
+    this.selectedRewardProduct.set(product);
+
+    // Si se deselecciona el producto, limpiar los modificadores
+    if (!product) {
+      this.form.get('modifiersToReward')?.setValue([]);
+    }
+  }
+
+  private markFormGroupTouched(): void {
+    Object.keys(this.form.controls).forEach(key => {
+      const control = this.form.get(key);
+      control?.markAsTouched();
+    });
+  }
+
+  /**
+   * Convierte el discount value según el tipo:
+   * - PercentageDiscount: divide por 100 (15 → 0.15)
+   * - FixedDiscount: deja el valor tal cual
+   * - Otros: retorna null
+   */
   private convertDiscountValue(): number | null {
     const rewardType = this.form.value.rewardType;
     const value = this.form.value.discount;
-    if (rewardType === RewardType.PercentageDiscount) return value / 100;
-    if (rewardType === RewardType.FixedDiscount) return value;
+
+    if (rewardType === RewardType.PercentageDiscount) {
+      return value / 100; // 15 → 0.15
+    }
+    if (rewardType === RewardType.FixedDiscount) {
+      return value;
+    }
     return null;
   }
 
+  /**
+   * Formatea fecha al formato del backend: "YYYY-MM-DDTHH:mm:ss" (sin Z)
+   */
   private formatDateToBackend(date: Date | string): string {
     const d = date instanceof Date ? date : new Date(date);
     const year = d.getFullYear();
@@ -461,6 +709,7 @@ export class ProductRewardEditPageComponent implements OnInit {
     const hours = String(d.getHours()).padStart(2, '0');
     const minutes = String(d.getMinutes()).padStart(2, '0');
     const seconds = String(d.getSeconds()).padStart(2, '0');
+
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   }
 }

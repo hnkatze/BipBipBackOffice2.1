@@ -39,43 +39,43 @@ export const IN_APP_PROMOTIONS_ROUTES: Routes = [
   {
     path: 'promotional-discounts/new',
     loadComponent: () =>
-      import('./pages/promotional-discount-create-page/promotional-discount-create-page.component').then(
-        (m) => m.PromotionalDiscountCreatePageComponent
+      import('./pages/promotional-discount-form-page/promotional-discount-form-page.component').then(
+        (m) => m.PromotionalDiscountFormPageComponent
       )
   },
   {
     path: 'promotional-discounts/edit/:id',
     loadComponent: () =>
-      import('./pages/promotional-discount-edit-page/promotional-discount-edit-page.component').then(
-        (m) => m.PromotionalDiscountEditPageComponent
+      import('./pages/promotional-discount-form-page/promotional-discount-form-page.component').then(
+        (m) => m.PromotionalDiscountFormPageComponent
       )
   },
   {
     path: 'product-rewards/new',
     loadComponent: () =>
-      import('./pages/product-reward-create-page/product-reward-create-page.component').then(
-        (m) => m.ProductRewardCreatePageComponent
+      import('./pages/product-reward-form-page/product-reward-form-page.component').then(
+        (m) => m.ProductRewardFormPageComponent
       )
   },
   {
     path: 'product-rewards/edit/:id',
     loadComponent: () =>
-      import('./pages/product-reward-edit-page/product-reward-edit-page.component').then(
-        (m) => m.ProductRewardEditPageComponent
+      import('./pages/product-reward-form-page/product-reward-form-page.component').then(
+        (m) => m.ProductRewardFormPageComponent
       )
   },
   {
     path: 'turn-on-promotions/new',
     loadComponent: () =>
-      import('./pages/turn-on-promotion-create-page/turn-on-promotion-create-page.component').then(
-        (m) => m.TurnOnPromotionCreatePageComponent
+      import('./pages/turn-on-promotion-form-page/turn-on-promotion-form-page.component').then(
+        (m) => m.TurnOnPromotionFormPageComponent
       )
   },
   {
     path: 'turn-on-promotions/edit/:id',
     loadComponent: () =>
-      import('./pages/turn-on-promotion-edit-page/turn-on-promotion-edit-page.component').then(
-        (m) => m.TurnOnPromotionEditPageComponent
+      import('./pages/turn-on-promotion-form-page/turn-on-promotion-form-page.component').then(
+        (m) => m.TurnOnPromotionFormPageComponent
       )
   }
 ];

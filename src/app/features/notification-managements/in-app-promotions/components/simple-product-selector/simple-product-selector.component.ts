@@ -1,6 +1,8 @@
 import {
   Component,
   Input,
+  input,
+  output,
   inject,
   signal,
   computed,
@@ -68,7 +70,8 @@ import { Product } from '@features/notification-managements/loyalty-program/mode
           [placeholder]="productPlaceholder"
           [filter]="true"
           filterPlaceholder="Buscar producto..."
-          [loading]="isLoadingProducts()" />
+          [loading]="isLoadingProducts()"
+          (onChange)="onProductChange($event.value)" />
         @if (showProductError()) {
           <small class="text-danger-500">{{ productErrorMessage }}</small>
         }
@@ -81,7 +84,9 @@ import { Product } from '@features/notification-managements/loyalty-program/mode
 })
 export class SimpleProductSelectorComponent implements OnInit {
   @Input({ required: true }) form!: FormGroup;
-  @Input({ required: true }) brandsData: any[] = [];
+
+  // Convertimos brandsData a signal input para que sea reactivo
+  brandsData = input.required<any[]>();
 
   // Field names
   @Input() brandFieldName: string = 'brandId';
@@ -103,6 +108,9 @@ export class SimpleProductSelectorComponent implements OnInit {
   @Input() brandErrorMessage: string = 'Campo requerido';
   @Input() productErrorMessage: string = 'Campo requerido';
 
+  // Output para emitir el producto seleccionado completo
+  productSelected = output<Product | null>();
+
   private readonly loyaltyService = inject(LoyaltyService);
 
   // ============================================================================
@@ -117,12 +125,18 @@ export class SimpleProductSelectorComponent implements OnInit {
   // COMPUTED
   // ============================================================================
 
-  readonly brandsOptions = computed(() =>
-    this.brandsData.map(brand => ({
+  readonly brandsOptions = computed(() => {
+    const brands = this.brandsData();
+    console.log('🔍 SimpleProductSelector - brandsData():', brands.length, brands);
+
+    const options = brands.map(brand => ({
       id: brand.id || brand.idBrand,
       name: brand.name || brand.nameBrand
-    }))
-  );
+    }));
+
+    console.log('📋 SimpleProductSelector - brandsOptions:', options.length, options);
+    return options;
+  });
 
   readonly productOptions = computed(() => this.products());
 
@@ -179,12 +193,21 @@ export class SimpleProductSelectorComponent implements OnInit {
     productControl?.setValue('');
     this.products.set([]);
 
+    // Emit null when product is cleared
+    this.productSelected.emit(null);
+
     if (brandId !== null && brandId !== undefined) {
       this.loadProducts(brandId);
       productControl?.enable();
     } else {
       productControl?.disable();
     }
+  }
+
+  onProductChange(productId: string): void {
+    // Find and emit the selected product
+    const product = this.products().find(p => p.productId === productId);
+    this.productSelected.emit(product || null);
   }
 
   private loadProducts(brandId: number): void {

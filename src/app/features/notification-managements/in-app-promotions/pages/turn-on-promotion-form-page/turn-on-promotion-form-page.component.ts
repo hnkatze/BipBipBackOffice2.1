@@ -20,6 +20,7 @@ import { MessageService } from 'primeng/api';
 // Services & Models
 import { TurnOnPromotionService } from '../../services/turn-on-promotion.service';
 import {
+  CreateTurnOnPromotion,
   UpdateTurnOnPromotion,
   TurnOnPromotionResponse,
   TurnOnDiscountType,
@@ -37,7 +38,7 @@ enum PromotionMode {
 }
 
 @Component({
-  selector: 'app-turn-on-promotion-edit-page',
+  selector: 'app-turn-on-promotion-form-page',
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -53,11 +54,11 @@ enum PromotionMode {
     ToastModule
   ],
   providers: [MessageService],
-  templateUrl: './turn-on-promotion-edit-page.component.html',
-  styleUrl: './turn-on-promotion-edit-page.component.scss',
+  templateUrl: './turn-on-promotion-form-page.component.html',
+  styleUrl: './turn-on-promotion-form-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TurnOnPromotionEditPageComponent implements OnInit {
+export class TurnOnPromotionFormPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -97,6 +98,16 @@ export class TurnOnPromotionEditPageComponent implements OnInit {
   // ============================================================================
   // COMPUTED
   // ============================================================================
+
+  readonly isEditMode = computed(() => this.promotionId() !== null);
+
+  readonly pageTitle = computed(() =>
+    this.isEditMode() ? 'Editar Promoción Turn On' : 'Nueva Promoción Turn On'
+  );
+
+  readonly submitButtonLabel = computed(() =>
+    this.isEditMode() ? 'Guardar Cambios' : 'Crear Promoción'
+  );
 
   readonly targetAudiencesOptions = computed(() =>
     this.targetAudiences().map(audience => ({
@@ -157,7 +168,19 @@ export class TurnOnPromotionEditPageComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.loadInitialData();
-    this.loadPromotion();
+    this.checkEditMode();
+  }
+
+  // ============================================================================
+  // MÉTODOS - Edit Mode Check
+  // ============================================================================
+
+  private checkEditMode(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.promotionId.set(+id);
+      this.loadPromotion(+id);
+    }
   }
 
   // ============================================================================
@@ -255,22 +278,10 @@ export class TurnOnPromotionEditPageComponent implements OnInit {
       });
   }
 
-  private loadPromotion(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'ID de promoción Turn On no válido'
-      });
-      this.router.navigate(['/notification-managements/in-app-promotions']);
-      return;
-    }
-
-    this.promotionId.set(+id);
+  private loadPromotion(id: number): void {
     this.isLoading.set(true);
 
-    this.turnOnService.getTurnOnPromotionById(+id)
+    this.turnOnService.getTurnOnPromotionById(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (promotion) => {
@@ -446,10 +457,46 @@ export class TurnOnPromotionEditPageComponent implements OnInit {
   }
 
   // ============================================================================
+  // MÉTODOS - Availability Check
+  // ============================================================================
+
+  private checkAvailability(): Promise<boolean> {
+    const mode = this.promotionMode();
+    const checkObservable = mode === PromotionMode.PromoCode
+      ? this.turnOnService.checkTurnOnByPromocodeAvailability()
+      : this.turnOnService.checkTurnOnAvailability();
+
+    return new Promise((resolve) => {
+      checkObservable
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (response) => {
+            if (response.anyCampaign) {
+              // Mostrar confirmación
+              this.messageService.add({
+                severity: 'warn',
+                summary: 'Campaña Activa',
+                detail: 'Ya existe una campaña activa. Debe eliminarla antes de crear una nueva.',
+                sticky: true
+              });
+              resolve(false);
+            } else {
+              resolve(true);
+            }
+          },
+          error: (error) => {
+            console.error('Error checking availability:', error);
+            resolve(true); // Continuar si falla la verificación
+          }
+        });
+    });
+  }
+
+  // ============================================================================
   // MÉTODOS - Submit y Navegación
   // ============================================================================
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.form.invalid) {
       this.markFormGroupTouched();
       this.messageService.add({
@@ -460,6 +507,67 @@ export class TurnOnPromotionEditPageComponent implements OnInit {
       return;
     }
 
+    this.isSaving.set(true);
+
+    if (this.isEditMode()) {
+      this.updatePromotion();
+    } else {
+      // Verificar disponibilidad solo en creación
+      const isAvailable = await this.checkAvailability();
+      if (!isAvailable) {
+        this.isSaving.set(false);
+        return;
+      }
+      this.createPromotion();
+    }
+  }
+
+  private createPromotion(): void {
+    const mode = this.promotionMode();
+    const formData: CreateTurnOnPromotion = {
+      promotionType: 3, // Turn On Promotion global type
+      criteriaId: this.form.value.criteriaId,
+      type: mode === PromotionMode.Discount ? this.form.value.discountType : null,
+      value: mode === PromotionMode.Discount ? this.convertDiscountValue() : 0,
+      promocodeRequired: mode === PromotionMode.PromoCode ? this.form.value.promocodeRequired : null,
+      constraints: {
+        type: 'minimum_purchase',
+        dateFrom: this.formatDateToISO(this.form.value.constraintDateFrom),
+        dateTo: this.formatDateToISO(this.form.value.constraintDateTo),
+        enable: this.form.value.constraintIsActive,
+        minimumPurchase: {
+          value: this.form.value.minimumPurchaseValue
+        }
+      }
+    };
+
+    this.turnOnService.createTurnOnPromotion(formData)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.isSaving.set(false);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Promoción Turn On creada correctamente'
+          });
+          setTimeout(() => {
+            this.router.navigate(['/notification-managements/in-app-promotions']);
+          }, 1500);
+        },
+        error: (error) => {
+          console.error('Error creating turn on promotion:', error);
+          this.isSaving.set(false);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo crear la promoción Turn On'
+          });
+        }
+      });
+  }
+
+  private updatePromotion(): void {
     const id = this.promotionId();
     if (!id) {
       this.messageService.add({
@@ -469,8 +577,6 @@ export class TurnOnPromotionEditPageComponent implements OnInit {
       });
       return;
     }
-
-    this.isSaving.set(true);
 
     const mode = this.promotionMode();
     const formData: UpdateTurnOnPromotion = {

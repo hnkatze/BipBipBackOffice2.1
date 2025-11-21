@@ -13,6 +13,8 @@ import { OrderTrackingService } from '../../services';
 import { TrackOrderDetails, CreateIncidentRequest, CancelRequest } from '../../models';
 import { environment } from '../../../../../../environments/environment';
 import { AuthService } from '../../../../../core/services/auth.service';
+import { GoogleMapComponent } from '../../../../../shared/components/google-map/google-map.component';
+import { GoogleMapMarker, MapRoute } from '../../../../../shared/components/google-map/google-map.types';
 import {
   DriverAssignmentComponent,
   CompleteOrderDialogComponent,
@@ -42,6 +44,7 @@ import {
     CardModule,
     BreadcrumbModule,
     ToastModule,
+    GoogleMapComponent,
     DriverAssignmentComponent,
     CompleteOrderDialogComponent,
     SendOrderDialogComponent,
@@ -125,6 +128,69 @@ export class OrderDetailPageComponent implements OnInit {
   readonly statusSeverity = computed(() => {
     const status = this.orderDetail()?.orderStatus.toUpperCase();
     return status === 'CANCELADO' ? 'danger' : 'success';
+  });
+
+  // Map data
+  readonly mapMarkers = computed<GoogleMapMarker[]>(() => {
+    const order = this.orderDetail();
+    if (!order) return [];
+
+    const markers: GoogleMapMarker[] = [];
+
+    // Marcador del restaurante (origen)
+    if (order.receptionLatitude && order.receptionLongitude) {
+      markers.push({
+        id: 'restaurant',
+        lat: order.receptionLatitude,
+        lng: order.receptionLongitude,
+        icon: order.brandLogo,
+        title: order.nameCompany,
+        info: order.addressCompany,
+      });
+    }
+
+    // Marcador del cliente (destino)
+    if (order.deliveryLatitude && order.deliveryLongitude) {
+      markers.push({
+        id: 'customer',
+        lat: order.deliveryLatitude,
+        lng: order.deliveryLongitude,
+        icon: '/delivered.png', // Imagen del cliente
+        title: order.customerName,
+        info: order.addressCustomer,
+      });
+    }
+
+    return markers;
+  });
+
+  readonly mapRoute = computed<MapRoute | null>(() => {
+    const order = this.orderDetail();
+    if (!order) return null;
+
+    // Solo mostrar ruta si tenemos ambas coordenadas
+    if (
+      order.receptionLatitude &&
+      order.receptionLongitude &&
+      order.deliveryLatitude &&
+      order.deliveryLongitude
+    ) {
+      return {
+        origin: {
+          lat: order.receptionLatitude,
+          lng: order.receptionLongitude,
+        },
+        destination: {
+          lat: order.deliveryLatitude,
+          lng: order.deliveryLongitude,
+        },
+        strokeColor: '#e74c3c',
+        strokeWeight: 4,
+        strokeOpacity: 0.8,
+      };
+    }
+
+    return null;
   });
 
   // Button visibility computed properties

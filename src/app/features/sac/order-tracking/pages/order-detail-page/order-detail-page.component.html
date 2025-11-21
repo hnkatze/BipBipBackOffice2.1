@@ -168,6 +168,7 @@
               </div>
             </div>
 
+
             <!-- Section 2: General Data (2 columns) -->
             <div class="border border-gray-200 rounded-lg p-4">
               <h2 class="text-lg font-semibold  mb-4">Datos generales</h2>
@@ -287,23 +288,23 @@
               @if (order.comments || order.instructionsForDelivery) {
                 <div class="mt-4 space-y-3">
                   @if (order.comments) {
-                    <div class="border-l-4 border-yellow-400 bg-yellow-50 p-4 rounded-lg">
+                    <div class="border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
                       <div class="flex items-start gap-2">
-                        <i class="pi pi-info-circle text-yellow-600 mt-0.5"></i>
+                        <i class="pi pi-info-circle text-yellow-600 dark:text-yellow-400 mt-0.5"></i>
                         <div>
-                          <p class="text-xs font-bold text-yellow-800 uppercase mb-1">Comentarios para Restaurante</p>
-                          <p class="text-sm text-yellow-900 font-medium">{{ order.comments }}</p>
+                          <p class="text-xs font-bold text-yellow-800 dark:text-yellow-300 uppercase mb-1">Comentarios para Restaurante</p>
+                          <p class="text-sm text-yellow-900 dark:text-yellow-100 font-medium">{{ order.comments }}</p>
                         </div>
                       </div>
                     </div>
                   }
                   @if (order.instructionsForDelivery) {
-                    <div class="border-l-4 border-blue-400 bg-blue-50 p-4 rounded-lg">
+                    <div class="border-l-4 border-blue-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                       <div class="flex items-start gap-2">
-                        <i class="pi pi-directions text-blue-600 mt-0.5"></i>
+                        <i class="pi pi-directions text-blue-600 dark:text-blue-400 mt-0.5"></i>
                         <div>
-                          <p class="text-xs font-bold text-blue-800 uppercase mb-1">Instrucciones para Driver</p>
-                          <p class="text-sm text-blue-900 font-medium">{{ order.instructionsForDelivery }}</p>
+                          <p class="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase mb-1">Instrucciones para Driver</p>
+                          <p class="text-sm text-blue-900 dark:text-blue-100 font-medium">{{ order.instructionsForDelivery }}</p>
                         </div>
                       </div>
                     </div>
@@ -584,14 +585,23 @@
               </div>
             </div>
 
-            <!-- Section 6: Location & Map (Placeholder) -->
+            <!-- Section 6: Location & Map -->
             <div class="border border-gray-200 rounded-lg p-4">
-              <h2 class="text-lg font-semibold  mb-4">Ubicación</h2>
-              <div class="bg-gray-100 rounded-lg p-8 text-center">
-                <i class="pi pi-map-marker text-4xl mb-2"></i>
-                <p class="">Mapa de ubicación (próximamente)</p>
-                <p class="text-sm  mt-1">{{ order.addressCompany }}</p>
-              </div>
+              <h2 class="text-lg font-semibold  mb-4">Mapa de ubicación</h2>
+              @if (mapMarkers().length > 0 && mapRoute()) {
+                <div style="height: 400px;">
+                  <app-google-map
+                    [markers]="mapMarkers()"
+                    [route]="mapRoute()"
+                  />
+                </div>
+              } @else {
+                <div class="bg-gray-100 rounded-lg p-8 text-center">
+                  <i class="pi pi-map-marker text-4xl mb-2"></i>
+                  <p class="">No hay coordenadas disponibles</p>
+                  <p class="text-sm  mt-1">{{ order.addressCompany }}</p>
+                </div>
+              }
             </div>
 
           </div>
