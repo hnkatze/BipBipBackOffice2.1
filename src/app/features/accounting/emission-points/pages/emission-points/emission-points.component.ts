@@ -14,6 +14,8 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { SkeletonModule } from 'primeng/skeleton';
+import { PaginatorModule } from 'primeng/paginator';
 
 // Models & Services
 import { EmissionPoint, StatusFilter } from '../../models/emission-point.model';
@@ -46,6 +48,8 @@ import { EmissionPointFormComponent } from '../../components/emission-point-form
     ToastModule,
     TooltipModule,
     BreadcrumbModule,
+    SkeletonModule,
+    PaginatorModule,
     EmissionPointFormComponent
   ],
   templateUrl: './emission-points.component.html',

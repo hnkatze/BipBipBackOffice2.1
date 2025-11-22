@@ -15,6 +15,8 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ImageModule } from 'primeng/image';
+import { SkeletonModule } from 'primeng/skeleton';
+import { PaginatorModule } from 'primeng/paginator';
 
 // Models & Services
 import { FiscalCorrelative, StatusFilter } from '../../models/fiscal-correlative.model';
@@ -49,6 +51,8 @@ import { FiscalCorrelativeFormComponent } from '../../components/fiscal-correlat
     TooltipModule,
     ImageModule,
     BreadcrumbModule,
+    SkeletonModule,
+    PaginatorModule,
     FiscalCorrelativeFormComponent
   ],
   templateUrl: './fiscal-correlatives.component.html',

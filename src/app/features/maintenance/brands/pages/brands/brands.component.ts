@@ -16,6 +16,8 @@ import { InputIconModule } from 'primeng/inputicon';
 import { ToastModule } from 'primeng/toast';
 import { DragDropModule } from 'primeng/dragdrop';
 import { CardModule } from 'primeng/card';
+import { SkeletonModule } from 'primeng/skeleton';
+import { PaginatorModule } from 'primeng/paginator';
 
 import { BrandService } from '../../services/brand.service';
 import { BrandFormComponent } from '../../components/brand-form/brand-form.component';
@@ -49,6 +51,8 @@ import { BrandStatus } from '../../models/brand.model';
     ToastModule,
     DragDropModule,
     CardModule,
+    SkeletonModule,
+    PaginatorModule,
     BrandFormComponent
   ],
   providers: [ConfirmationService, MessageService],
@@ -173,17 +177,17 @@ import { BrandStatus } from '../../models/brand.model';
               />
             </div>
 
-            <!-- Tabla -->
-            <p-table
-              [value]="filteredBrands()"
-              [paginator]="true"
-              [rows]="10"
-              [rowsPerPageOptions]="[5, 10, 20, 50]"
-              [loading]="brandService.isLoading()"
-              [globalFilterFields]="['name', 'shortName']"
-              styleClass="p-datatable-sm"
-              responsiveLayout="scroll"
-            >
+            <!-- Tabla (Desktop/Tablet) -->
+            <div class="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              <p-table
+                [value]="filteredBrands()"
+                [paginator]="true"
+                [rows]="10"
+                [rowsPerPageOptions]="[5, 10, 20, 50]"
+                [loading]="brandService.isLoading()"
+                [globalFilterFields]="['name', 'shortName']"
+                [pt]="{ root: { class: 'p-datatable-sm' } }"
+              >
               <!-- Empty state -->
               <ng-template pTemplate="emptymessage">
                 <tr>
@@ -267,7 +271,102 @@ import { BrandStatus } from '../../models/brand.model';
                   </td>
                 </tr>
               </ng-template>
-            </p-table>
+              </p-table>
+            </div>
+
+            <!-- Cards (Mobile) -->
+            <div class="block md:hidden">
+              @if (brandService.isLoading()) {
+                <!-- Loading Skeleton -->
+                <div class="flex flex-col gap-4">
+                  @for (item of [1, 2, 3]; track item) {
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                      <p-skeleton width="100%" height="10rem" />
+                    </div>
+                  }
+                </div>
+              } @else {
+                <!-- Empty State -->
+                @if (filteredBrands().length === 0) {
+                  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+                    <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                      <i class="pi pi-inbox text-4xl mb-3"></i>
+                      <p class="text-lg font-medium">No se encontraron marcas</p>
+                    </div>
+                  </div>
+                }
+
+                <!-- Cards List -->
+                @if (filteredBrands().length > 0) {
+                  <div class="flex flex-col gap-4">
+                    @for (brand of filteredBrands(); track brand.idBrand) {
+                      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                        <!-- Header: Logo + Nombre + Estado -->
+                        <div class="flex items-start gap-3 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                          <!-- Logo -->
+                          <div class="flex-shrink-0">
+                            <img
+                              [src]="brand.logoBrand"
+                              [alt]="brand.nameBrand"
+                              class="w-16 h-16 object-contain rounded"
+                            />
+                          </div>
+
+                          <!-- Nombre + Info -->
+                          <div class="flex-1 min-w-0">
+                            <div class="font-semibold text-gray-900 dark:text-white">{{ brand.nameBrand }}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ brand.shortNameBrand }}</div>
+                            @if (brand.totalRestaurants) {
+                              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                {{ brand.totalRestaurants }} restaurantes
+                              </div>
+                            }
+                          </div>
+
+                          <!-- Estado -->
+                          <div class="flex-shrink-0">
+                            <p-tag
+                              [value]="brand.isActiveBrand ? 'Activo' : 'Inactivo'"
+                              [severity]="brand.isActiveBrand ? 'success' : 'danger'"
+                            />
+                          </div>
+                        </div>
+
+                        <!-- Posición -->
+                        <div class="mb-3">
+                          <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                            Posición
+                          </label>
+                          <p-tag [value]="'#' + brand.position" severity="secondary" />
+                        </div>
+
+                        <!-- Acciones -->
+                        <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                          <p-button
+                            label="Ver detalles"
+                            icon="pi pi-eye"
+                            size="small"
+                            [outlined]="true"
+                            severity="secondary"
+                            (onClick)="setCurrentBrand(brand); viewBrand()"
+                            styleClass="flex-1"
+                          />
+                          <p-button
+                            label="Editar"
+                            icon="pi pi-pencil"
+                            size="small"
+                            [outlined]="true"
+                            severity="info"
+                            (onClick)="setCurrentBrand(brand); editBrand()"
+                            styleClass="flex-1"
+                          />
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              }
+            </div>
 
             <!-- Menu de acciones -->
             <p-menu #menu [model]="menuItems" [popup]="true" />

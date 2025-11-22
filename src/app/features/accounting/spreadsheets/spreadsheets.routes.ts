@@ -10,9 +10,9 @@ import { Routes } from '@angular/router';
  * - Settlements Delivery (Liquidaciones Delivery) ✅
  * - Settlements Store (Liquidación Restaurante) ✅
  * - Food Deliveries (Alimentación Deliveries) ✅
- * - Driver Payments (Pagos a Drivers) - TODO
- * - Payroll Adjustment (Ajuste de Planilla) - TODO
- * - Premiaciones (Awards) - TODO
+ * - Driver Payments (Pagos a Drivers) ✅
+ * - Payroll Adjustment (Ajuste de Planilla) ✅
+ * - Premiaciones (Awards) ✅
  */
 export const SPREADSHEETS_ROUTES: Routes = [
   {
@@ -55,6 +55,23 @@ export const SPREADSHEETS_ROUTES: Routes = [
     loadComponent: () => import('./food-deliveries/pages/food-deliveries-page/food-deliveries-page.component')
       .then(m => m.FoodDeliveriesPageComponent),
     title: 'Alimentación Deliveries'
+  },
+  {
+    path: 'driver-payments',
+    loadComponent: () => import('./driver-payments/pages/driver-payments-page/driver-payments-page.component')
+      .then(m => m.DriverPaymentsPageComponent),
+    title: 'Pagos a Drivers'
+  },
+  {
+    path: 'payroll-adjustment',
+    loadComponent: () => import('./payroll-adjustment/pages/payroll-adjustment-page/payroll-adjustment-page.component')
+      .then(m => m.PayrollAdjustmentPageComponent),
+    title: 'Ajuste de Planilla'
+  },
+  {
+    path: 'awards',
+    loadComponent: () => import('./awards/pages/awards-page/awards-page.component')
+      .then(m => m.AwardsPageComponent),
+    title: 'Premiaciones'
   }
-  // TODO: Agregar más submódulos de planillas aquí
 ];

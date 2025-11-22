@@ -13,12 +13,14 @@ import { Routes } from '@angular/router';
  * - Reports (Reportes) ✅
  * - Settlements (Liquidaciones) ✅
  * - Spreadsheets (Planillas) ✅
+ * - Transaction Reports (Reportes de Transacciones) ✅
  *
  * Estructura:
  * /accounting/companies -> CompaniesComponent
  * /accounting/document-types -> DocumentTypesComponent
  * /accounting/emission-points -> EmissionPointsComponent
  * /accounting/establishments -> EstablishmentsComponent
+ * /accounting/transaction-reports -> TransactionReportsPageComponent
  * ...etc
  *
  * IMPORTANTE: Las rutas deben mantener la nomenclatura original del backend
@@ -74,6 +76,11 @@ export const ACCOUNTING_ROUTES: Routes = [
     path: 'spreadsheets',
     loadChildren: () => import('./spreadsheets/spreadsheets.routes').then(m => m.SPREADSHEETS_ROUTES),
     title: 'Planillas'
+  },
+  {
+    path: 'transaction-reports',
+    loadChildren: () => import('./transaction-reports/transaction-reports.routes').then(m => m.TRANSACTION_REPORTS_ROUTES),
+    title: 'Reportes de Transacciones'
   }
   // TODO: Agregar más submódulos de contabilidad aquí
 ];

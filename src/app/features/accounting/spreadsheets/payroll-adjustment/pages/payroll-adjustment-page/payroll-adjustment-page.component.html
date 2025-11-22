@@ -1,0 +1,422 @@
+<div class="container mx-auto px-4 py-6 md:py-8">
+  <!-- Breadcrumb -->
+  <p-breadcrumb
+    [model]="breadcrumbs"
+    styleClass="mb-6 md:mb-8"
+  ></p-breadcrumb>
+
+  <!-- Toast -->
+  <p-toast />
+
+  <!-- Header -->
+  <div class="mb-6 md:mb-8">
+    <h1 class="text-2xl md:text-3xl font-bold text-surface-900 dark:text-surface-50">
+      Ajuste de Planilla
+    </h1>
+    <p class="mt-2 text-xs md:text-sm text-surface-600 dark:text-surface-400">
+      Gestiona comandas de pago y ajustes de ingreso/deducción para drivers
+    </p>
+  </div>
+
+  <!-- Filters Card -->
+  <p-card styleClass="mb-6 shadow-sm">
+    <ng-template pTemplate="header">
+      <div class="px-6 pt-6 pb-4 border-b border-surface-200 dark:border-surface-700">
+        <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-50 flex items-center gap-2">
+          <i class="pi pi-filter text-[#fb0021]"></i>
+          Filtros de Búsqueda
+        </h2>
+      </div>
+    </ng-template>
+
+    <form [formGroup]="filterForm" class="p-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        <!-- Ciudad -->
+        <div>
+          <label
+            for="cityId"
+            class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 block"
+          >
+            Ciudad
+            <span class="text-red-500 dark:text-red-400">*</span>
+          </label>
+          <p-select
+            inputId="cityId"
+            formControlName="cityId"
+            [options]="cities()"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Selecciona una ciudad"
+            [filter]="true"
+            filterPlaceholder="Buscar ciudad..."
+            styleClass="w-full"
+            appendTo="body"
+          ></p-select>
+        </div>
+
+        <!-- Driver -->
+        <div>
+          <label
+            for="driverId"
+            class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 block"
+          >
+            Repartidor
+          </label>
+          <p-select
+            inputId="driverId"
+            formControlName="driverId"
+            [options]="drivers()"
+            optionLabel="fullNameDriver"
+            optionValue="idDriver"
+            placeholder="Selecciona un driver"
+            [filter]="true"
+            filterPlaceholder="Buscar driver..."
+            [disabled]="!filterForm.get('cityId')?.value || loadingDrivers()"
+            [loading]="loadingDrivers()"
+            styleClass="w-full"
+            appendTo="body"
+          ></p-select>
+        </div>
+
+        <!-- Rango de Fechas -->
+        <div>
+          <label
+            for="dateRange"
+            class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 block flex items-center gap-1"
+          >
+            <i class="pi pi-calendar text-[#fb0021]"></i>
+            <span>Rango de Fechas</span>
+          </label>
+          <p-datepicker
+            inputId="dateRange"
+            formControlName="dateRange"
+            [showIcon]="true"
+            [iconDisplay]="'input'"
+            dateFormat="dd/mm/yy"
+            placeholder="Selecciona rango"
+            selectionMode="range"
+            [readonlyInput]="true"
+            styleClass="w-full"
+          ></p-datepicker>
+        </div>
+
+        <!-- Búsqueda General -->
+        <div>
+          <label
+            for="generalSearch"
+            class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 block"
+          >
+            Búsqueda General
+          </label>
+          <input
+            pInputText
+            inputId="generalSearch"
+            formControlName="generalSearch"
+            placeholder="ID orden, cliente, código driver..."
+            class="w-full"
+          />
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap gap-3">
+        <button
+          pButton
+          label="Buscar"
+          icon="pi pi-search"
+          (click)="applyFilters()"
+          [disabled]="!canSearch()"
+        ></button>
+        <button
+          pButton
+          label="Limpiar Filtros"
+          icon="pi pi-filter-slash"
+          severity="secondary"
+          [text]="true"
+          (click)="clearFilters()"
+        ></button>
+      </div>
+    </form>
+  </p-card>
+
+  <!-- Comandas Table Card -->
+  <p-card styleClass="mb-6 shadow-sm">
+    <ng-template pTemplate="header">
+      <div class="px-6 pt-6 pb-4 border-b border-surface-200 dark:border-surface-700">
+        <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-50 flex items-center gap-2">
+          <i class="pi pi-list text-[#fb0021]"></i>
+          Comandas de Pago
+        </h2>
+      </div>
+    </ng-template>
+
+    <!-- Loading State -->
+    @if (loadingCommands()) {
+      <div class="flex justify-center items-center py-12">
+        <i class="pi pi-spin pi-spinner text-4xl text-[#fb0021]"></i>
+      </div>
+    }
+
+    <!-- Error State -->
+    @else if (error()) {
+      <div class="text-center py-12">
+        <i class="pi pi-exclamation-circle text-5xl text-red-500 mb-4"></i>
+        <p class="text-surface-600 dark:text-surface-400">{{ error() }}</p>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @else if (commands().length === 0) {
+      <div class="text-center py-12">
+        <i class="pi pi-inbox text-5xl text-surface-400 mb-4"></i>
+        <p class="text-surface-600 dark:text-surface-400">
+          No hay comandas para mostrar. Aplica los filtros y presiona "Buscar"
+        </p>
+      </div>
+    }
+
+    <!-- Data Table -->
+    @else {
+      <p-table
+        [value]="commands()"
+        [paginator]="true"
+        [rows]="pageSizeCommands()"
+        [totalRecords]="totalRecordsCommands()"
+        [lazy]="true"
+        (onPage)="onPageChangeCommands($event)"
+        [rowsPerPageOptions]="[5, 10, 15, 20]"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} comandas"
+        styleClass="p-datatable-sm"
+        [tableStyle]="{'min-width': '60rem'}"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>ID Orden</th>
+            <th>Código Driver</th>
+            <th>Nombre Driver</th>
+            <th>Valor Comanda</th>
+            <th>Cliente</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-command>
+          <tr>
+            <td>{{ command.orderId }}</td>
+            <td>
+              <span class="font-mono text-sm">{{ command.driverCode }}</span>
+            </td>
+            <td>{{ command.driverName }}</td>
+            <td>
+              <span class="font-semibold text-green-600 dark:text-green-400">
+                {{ formatCurrency(command.comandaValue) }}
+              </span>
+            </td>
+            <td>{{ command.customerName }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+
+  <!-- Ajustes Table Card - Solo si hay driver seleccionado -->
+  @if (hasDriverSelected()) {
+    <p-card styleClass="shadow-sm">
+      <ng-template pTemplate="header">
+        <div class="px-6 pt-6 pb-4 border-b border-surface-200 dark:border-surface-700 flex justify-between items-center">
+          <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-50 flex items-center gap-2">
+            <i class="pi pi-money-bill text-[#fb0021]"></i>
+            Ajustes de Ingreso/Deducción
+          </h2>
+          <button
+            pButton
+            label="Crear Ajuste"
+            icon="pi pi-plus"
+            (click)="openCreateDrawer()"
+            size="small"
+          ></button>
+        </div>
+      </ng-template>
+
+      <!-- Loading State -->
+      @if (loadingAdjustments()) {
+        <div class="flex justify-center items-center py-12">
+          <i class="pi pi-spin pi-spinner text-4xl text-[#fb0021]"></i>
+        </div>
+      }
+
+      <!-- Empty State -->
+      @else if (adjustments().length === 0) {
+        <div class="text-center py-12">
+          <i class="pi pi-inbox text-5xl text-surface-400 mb-4"></i>
+          <p class="text-surface-600 dark:text-surface-400">
+            No hay ajustes registrados para este driver
+          </p>
+        </div>
+      }
+
+      <!-- Data Table -->
+      @else {
+        <p-table
+          [value]="adjustments()"
+          [paginator]="true"
+          [rows]="pageSizeAdjustments()"
+          [totalRecords]="totalRecordsAdjustments()"
+          [lazy]="true"
+          (onPage)="onPageChangeAdjustments($event)"
+          [rowsPerPageOptions]="[5, 10, 15, 20]"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} ajustes"
+          styleClass="p-datatable-sm"
+          [tableStyle]="{'min-width': '60rem'}"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Tipo</th>
+              <th>Monto</th>
+              <th>Razón</th>
+              <th>Fecha Desde</th>
+              <th>Fecha Hasta</th>
+              <th>Acciones</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-adjustment>
+            <tr>
+              <td>
+                <p-tag
+                  [value]="getAdjustmentTypeLabel(adjustment.adjustmentAmount)"
+                  [severity]="getAdjustmentType(adjustment.adjustmentAmount)"
+                ></p-tag>
+              </td>
+              <td>
+                <span
+                  [class.text-green-600]="adjustment.adjustmentAmount > 0"
+                  [class.dark:text-green-400]="adjustment.adjustmentAmount > 0"
+                  [class.text-red-600]="adjustment.adjustmentAmount < 0"
+                  [class.dark:text-red-400]="adjustment.adjustmentAmount < 0"
+                  class="font-semibold"
+                >
+                  {{ formatCurrency(Math.abs(adjustment.adjustmentAmount)) }}
+                </span>
+              </td>
+              <td>
+                <span class="text-sm">{{ adjustment.adjustmentReason }}</span>
+              </td>
+              <td>{{ formatDateString(adjustment.adjustmentDateFrom) }}</td>
+              <td>{{ formatDateString(adjustment.adjustmentDateTo) }}</td>
+              <td>
+                <div class="flex gap-2">
+                  <button
+                    pButton
+                    icon="pi pi-pencil"
+                    severity="secondary"
+                    [text]="true"
+                    size="small"
+                    (click)="openEditDrawer(adjustment)"
+                    [disabled]="adjustment.id === null"
+                    pTooltip="Editar ajuste"
+                    tooltipPosition="top"
+                  ></button>
+                  <button
+                    pButton
+                    icon="pi pi-trash"
+                    severity="danger"
+                    [text]="true"
+                    size="small"
+                    (click)="confirmDelete(adjustment)"
+                    [disabled]="adjustment.id === null"
+                    pTooltip="Eliminar ajuste"
+                    tooltipPosition="top"
+                  ></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </p-card>
+  }
+</div>
+
+<!-- Drawer for Create/Edit Adjustment -->
+<p-drawer
+  [(visible)]="showDrawer"
+  [position]="'right'"
+  [style]="{ width: '500px' }"
+  [modal]="true"
+>
+  <ng-template pTemplate="header">
+    <h2 class="text-xl font-semibold text-surface-900 dark:text-surface-50">
+      {{ drawerMode() === 'create' ? 'Crear Ajuste' : 'Editar Ajuste' }}
+    </h2>
+  </ng-template>
+
+  <app-adjustment-form-drawer
+    [mode]="drawerMode()"
+    [adjustment]="selectedAdjustment()"
+    [driverId]="selectedDriverId()!"
+    (save)="onSaveAdjustment($event)"
+    (cancel)="closeDrawer()"
+  ></app-adjustment-form-drawer>
+</p-drawer>
+
+<!-- Delete Confirmation Modal -->
+<p-dialog
+  header="Confirmar Eliminación"
+  [(visible)]="showDeleteModal"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '90vw', maxWidth: '450px' }"
+  appendTo="body"
+>
+  @if (deletingAdjustment()) {
+    <div class="py-4">
+      <p class="mb-4 text-surface-700 dark:text-surface-300">
+        ¿Estás seguro de que deseas eliminar este ajuste?
+      </p>
+      <div class="bg-surface-50 dark:bg-surface-800 p-4 rounded-lg">
+        <div class="flex justify-between mb-2">
+          <span class="text-sm text-surface-600 dark:text-surface-400">Tipo:</span>
+          <p-tag
+            [value]="getAdjustmentTypeLabel(deletingAdjustment()!.adjustmentAmount)"
+            [severity]="getAdjustmentType(deletingAdjustment()!.adjustmentAmount)"
+          ></p-tag>
+        </div>
+        <div class="flex justify-between mb-2">
+          <span class="text-sm text-surface-600 dark:text-surface-400">Monto:</span>
+          <span class="font-semibold">
+            {{ formatCurrency(Math.abs(deletingAdjustment()!.adjustmentAmount)) }}
+          </span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-sm text-surface-600 dark:text-surface-400">Razón:</span>
+          <span class="text-sm text-right max-w-xs">{{ deletingAdjustment()!.adjustmentReason }}</span>
+        </div>
+      </div>
+      <p class="mt-4 text-sm text-red-600 dark:text-red-400">
+        Esta acción no se puede deshacer.
+      </p>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <div class="flex justify-end gap-3">
+        <button
+          pButton
+          label="Cancelar"
+          severity="secondary"
+          [text]="true"
+          (click)="closeDeleteModal()"
+          [disabled]="isDeleting()"
+        ></button>
+        <button
+          pButton
+          label="Eliminar"
+          severity="danger"
+          icon="pi pi-trash"
+          (click)="deleteAdjustment()"
+          [loading]="isDeleting()"
+        ></button>
+      </div>
+    </ng-template>
+  }
+</p-dialog>

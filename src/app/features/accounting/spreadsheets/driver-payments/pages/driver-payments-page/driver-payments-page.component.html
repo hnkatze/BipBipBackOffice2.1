@@ -5,142 +5,101 @@
   <!-- Breadcrumb Navigation -->
   <p-breadcrumb [model]="breadcrumbs" styleClass="mb-4 md:mb-6"></p-breadcrumb>
 
-  <!-- Header -->
+  <!-- Header with Action Buttons -->
   <div class="mb-6 md:mb-8">
-    <h1 class="text-2xl md:text-3xl font-bold text-surface-900 dark:text-surface-50">
-      Pagos a Drivers
-    </h1>
-    <p class="mt-2 text-xs md:text-sm text-surface-600 dark:text-surface-400">
-      Consulta pagos a conductores y genera reportes PDF, Excel o formato bancario
-    </p>
-  </div>
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-surface-900 dark:text-surface-50">
+          Pagos a Drivers
+        </h1>
+        <p class="mt-2 text-xs md:text-sm text-surface-600 dark:text-surface-400">
+          Consulta pagos a conductores y genera reportes PDF, Excel o formato bancario
+        </p>
+      </div>
 
-  <!-- Filters Card -->
-  <p-card styleClass="mb-6">
-    <ng-template pTemplate="header">
-      <div class="flex items-center justify-between border-l-4 border-[#fb0021] pl-4 py-4">
-        <div>
-          <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50">
-            Filtros de Búsqueda
-          </h3>
-          <p class="text-sm text-surface-600 dark:text-surface-400 mt-1">
-            Selecciona los filtros y haz clic en "Aplicar Filtros" para consultar
-          </p>
-        </div>
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap gap-2">
         <button
           pButton
-          [icon]="filtersVisible() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-          severity="secondary"
-          [text]="true"
-          (click)="toggleFilters()"
+          label="Descargar Reporte"
+          icon="pi pi-download"
+          severity="success"
+          (click)="openReportModal()"
+          [disabled]="!hasDateRange() || payments().length === 0"
+          styleClass="w-full md:w-auto"
         ></button>
+
+        <button
+          pButton
+          label="Horario Extendido"
+          icon="pi pi-clock"
+          severity="warn"
+          (click)="openExtendedHoursModal()"
+          styleClass="w-full md:w-auto"
+        ></button>
+
+        <button
+          pButton
+          label="Reporte Ajustes"
+          icon="pi pi-file-excel"
+          severity="secondary"
+          (click)="exportAdjustments()"
+          [disabled]="!hasDateRange() || isExporting()"
+          [loading]="exportingAdjustments()"
+          styleClass="w-full md:w-auto"
+        ></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simple Inline Filters Card -->
+  <p-card styleClass="mb-6">
+    <ng-template pTemplate="header">
+      <div class="border-l-4 border-[#fb0021] pl-4 py-4">
+        <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50">
+          Filtros de Búsqueda
+        </h3>
+        <p class="text-sm text-surface-600 dark:text-surface-400 mt-1">
+          Selecciona el rango de fechas y haz clic en "Buscar"
+        </p>
       </div>
     </ng-template>
 
-    @if (filtersVisible()) {
-      <form [formGroup]="filterForm" class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <!-- Rango de Fechas -->
-          <div class="flex flex-col gap-2">
-            <label
-              for="dateRange"
-              class="text-sm font-medium text-surface-700 dark:text-surface-300 flex items-center gap-1"
-            >
-              <i class="pi pi-calendar text-[#fb0021]"></i>
-              <span>Rango de Fechas</span>
-              <span class="text-red-500 dark:text-red-400">*</span>
-            </label>
-            <p-datepicker
-              inputId="dateRange"
-              formControlName="dateRange"
-              [showIcon]="true"
-              dateFormat="dd/mm/yy"
-              placeholder="Selecciona rango"
-              selectionMode="range"
-              [readonlyInput]="true"
-              styleClass="w-full"
-            ></p-datepicker>
-          </div>
-
-          <!-- Países -->
-          <div class="flex flex-col gap-2">
-            <label
-              for="countries"
-              class="text-sm font-medium text-surface-700 dark:text-surface-300 flex items-center gap-1"
-            >
-              <i class="pi pi-flag text-[#fb0021]"></i>
-              <span>Países</span>
-            </label>
-            <p-multiselect
-              inputId="countries"
-              formControlName="countries"
-              [options]="countries()"
-              optionLabel="nameCountry"
-              placeholder="Todos los países"
-              [showClear]="true"
-              [filter]="true"
-              styleClass="w-full"
-              (onChange)="onCountriesChange($event.value)"
-            ></p-multiselect>
-          </div>
-
-          <!-- Ciudades -->
-          <div class="flex flex-col gap-2">
-            <label
-              for="cities"
-              class="text-sm font-medium text-surface-700 dark:text-surface-300 flex items-center gap-1"
-            >
-              <i class="pi pi-map-marker text-[#fb0021]"></i>
-              <span>Ciudades</span>
-            </label>
-            <p-multiselect
-              inputId="cities"
-              formControlName="cities"
-              [options]="cities()"
-              optionLabel="nameCity"
-              placeholder="Todas las ciudades"
-              [showClear]="true"
-              [filter]="true"
-              [disabled]="cities().length === 0 || loadingCities()"
-              [loading]="loadingCities()"
-              styleClass="w-full"
-            ></p-multiselect>
-          </div>
-
-          <!-- Bases de Operación -->
-          <div class="flex flex-col gap-2">
-            <label
-              for="headquarters"
-              class="text-sm font-medium text-surface-700 dark:text-surface-300 flex items-center gap-1"
-            >
-              <i class="pi pi-building text-[#fb0021]"></i>
-              <span>Bases de Operación</span>
-            </label>
-            <p-multiselect
-              inputId="headquarters"
-              formControlName="headquarters"
-              [options]="headquarters()"
-              optionLabel="nameHeadquarter"
-              placeholder="Todas las bases"
-              [showClear]="true"
-              [filter]="true"
-              styleClass="w-full"
-            ></p-multiselect>
-          </div>
+    <form [formGroup]="filterForm" class="p-6">
+      <div class="flex flex-col md:flex-row gap-4 items-end">
+        <!-- Date Range Picker -->
+        <div class="flex-1">
+          <label
+            for="dateRange"
+            class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 block flex items-center gap-1"
+          >
+            <i class="pi pi-calendar text-[#fb0021]"></i>
+            <span>Rango de Fechas</span>
+            <span class="text-red-500 dark:text-red-400">*</span>
+          </label>
+          <p-datepicker
+            inputId="dateRange"
+            formControlName="dateRange"
+            [showIcon]="true"
+            dateFormat="dd/mm/yy"
+            placeholder="Selecciona rango"
+            selectionMode="range"
+            [readonlyInput]="true"
+            styleClass="w-full"
+          ></p-datepicker>
         </div>
 
-        <!-- Apply Filters Button -->
-        <div class="flex justify-end mt-6">
-          <button
-            pButton
-            label="Aplicar Filtros"
-            icon="pi pi-filter"
-            (click)="applyFilters()"
-            [disabled]="!hasDateRange()"
-          ></button>
-        </div>
-      </form>
-    }
+        <!-- Search Button -->
+        <button
+          pButton
+          label="Buscar"
+          icon="pi pi-search"
+          (click)="applyFilters()"
+          [disabled]="!hasDateRange()"
+          styleClass="w-full md:w-auto"
+        ></button>
+      </div>
+    </form>
   </p-card>
 
   <!-- Data Table Card -->
@@ -182,7 +141,7 @@
         [rows]="pageSize()"
         [totalRecords]="totalRecords()"
         [lazy]="true"
-        (onLazyLoad)="onPageChange($event)"
+        (onPage)="onPageChange($event)"
         [rowsPerPageOptions]="[5, 10, 15, 20]"
         [showCurrentPageReport]="true"
         currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
@@ -231,32 +190,28 @@
         <div class="inline-flex flex-col items-center gap-3 px-6 py-4 bg-surface-100 dark:bg-surface-800 rounded-lg">
           <i class="pi pi-inbox text-4xl text-surface-400"></i>
           <span class="text-sm text-surface-600 dark:text-surface-400">No hay datos para mostrar</span>
-          <span class="text-xs text-surface-500 dark:text-surface-400">Selecciona filtros y haz clic en "Aplicar Filtros"</span>
+          <span class="text-xs text-surface-500 dark:text-surface-400">Selecciona fechas y haz clic en "Buscar"</span>
         </div>
       </div>
     }
   </p-card>
 
-  <!-- Export Reports Card -->
-  <p-card styleClass="mt-6">
-    <ng-template pTemplate="header">
-      <div class="border-l-4 border-[#fb0021] pl-4 py-4">
-        <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50">
-          Generar Reportes
-        </h3>
-        <p class="text-sm text-surface-600 dark:text-surface-400 mt-1">
-          Selecciona el tipo de reporte y formato de exportación
-        </p>
-      </div>
-    </ng-template>
-
-    <form [formGroup]="filterForm" class="p-6">
+  <!-- Report Modal -->
+  <p-dialog
+    header="Generar Reporte"
+    [(visible)]="showReportModal"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [style]="{ width: '90vw', maxWidth: '600px' }"
+  >
+    <form [formGroup]="filterForm" class="py-4">
       <!-- Report Type Selection -->
       <div class="mb-6">
         <label class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-3 block">
           Tipo de Reporte
         </label>
-        <div class="flex flex-col sm:flex-row gap-4">
+        <div class="flex flex-col gap-3">
           <div class="flex items-center">
             <p-radiobutton
               inputId="general"
@@ -304,10 +259,10 @@
         </div>
       </div>
 
-      <!-- Export Buttons -->
+      <!-- Export Format Selection -->
       <div class="border-t border-surface-200 dark:border-surface-700 pt-6">
         <label class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-3 block">
-          Descargar Reporte
+          Formato de Exportación
         </label>
         <div class="flex flex-wrap gap-3">
           @if (selectedReportType() !== 'bac') {
@@ -317,7 +272,7 @@
               icon="pi pi-file-pdf"
               severity="danger"
               (click)="exportPDF()"
-              [disabled]="!hasDateRange() || isExporting()"
+              [disabled]="isExporting()"
               [loading]="exportingPDF()"
             ></button>
 
@@ -327,7 +282,7 @@
               icon="pi pi-file-excel"
               severity="success"
               (click)="exportExcel()"
-              [disabled]="!hasDateRange() || isExporting()"
+              [disabled]="isExporting()"
               [loading]="exportingExcel()"
             ></button>
           }
@@ -339,7 +294,7 @@
               icon="pi pi-file"
               severity="secondary"
               (click)="exportBAC()"
-              [disabled]="!hasDateRange() || isExporting()"
+              [disabled]="isExporting()"
               [loading]="exportingTXT()"
             ></button>
           }
@@ -357,11 +312,90 @@
               <li><strong>Reporte Detalle:</strong> Desglose completo con todas las transacciones</li>
               <li><strong>Base de Operaciones:</strong> Agrupado por bases de operación</li>
               <li><strong>Formato BAC:</strong> Archivo TXT para integración bancaria (Banco de América Central)</li>
-              <li>Todos los reportes requieren seleccionar un rango de fechas</li>
             </ul>
           </div>
         </div>
       </div>
     </form>
-  </p-card>
+  </p-dialog>
+
+  <!-- Extended Hours Modal -->
+  <p-dialog
+    header="Reporte Horario Extendido"
+    [(visible)]="showExtendedHoursModal"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [style]="{ width: '90vw', maxWidth: '500px' }"
+    appendTo="body"
+  >
+    <form [formGroup]="extendedHoursForm" class="py-4">
+      <!-- Date Range Picker -->
+      <div class="mb-4">
+        <label
+          for="extendedDateRange"
+          class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 block flex items-center gap-1"
+        >
+          <i class="pi pi-calendar text-[#fb0021]"></i>
+          <span>Rango de Fechas</span>
+          <span class="text-red-500 dark:text-red-400">*</span>
+        </label>
+        <p-datepicker
+          inputId="extendedDateRange"
+          formControlName="dateRange"
+          [showIcon]="true"
+          [iconDisplay]="'input'"
+          dateFormat="dd/mm/yy"
+          placeholder="Selecciona rango de fechas"
+          selectionMode="range"
+          [readonlyInput]="true"
+          styleClass="w-full"
+          appendTo="body"
+        ></p-datepicker>
+      </div>
+
+      <!-- Marca -->
+      <div class="mb-6">
+        <label
+          for="brandId"
+          class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 block"
+        >
+          Marca
+          <span class="text-red-500 dark:text-red-400">*</span>
+        </label>
+        <p-select
+          inputId="brandId"
+          formControlName="brandId"
+          [options]="brands()"
+          optionLabel="nameBrand"
+          optionValue="idBrand"
+          placeholder="Selecciona una marca"
+          [filter]="true"
+          filterPlaceholder="Buscar marca..."
+          styleClass="w-full"
+          appendTo="body"
+        ></p-select>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex justify-end gap-3">
+        <button
+          pButton
+          label="Cancelar"
+          severity="secondary"
+          [text]="true"
+          (click)="closeExtendedHoursModal()"
+          [disabled]="exportingExtendedHours()"
+        ></button>
+        <button
+          pButton
+          label="Descargar Reporte"
+          icon="pi pi-download"
+          (click)="exportExtendedHours()"
+          [disabled]="exportingExtendedHours()"
+          [loading]="exportingExtendedHours()"
+        ></button>
+      </div>
+    </form>
+  </p-dialog>
 </div>

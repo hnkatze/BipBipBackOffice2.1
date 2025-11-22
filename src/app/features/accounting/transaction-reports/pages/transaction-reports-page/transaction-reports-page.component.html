@@ -1,0 +1,87 @@
+<p-toast />
+
+<div class="w-full min-h-screen bg-surface-50 dark:bg-surface-900 p-6">
+  <!-- Título -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-semibold text-surface-900 dark:text-surface-0">
+      Reportes de Transacciones
+    </h1>
+    <p class="text-surface-600 dark:text-surface-400 mt-2">
+      Descarga reportes semanales de transacciones en formato Excel
+    </p>
+  </div>
+
+  <!-- Card con filtros y botón de descarga -->
+  <p-card class="mb-6">
+    <form [formGroup]="filterForm" class="space-y-6">
+      <!-- Filtros de fecha -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Fecha Inicio -->
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-surface-900 dark:text-surface-0">
+            Fecha Inicio <span class="text-red-500">*</span>
+          </label>
+          <p-datepicker
+            formControlName="fechaInicio"
+            [showIcon]="true"
+            dateFormat="dd/mm/yy"
+            placeholder="Seleccione fecha de inicio"
+            class="w-full"
+          />
+          @if (fechaInicio?.invalid && fechaInicio?.touched) {
+            <small class="text-red-500">
+              La fecha de inicio es requerida
+            </small>
+          }
+        </div>
+
+        <!-- Fecha Final -->
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-surface-900 dark:text-surface-0">
+            Fecha Final <span class="text-red-500">*</span>
+          </label>
+          <p-datepicker
+            formControlName="fechaFinal"
+            [showIcon]="true"
+            dateFormat="dd/mm/yy"
+            placeholder="Seleccione fecha final"
+            class="w-full"
+          />
+          @if (fechaFinal?.invalid && fechaFinal?.touched) {
+            <small class="text-red-500">
+              La fecha final es requerida
+            </small>
+          }
+        </div>
+      </div>
+
+      <!-- Botón de descarga -->
+      <div class="flex justify-end pt-4 border-t border-surface-200 dark:border-surface-700">
+        <p-button
+          label="{{ downloading() ? 'Descargando...' : 'Descargar Reporte Excel' }}"
+          icon="{{ downloading() ? 'pi pi-spin pi-spinner' : 'pi pi-download' }}"
+          [disabled]="downloading()"
+          [loading]="downloading()"
+          (onClick)="downloadReport()"
+          severity="primary"
+          size="large"
+        />
+      </div>
+    </form>
+  </p-card>
+
+  <!-- Información adicional -->
+  <p-card class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+    <div class="flex gap-3">
+      <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 text-xl flex-shrink-0"></i>
+      <div class="text-surface-700 dark:text-surface-300">
+        <p class="font-medium mb-2">Información del reporte:</p>
+        <ul class="list-disc list-inside space-y-1 text-sm">
+          <li>El reporte incluye transacciones del período seleccionado</li>
+          <li>El formato de descarga es Excel (.xlsx)</li>
+          <li>El archivo incluirá la fecha en el nombre para fácil identificación</li>
+        </ul>
+      </div>
+    </div>
+  </p-card>
+</div>

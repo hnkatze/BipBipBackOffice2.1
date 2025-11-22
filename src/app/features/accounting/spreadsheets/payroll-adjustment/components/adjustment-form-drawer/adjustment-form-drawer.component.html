@@ -1,0 +1,142 @@
+<form [formGroup]="form" class="flex flex-col gap-6 p-6">
+  <!-- Tipo de Ajuste -->
+  <div>
+    <label class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-3 block">
+      Tipo de Ajuste
+      <span class="text-red-500 dark:text-red-400">*</span>
+    </label>
+    <div class="flex gap-6">
+      <div class="flex items-center">
+        <p-radiobutton
+          inputId="income"
+          name="adjustmentType"
+          value="income"
+          formControlName="adjustmentType"
+        ></p-radiobutton>
+        <label for="income" class="ml-2 text-sm text-surface-700 dark:text-surface-300 cursor-pointer">
+          Ingreso
+        </label>
+      </div>
+      <div class="flex items-center">
+        <p-radiobutton
+          inputId="deduction"
+          name="adjustmentType"
+          value="deduction"
+          formControlName="adjustmentType"
+        ></p-radiobutton>
+        <label for="deduction" class="ml-2 text-sm text-surface-700 dark:text-surface-300 cursor-pointer">
+          Deducción
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monto -->
+  <div>
+    <label
+      for="adjustmentAmount"
+      class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 block"
+    >
+      Monto
+      <span class="text-red-500 dark:text-red-400">*</span>
+    </label>
+    <p-inputnumber
+      inputId="adjustmentAmount"
+      formControlName="adjustmentAmount"
+      mode="currency"
+      currency="HNL"
+      locale="es-HN"
+      [minFractionDigits]="2"
+      [maxFractionDigits]="2"
+      [min]="0.01"
+      [max]="999999"
+      placeholder="0.00"
+      styleClass="w-full"
+    ></p-inputnumber>
+    @if (getErrorMessage('adjustmentAmount')) {
+      <small class="text-red-500 dark:text-red-400 mt-1 block">
+        {{ getErrorMessage('adjustmentAmount') }}
+      </small>
+    }
+  </div>
+
+  <!-- Razón -->
+  <div>
+    <label
+      for="adjustmentReason"
+      class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 block"
+    >
+      Razón del Ajuste
+      <span class="text-red-500 dark:text-red-400">*</span>
+    </label>
+    <textarea
+      pInputTextarea
+      inputId="adjustmentReason"
+      formControlName="adjustmentReason"
+      rows="4"
+      placeholder="Describe el motivo del ajuste (10-500 caracteres)"
+      class="w-full"
+    ></textarea>
+    <div class="flex justify-between items-center mt-1">
+      @if (getErrorMessage('adjustmentReason')) {
+        <small class="text-red-500 dark:text-red-400">
+          {{ getErrorMessage('adjustmentReason') }}
+        </small>
+      } @else {
+        <small class="text-surface-500 dark:text-surface-400">
+          {{ form.get('adjustmentReason')?.value?.length || 0 }} / 500 caracteres
+        </small>
+      }
+    </div>
+  </div>
+
+  <!-- Rango de Fechas -->
+  <div>
+    <label
+      for="dateRange"
+      class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 block flex items-center gap-1"
+    >
+      <i class="pi pi-calendar text-[#fb0021]"></i>
+      <span>Período del Ajuste</span>
+      <span class="text-red-500 dark:text-red-400">*</span>
+    </label>
+    <p-datepicker
+      inputId="dateRange"
+      formControlName="dateRange"
+      [showIcon]="true"
+      [iconDisplay]="'input'"
+      dateFormat="dd/mm/yy"
+      placeholder="Selecciona período"
+      selectionMode="range"
+      [readonlyInput]="true"
+      styleClass="w-full"
+      appendTo="body"
+    ></p-datepicker>
+    @if (getErrorMessage('dateRange')) {
+      <small class="text-red-500 dark:text-red-400 mt-1 block">
+        {{ getErrorMessage('dateRange') }}
+      </small>
+    }
+  </div>
+
+  <!-- Botones -->
+  <div class="flex justify-end gap-3 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <button
+      pButton
+      label="Cancelar"
+      severity="secondary"
+      [text]="true"
+      (click)="onCancel()"
+      [disabled]="saving()"
+      type="button"
+    ></button>
+    <button
+      pButton
+      [label]="mode() === 'create' ? 'Crear Ajuste' : 'Guardar Cambios'"
+      icon="pi pi-check"
+      (click)="onSave()"
+      [loading]="saving()"
+      type="button"
+    ></button>
+  </div>
+</form>

@@ -4,8 +4,7 @@ import { DataService } from '@core/services/data.service';
 import {
   DriverPaymentsResponse,
   Country,
-  City,
-  Headquarter
+  Brand
 } from '../models/driver-payments.model';
 
 /**
@@ -48,26 +47,17 @@ export class DriverPaymentsService {
   }
 
   /**
-   * Obtiene la lista de países
+   * Obtiene la lista de países (solo para mostrar banderas en la tabla)
    */
   getCountries(): Observable<Country[]> {
     return this.dataService.get$<Country[]>('Location/CountryList');
   }
 
   /**
-   * Obtiene la lista de ciudades de un país específico
-   * @param countryId ID del país
+   * Obtiene la lista de marcas (brands) ordenadas
    */
-  getCitiesByCountry(countryId: number): Observable<City[]> {
-    const params = { idCountry: countryId.toString() };
-    return this.dataService.get$<City[]>('Location/CityCountry', params);
-  }
-
-  /**
-   * Obtiene la lista de bases de operación (headquarters)
-   */
-  getHeadquarters(): Observable<Headquarter[]> {
-    return this.dataService.get$<Headquarter[]>('Headquarter/summary');
+  getBrands(): Observable<Brand[]> {
+    return this.dataService.get$<Brand[]>('Brand/BrandsListSorted');
   }
 
   /**
@@ -145,5 +135,35 @@ export class DriverPaymentsService {
   generateBACFormat(fechaInicio: string, fechaFin: string): Observable<string> {
     const endpoint = `backoffice/CreatePRNFile/${fechaInicio}/${fechaFin}/3/5`;
     return this.dataService.get$<string>(endpoint, undefined, 'apiURLReports');
+  }
+
+  /**
+   * Genera reporte de Horario Extendido (Excel)
+   * @param fechaInicio Fecha inicio en formato ISO
+   * @param fechaFin Fecha fin en formato ISO
+   * @param brandId ID de la marca
+   * @returns Base64 string del Excel
+   */
+  generateExtendedHoursReport(fechaInicio: string, fechaFin: string, brandId: number): Observable<string> {
+    const params = {
+      fechaInicio,
+      fechaFin,
+      brandId: brandId.toString()
+    };
+    return this.dataService.get$<string>('Reports/reporteHorarioExtendido', params);
+  }
+
+  /**
+   * Genera reporte de Ajustes (Excel)
+   * @param fechaInicio Fecha inicio en formato ISO
+   * @param fechaFinal Fecha fin en formato ISO
+   * @returns Base64 string del Excel
+   */
+  generateAdjustmentsReport(fechaInicio: string, fechaFinal: string): Observable<string> {
+    const params = {
+      fechaInicio,
+      fechaFinal
+    };
+    return this.dataService.get$<string>('Reports/Drivers/Adjustments/Excel', params);
   }
 }

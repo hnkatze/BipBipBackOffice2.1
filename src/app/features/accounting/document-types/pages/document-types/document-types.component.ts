@@ -13,6 +13,8 @@ import { InputIconModule } from 'primeng/inputicon';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ToastModule } from 'primeng/toast';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { SkeletonModule } from 'primeng/skeleton';
+import { PaginatorModule } from 'primeng/paginator';
 
 // Models & Services
 import { DocumentType, StatusFilter } from '../../models/document-type.model';
@@ -44,6 +46,8 @@ import { DocumentTypeFormComponent } from '../../components/document-type-form/d
     ToggleSwitchModule,
     ToastModule,
     BreadcrumbModule,
+    SkeletonModule,
+    PaginatorModule,
     DocumentTypeFormComponent
   ],
   templateUrl: './document-types.component.html',

@@ -1,7 +1,7 @@
 <p-drawer
   [visible]="true"
   position="right"
-  [style]="{ width: '600px' }"
+  styleClass="!w-full md:!w-[600px]"
   (onHide)="handleClose()"
   [header]="isEditMode() ? 'Editar Establecimiento' : 'Crear Establecimiento'"
 >
@@ -118,7 +118,6 @@
       <p-button
         type="submit"
         label="Guardar"
-        severity="success"
         [loading]="isLoading()"
       />
     </div>

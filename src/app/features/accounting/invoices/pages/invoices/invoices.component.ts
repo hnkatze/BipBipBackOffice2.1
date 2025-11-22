@@ -16,6 +16,8 @@ import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
+import { SkeletonModule } from 'primeng/skeleton';
+import { PaginatorModule } from 'primeng/paginator';
 
 // Models & Services
 import {
@@ -62,6 +64,8 @@ import { InvoiceChartsComponent } from '../../components/invoice-charts/invoice-
     DatePickerModule,
     SelectModule,
     BreadcrumbModule,
+    SkeletonModule,
+    PaginatorModule,
     InvoiceChartsComponent
   ],
   templateUrl: './invoices.component.html',

@@ -8,21 +8,20 @@ import { MenuItem, MessageService } from 'primeng/api';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
-import { MultiSelectModule } from 'primeng/multiselect';
-import { SelectModule } from 'primeng/select';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { ToastModule } from 'primeng/toast';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { DialogModule } from 'primeng/dialog';
 import { RadioButton } from 'primeng/radiobutton';
+import { SelectModule } from 'primeng/select';
 
 // Services & Models
 import { DriverPaymentsService } from '../../services/driver-payments.service';
 import {
   DriverPayment,
   Country,
-  City,
-  Headquarter,
+  Brand,
   PaginationMetadata,
   ReportType
 } from '../../models/driver-payments.model';
@@ -34,8 +33,10 @@ import { formatDate } from '../../../../../../shared/utils/date.utils';
 /**
  * Componente para gestionar pagos a drivers
  *
- * Módulo híbrido que muestra tabla de datos paginada Y permite
- * generar múltiples tipos de reportes (PDF/Excel/TXT)
+ * Flujo:
+ * 1. Carga tabla INMEDIATAMENTE con fechas por defecto
+ * 2. Solo 2 date pickers + botón "Buscar" para recargar
+ * 3. Modal para seleccionar tipo de reporte
  */
 @Component({
   selector: 'app-driver-payments-page',
@@ -47,13 +48,13 @@ import { formatDate } from '../../../../../../shared/utils/date.utils';
     CardModule,
     ButtonModule,
     DatePickerModule,
-    MultiSelectModule,
-    SelectModule,
     BreadcrumbModule,
     ToastModule,
     TableModule,
     TagModule,
-    RadioButton
+    DialogModule,
+    RadioButton,
+    SelectModule
   ],
   providers: [MessageService]
 })
@@ -66,18 +67,23 @@ export class DriverPaymentsPageComponent implements OnInit {
   // State signals - Data
   payments = signal<DriverPayment[]>([]);
   countries = signal<Country[]>([]);
-  cities = signal<City[]>([]);
-  allCities = signal<City[]>([]); // Todas las ciudades cargadas
-  headquarters = signal<Headquarter[]>([]);
+  brands = signal<Brand[]>([]);
 
   // State signals - UI
   loading = signal<boolean>(false);
-  loadingCities = signal<boolean>(false);
   exportingPDF = signal<boolean>(false);
   exportingExcel = signal<boolean>(false);
   exportingTXT = signal<boolean>(false);
+  exportingExtendedHours = signal<boolean>(false);
+  exportingAdjustments = signal<boolean>(false);
   error = signal<string | null>(null);
-  filtersVisible = signal<boolean>(true);
+
+  // Flag para prevenir llamadas múltiples
+  private isLoadingData = false;
+
+  // Modals
+  showReportModal = signal<boolean>(false);
+  showExtendedHoursModal = signal<boolean>(false);
 
   // Pagination
   currentPage = signal<number>(1);
@@ -88,8 +94,9 @@ export class DriverPaymentsPageComponent implements OnInit {
   // Report type selection
   selectedReportType = signal<ReportType>('general');
 
-  // Form
+  // Forms
   filterForm!: FormGroup;
+  extendedHoursForm!: FormGroup;
 
   // Breadcrumb
   breadcrumbs: MenuItem[] = [
@@ -100,49 +107,63 @@ export class DriverPaymentsPageComponent implements OnInit {
 
   // Computed
   isExporting = computed(() => {
-    return this.exportingPDF() || this.exportingExcel() || this.exportingTXT();
+    return this.exportingPDF() || this.exportingExcel() || this.exportingTXT() ||
+           this.exportingExtendedHours() || this.exportingAdjustments();
   });
 
-  hasDateRange = computed(() => {
+  /**
+   * Verifica si hay un rango de fechas válido
+   * NOTA: Método simple (no computed) para evitar bucles de change detection
+   */
+  hasDateRange(): boolean {
     const dateRange = this.filterForm?.get('dateRange')?.value;
-    return dateRange && dateRange[0] && dateRange[1];
-  });
+    return !!(dateRange && dateRange[0] && dateRange[1]);
+  }
 
   ngOnInit(): void {
-    this.initializeForm();
+    this.initializeForms();
+    this.loadCountries();
+    this.loadBrands();
     this.loadInitialData();
   }
 
   /**
-   * Inicializa el formulario de filtros
+   * Inicializa los formularios
    */
-  private initializeForm(): void {
+  private initializeForms(): void {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Formulario principal de filtros
     this.filterForm = this.fb.group({
-      dateRange: [null, Validators.required],
-      countries: [[]],
-      cities: [[]],
-      headquarters: [[]],
+      dateRange: [[yesterday, today], Validators.required],
       reportType: ['general', Validators.required]
     });
 
-    // Listen to report type changes
+    // Listen to report type changes (NO escuchamos dateRange para evitar bucle)
     this.filterForm.get('reportType')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
         this.selectedReportType.set(value);
       });
+
+    // Formulario de horario extendido
+    this.extendedHoursForm = this.fb.group({
+      dateRange: [null, Validators.required],
+      brandId: [null, Validators.required]
+    });
   }
 
   /**
-   * Carga datos iniciales (países, bases)
+   * Carga datos iniciales con fechas por defecto
    */
   private loadInitialData(): void {
-    this.loadCountries();
-    this.loadHeadquarters();
+    this.loadPayments();
   }
 
   /**
-   * Carga la lista de países
+   * Carga la lista de países (solo para banderas)
    */
   private loadCountries(): void {
     this.driverPaymentsService.getCountries()
@@ -153,32 +174,26 @@ export class DriverPaymentsPageComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al cargar países:', err);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No se pudieron cargar los países',
-            life: 3000
-          });
         }
       });
   }
 
   /**
-   * Carga la lista de bases de operación
+   * Carga la lista de marcas
    */
-  private loadHeadquarters(): void {
-    this.driverPaymentsService.getHeadquarters()
+  private loadBrands(): void {
+    this.driverPaymentsService.getBrands()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
-          this.headquarters.set(data);
+          this.brands.set(data);
         },
         error: (err) => {
-          console.error('Error al cargar bases:', err);
+          console.error('Error al cargar marcas:', err);
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'No se pudieron cargar las bases de operación',
+            detail: 'No se pudieron cargar las marcas',
             life: 3000
           });
         }
@@ -186,52 +201,7 @@ export class DriverPaymentsPageComponent implements OnInit {
   }
 
   /**
-   * Maneja el cambio de selección de países
-   */
-  onCountriesChange(selectedCountries: Country[]): void {
-    if (!selectedCountries || selectedCountries.length === 0) {
-      this.cities.set([]);
-      this.filterForm.patchValue({ cities: [] });
-      return;
-    }
-
-    this.loadCitiesByCountries(selectedCountries.map(c => c.countryId));
-  }
-
-  /**
-   * Carga ciudades de los países seleccionados
-   */
-  private loadCitiesByCountries(countryIds: number[]): void {
-    this.loadingCities.set(true);
-    this.filterForm.patchValue({ cities: [] });
-
-    // Cargar ciudades de cada país seleccionado
-    const cityRequests = countryIds.map(countryId =>
-      this.driverPaymentsService.getCitiesByCountry(countryId)
-    );
-
-    // Combinar todas las respuestas
-    Promise.all(cityRequests.map(req => req.toPromise()))
-      .then((results) => {
-        const allCities = results.flat().filter(city => city !== undefined) as City[];
-        this.cities.set(allCities);
-        this.allCities.set(allCities);
-        this.loadingCities.set(false);
-      })
-      .catch((err) => {
-        console.error('Error al cargar ciudades:', err);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudieron cargar las ciudades',
-          life: 3000
-        });
-        this.loadingCities.set(false);
-      });
-  }
-
-  /**
-   * Aplica los filtros y carga la primera página
+   * Aplica los filtros y recarga desde la página 1
    */
   applyFilters(): void {
     this.currentPage.set(1);
@@ -241,27 +211,31 @@ export class DriverPaymentsPageComponent implements OnInit {
   /**
    * Carga la lista de pagos con filtros y paginación
    */
-  loadPayments(page: number = this.currentPage()): void {
-    const dateRange = this.filterForm.get('dateRange')?.value;
-
-    if (!dateRange || !dateRange[0] || !dateRange[1]) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Advertencia',
-        detail: 'Por favor selecciona un rango de fechas',
-        life: 3000
-      });
+  loadPayments(page?: number): void {
+    // Prevenir llamadas múltiples simultáneas (fix bucle infinito)
+    if (this.isLoadingData) {
       return;
     }
 
+    const dateRange = this.filterForm?.get('dateRange')?.value;
+
+    // Si no hay fechas, salir sin mostrar mensaje (puede ser que aún no se inicializó)
+    if (!dateRange || !dateRange[0] || !dateRange[1]) {
+      return;
+    }
+
+    this.isLoadingData = true;
     this.loading.set(true);
     this.error.set(null);
 
     const fechaInicio = formatDate(dateRange[0], 'yyyy-MM-dd');
     const fechaFin = formatDate(dateRange[1], 'yyyy-MM-dd');
 
+    // Si no se proporciona page, usar currentPage, si currentPage es inválido, usar 1
+    const pageNumber = page || this.currentPage() || 1;
+
     this.driverPaymentsService.getPaymentsList(
-      page,
+      pageNumber,
       this.pageSize(),
       fechaInicio,
       fechaFin
@@ -272,13 +246,15 @@ export class DriverPaymentsPageComponent implements OnInit {
           this.payments.set(response.data);
           this.metadata.set(response.metadata);
           this.totalRecords.set(response.metadata.totalCount);
-          this.currentPage.set(page);
+          this.currentPage.set(pageNumber);
           this.loading.set(false);
+          this.isLoadingData = false;
         },
         error: (err) => {
           console.error('Error al cargar pagos:', err);
           this.error.set('Error al cargar los pagos');
           this.loading.set(false);
+          this.isLoadingData = false;
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -293,16 +269,45 @@ export class DriverPaymentsPageComponent implements OnInit {
    * Maneja el cambio de página
    */
   onPageChange(event: any): void {
+    // Validar que event.page sea un número válido
+    if (event.page === undefined || event.page === null || isNaN(event.page)) {
+      return;
+    }
+
     const newPage = event.page + 1; // PrimeNG usa 0-indexed
     this.pageSize.set(event.rows);
     this.loadPayments(newPage);
   }
 
   /**
-   * Toggle visibilidad de filtros
+   * Obtiene la URL de la bandera del país
    */
-  toggleFilters(): void {
-    this.filtersVisible.update(v => !v);
+  getCountryFlag(countryId: number): string {
+    const country = this.countries().find(c => c.countryId === countryId);
+    return country?.flagImage || '';
+  }
+
+  /**
+   * Abre el modal de reportes
+   */
+  openReportModal(): void {
+    if (!this.hasDateRange()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Por favor selecciona un rango de fechas',
+        life: 3000
+      });
+      return;
+    }
+    this.showReportModal.set(true);
+  }
+
+  /**
+   * Cierra el modal de reportes
+   */
+  closeReportModal(): void {
+    this.showReportModal.set(false);
   }
 
   /**
@@ -361,6 +366,7 @@ export class DriverPaymentsPageComponent implements OnInit {
           });
 
           this.exportingPDF.set(false);
+          this.closeReportModal();
         },
         error: (err) => {
           console.error('Error al generar PDF:', err);
@@ -431,6 +437,7 @@ export class DriverPaymentsPageComponent implements OnInit {
           });
 
           this.exportingExcel.set(false);
+          this.closeReportModal();
         },
         error: (err) => {
           console.error('Error al generar Excel:', err);
@@ -480,6 +487,7 @@ export class DriverPaymentsPageComponent implements OnInit {
           });
 
           this.exportingTXT.set(false);
+          this.closeReportModal();
         },
         error: (err) => {
           console.error('Error al generar BAC:', err);
@@ -490,6 +498,133 @@ export class DriverPaymentsPageComponent implements OnInit {
             life: 3000
           });
           this.exportingTXT.set(false);
+        }
+      });
+  }
+
+  /**
+   * Abre el modal de horario extendido
+   */
+  openExtendedHoursModal(): void {
+    this.showExtendedHoursModal.set(true);
+  }
+
+  /**
+   * Cierra el modal de horario extendido
+   */
+  closeExtendedHoursModal(): void {
+    this.showExtendedHoursModal.set(false);
+    this.extendedHoursForm.reset();
+  }
+
+  /**
+   * Genera y descarga reporte de horario extendido
+   */
+  exportExtendedHours(): void {
+    if (this.extendedHoursForm.invalid) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Por favor complete todos los campos requeridos',
+        life: 3000
+      });
+      return;
+    }
+
+    const formValue = this.extendedHoursForm.value;
+    const dateRange = formValue.dateRange;
+
+    // Validar que el rango de fechas esté completo
+    if (!dateRange || !dateRange[0] || !dateRange[1]) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Por favor selecciona un rango de fechas completo',
+        life: 3000
+      });
+      return;
+    }
+
+    this.exportingExtendedHours.set(true);
+
+    const fechaInicio = new Date(dateRange[0]).toISOString();
+    const fechaFin = new Date(dateRange[1]).toISOString();
+
+    this.driverPaymentsService.generateExtendedHoursReport(fechaInicio, fechaFin, formValue.brandId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (base64Data) => {
+          const fileName = `reporte-horario-extendido-${formatDate(new Date(), 'yyyy-MM-dd')}.xlsx`;
+          downloadBase64File(base64Data, fileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Reporte de horario extendido generado correctamente',
+            life: 3000
+          });
+
+          this.exportingExtendedHours.set(false);
+          this.closeExtendedHoursModal();
+        },
+        error: (err) => {
+          console.error('Error al generar reporte de horario extendido:', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo generar el reporte de horario extendido',
+            life: 3000
+          });
+          this.exportingExtendedHours.set(false);
+        }
+      });
+  }
+
+  /**
+   * Genera y descarga reporte de ajustes
+   */
+  exportAdjustments(): void {
+    if (!this.hasDateRange()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Por favor selecciona un rango de fechas',
+        life: 3000
+      });
+      return;
+    }
+
+    const { dateRange } = this.filterForm.value;
+    this.exportingAdjustments.set(true);
+
+    const fechaInicio = new Date(dateRange[0]).toISOString();
+    const fechaFinal = new Date(dateRange[1]).toISOString();
+
+    this.driverPaymentsService.generateAdjustmentsReport(fechaInicio, fechaFinal)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (base64Data) => {
+          const fileName = `reporte-ajustes-${formatDate(new Date(), 'yyyy-MM-dd')}.xlsx`;
+          downloadBase64File(base64Data, fileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Reporte de ajustes generado correctamente',
+            life: 3000
+          });
+
+          this.exportingAdjustments.set(false);
+        },
+        error: (err) => {
+          console.error('Error al generar reporte de ajustes:', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo generar el reporte de ajustes',
+            life: 3000
+          });
+          this.exportingAdjustments.set(false);
         }
       });
   }

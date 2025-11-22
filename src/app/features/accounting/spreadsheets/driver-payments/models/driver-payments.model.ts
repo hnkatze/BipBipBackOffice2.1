@@ -24,7 +24,7 @@ export interface DriverPayment {
 }
 
 /**
- * País
+ * País (solo para mostrar banderas)
  */
 export interface Country {
   countryId: number;
@@ -33,29 +33,13 @@ export interface Country {
 }
 
 /**
- * Ciudad
+ * Marca (para reporte de horario extendido)
  */
-export interface City {
-  cityId: number;
-  nameCity: string;
-  countryId: number;
-}
-
-/**
- * Base de Operación
- */
-export interface Headquarter {
-  headquarterId: number;
-  nameHeadquarter: string;
-  cityId?: number;
-}
-
-/**
- * Estado de Pago
- */
-export interface PaymentStatus {
-  statusId: number;
-  statusName: string;
+export interface Brand {
+  idBrand: number;
+  nameBrand: string;
+  logoBrand: string;
+  sortOrderBrand: number;
 }
 
 /**
@@ -85,16 +69,3 @@ export type ReportType = 'general' | 'detail' | 'baseOps' | 'bac';
  * Formato de exportación
  */
 export type ExportFormat = 'pdf' | 'excel' | 'txt';
-
-/**
- * Request para consultar pagos
- */
-export interface DriverPaymentsRequest {
-  pageNumber: number;
-  pageSize: number;
-  startDate?: string;    // Formato: yyyy-MM-dd
-  endDate?: string;      // Formato: yyyy-MM-dd
-  countryIds?: number[];
-  cityIds?: number[];
-  headquarterIds?: number[];
-}

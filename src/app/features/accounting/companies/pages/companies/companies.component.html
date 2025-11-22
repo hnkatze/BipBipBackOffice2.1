@@ -49,8 +49,8 @@
     </p-iconfield>
   </div>
 
-  <!-- Tabla de empresas -->
-  <div class="bg-white rounded-lg shadow dark:bg-gray-800">
+  <!-- Tabla de empresas (Desktop/Tablet) -->
+  <div class="hidden md:block bg-white rounded-lg shadow dark:bg-gray-800">
     <p-table
       [value]="companies()"
       [loading]="isLoading()"
@@ -63,7 +63,7 @@
       [rowsPerPageOptions]="[5, 10, 20, 50]"
       [showCurrentPageReport]="true"
       currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} empresas"
-      styleClass="p-datatable-sm"
+      [pt]="{ root: { class: 'p-datatable-sm' } }"
       [tableStyle]="{ 'min-width': '60rem' }"
     >
       <ng-template pTemplate="header">
@@ -157,6 +157,120 @@
         </tr>
       </ng-template>
     </p-table>
+  </div>
+
+  <!-- Mobile Cards -->
+  <div class="block md:hidden">
+    @if (isLoading()) {
+      <!-- Loading Skeleton -->
+      <div class="flex flex-col gap-4">
+        @for (item of [1, 2, 3]; track item) {
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <p-skeleton width="100%" height="12rem" />
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Empty State -->
+      @if (companies().length === 0) {
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+          <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <i class="pi pi-inbox text-4xl mb-3"></i>
+            <p class="text-lg font-medium">No se encontraron empresas</p>
+          </div>
+        </div>
+      }
+
+      <!-- Cards List -->
+      @if (companies().length > 0) {
+        <div class="flex flex-col gap-4">
+          @for (company of companies(); track company.companyId) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+              <!-- Header: Nombre + Estado -->
+              <div class="flex items-start gap-3 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-gray-900 dark:text-white">{{ company.companyName }}</div>
+                </div>
+                <div class="flex-shrink-0">
+                  <p-tag
+                    [value]="company.companyActive ? 'Activo' : 'Inactivo'"
+                    [severity]="company.companyActive ? 'success' : 'secondary'"
+                  />
+                </div>
+              </div>
+
+              <!-- Información de la empresa -->
+              <div class="space-y-3 mb-3">
+                <!-- Razón Social -->
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                    Razón Social
+                  </label>
+                  <div class="text-sm text-gray-900 dark:text-white">{{ company.socialReasonName }}</div>
+                </div>
+
+                <!-- RTN -->
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                    RTN
+                  </label>
+                  <div class="text-sm text-gray-900 dark:text-white">{{ company.companyRTN }}</div>
+                </div>
+
+                <!-- Email y Teléfono en grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                      Email
+                    </label>
+                    <div class="text-sm text-gray-900 dark:text-white truncate">{{ company.companyEmail }}</div>
+                  </div>
+                  <div>
+                    <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                      Teléfono
+                    </label>
+                    <div class="text-sm text-gray-900 dark:text-white">{{ company.companyPhone }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <p-button
+                  label="Editar"
+                  icon="pi pi-pencil"
+                  size="small"
+                  [outlined]="true"
+                  severity="secondary"
+                  (onClick)="openEditDrawer(company.companyId)"
+                  styleClass="flex-1"
+                />
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-500 dark:text-gray-400">Estado:</span>
+                  <p-toggleswitch
+                    [ngModel]="company.companyActive"
+                    (ngModelChange)="onToggleStatus(company)"
+                  />
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Paginador Mobile -->
+        <div class="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <p-paginator
+            [rows]="pageSize()"
+            [totalRecords]="totalRecords()"
+            [first]="currentPage() * pageSize()"
+            [rowsPerPageOptions]="[5, 10, 20, 50]"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+            (onPageChange)="onPageChange($event)"
+          />
+        </div>
+      }
+    }
   </div>
 
   <!-- Drawer para crear/editar empresa -->

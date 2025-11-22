@@ -1,7 +1,7 @@
 <p-drawer
   [visible]="true"
   position="right"
-  [style]="{ width: '600px' }"
+  styleClass="!w-full md:!w-[600px]"
   (onHide)="handleClose()"
   [header]="isEditMode() ? 'Editar Empresa' : 'Crear Empresa'"
 >

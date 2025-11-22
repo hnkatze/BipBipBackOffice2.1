@@ -50,7 +50,7 @@ import { emptyCurrency, currencyToCreateRequest, createPartialUpdateRequest } fr
     <p-drawer
       [(visible)]="visible"
       position="right"
-      [style]="{ width: '600px' }"
+      styleClass="!w-full md:!w-[600px]"
       (onHide)="onClose()"
       [header]="isEditMode() ? 'Editar Moneda' : 'Nueva Moneda'"
     >

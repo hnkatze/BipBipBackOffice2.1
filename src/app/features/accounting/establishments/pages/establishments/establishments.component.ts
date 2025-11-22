@@ -14,6 +14,8 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { SkeletonModule } from 'primeng/skeleton';
+import { PaginatorModule } from 'primeng/paginator';
 
 // Models & Services
 import { Establishment, StatusFilter } from '../../models/establishment.model';
@@ -46,6 +48,8 @@ import { EstablishmentFormComponent } from '../../components/establishment-form/
     ToastModule,
     TooltipModule,
     BreadcrumbModule,
+    SkeletonModule,
+    PaginatorModule,
     EstablishmentFormComponent
   ],
   templateUrl: './establishments.component.html',

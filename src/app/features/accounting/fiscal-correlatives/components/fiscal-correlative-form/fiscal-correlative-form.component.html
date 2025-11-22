@@ -1,7 +1,7 @@
 <p-drawer
   [visible]="true"
   position="right"
-  [style]="{ width: '40rem' }"
+  styleClass="!w-full md:!w-[40rem]"
   (onHide)="handleClose()"
 >
   <ng-template pTemplate="header">
@@ -173,7 +173,7 @@
         </div>
 
         <!-- Fechas -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Fecha Inicio -->
           <div class="flex flex-col gap-2">
             <label for="dateFrom" class="font-medium text-gray-900 dark:text-white">
@@ -218,7 +218,7 @@
         </div>
 
         <!-- Números -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Número Inicial -->
           <div class="flex flex-col gap-2">
             <label for="initialNumber" class="font-medium text-gray-900 dark:text-white">

@@ -13,6 +13,9 @@ import { InputIconModule } from 'primeng/inputicon';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ToastModule } from 'primeng/toast';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { SkeletonModule } from 'primeng/skeleton';
+import { PaginatorModule } from 'primeng/paginator';
+import { TooltipModule } from 'primeng/tooltip';
 
 // Models & Services
 import { Company, StatusFilter } from '../../models/company.model';
@@ -44,6 +47,9 @@ import { CompanyFormComponent } from '../../components/company-form/company-form
     ToggleSwitchModule,
     ToastModule,
     BreadcrumbModule,
+    SkeletonModule,
+    PaginatorModule,
+    TooltipModule,
     CompanyFormComponent
   ],
   templateUrl: './companies.component.html',

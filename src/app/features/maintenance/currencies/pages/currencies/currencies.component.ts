@@ -13,6 +13,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { ToastModule } from 'primeng/toast';
+import { SkeletonModule } from 'primeng/skeleton';
+import { PaginatorModule } from 'primeng/paginator';
 
 import { CurrencyService } from '../../services/currency.service';
 import { CurrencyFormComponent } from '../../components/currency-form/currency-form.component';
@@ -45,6 +47,8 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
     IconFieldModule,
     InputIconModule,
     ToastModule,
+    SkeletonModule,
+    PaginatorModule,
     CurrencyFormComponent
   ],
   providers: [ConfirmationService, MessageService],
@@ -113,99 +117,213 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
         </div>
       </div>
 
-      <!-- Tabla -->
-      <p-table
-        [value]="currencies()"
-        [loading]="currencyService.isLoading()"
-        [paginator]="true"
-        [rows]="pageSize()"
-        [totalRecords]="totalRecords()"
-        [lazy]="true"
-        (onLazyLoad)="onLazyLoad($event)"
-        [rowsPerPageOptions]="[5, 10, 15, 20]"
-        styleClass="p-datatable-sm"
-        responsiveLayout="scroll"
-      >
-        <!-- Empty state -->
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="6" class="text-center py-8">
-              <i class="pi pi-inbox text-4xl text-gray-400 mb-4"></i>
-              <p class="text-gray-600 dark:text-gray-400">
-                No se encontraron monedas
-              </p>
-            </td>
-          </tr>
-        </ng-template>
+      <!-- Tabla (Desktop/Tablet) -->
+      <div class="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <p-table
+          [value]="currencies()"
+          [loading]="currencyService.isLoading()"
+          [paginator]="true"
+          [rows]="pageSize()"
+          [totalRecords]="totalRecords()"
+          [lazy]="true"
+          (onLazyLoad)="onLazyLoad($event)"
+          [rowsPerPageOptions]="[5, 10, 15, 20]"
+          [pt]="{ root: { class: 'p-datatable-sm' } }"
+        >
+          <!-- Empty state -->
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="6" class="text-center py-8">
+                <i class="pi pi-inbox text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-600 dark:text-gray-400">
+                  No se encontraron monedas
+                </p>
+              </td>
+            </tr>
+          </ng-template>
 
-        <!-- Header -->
-        <ng-template pTemplate="header">
-          <tr>
-            <th style="width: 200px">País</th>
-            <th>Moneda</th>
-            <th style="width: 120px">Acrónimo</th>
-            <th style="width: 100px">Símbolo</th>
-            <th style="width: 100px">Estado</th>
-            <th style="width: 100px">Acciones</th>
-          </tr>
-        </ng-template>
+          <!-- Header -->
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 200px">País</th>
+              <th>Moneda</th>
+              <th style="width: 120px">Acrónimo</th>
+              <th style="width: 100px">Símbolo</th>
+              <th style="width: 100px">Estado</th>
+              <th style="width: 100px">Acciones</th>
+            </tr>
+          </ng-template>
 
-        <!-- Body -->
-        <ng-template pTemplate="body" let-currency>
-          <tr>
-            <!-- País con Flag -->
-            <td>
-              <div class="flex items-center gap-2">
-                <img
-                  [src]="currency.flag"
-                  [alt]="currency.name"
-                  class="w-6 h-4 object-cover rounded"
+          <!-- Body -->
+          <ng-template pTemplate="body" let-currency>
+            <tr>
+              <!-- País con Flag -->
+              <td>
+                <div class="flex items-center gap-2">
+                  <img
+                    [src]="currency.flag"
+                    [alt]="currency.name"
+                    class="w-6 h-4 object-cover rounded"
+                  />
+                  <span class="font-medium">{{ currency.name }}</span>
+                </div>
+              </td>
+
+              <!-- Moneda -->
+              <td>
+                <span class="font-medium text-gray-700 dark:text-gray-300">
+                  {{ currency.title }}
+                </span>
+              </td>
+
+              <!-- Acrónimo -->
+              <td>
+                <span class="font-mono font-semibold text-gray-900 dark:text-white">
+                  {{ currency.code }}
+                </span>
+              </td>
+
+              <!-- Símbolo -->
+              <td>
+                <span class="font-mono font-bold text-lg text-gray-900 dark:text-white">
+                  {{ currency.symbolLeft }}
+                </span>
+              </td>
+
+              <!-- Estado -->
+              <td>
+                <p-tag
+                  [value]="currency.status ? 'Activo' : 'Inactivo'"
+                  [severity]="currency.status ? 'success' : 'danger'"
                 />
-                <span class="font-medium">{{ currency.name }}</span>
+              </td>
+
+              <!-- Acciones -->
+              <td>
+                <p-button
+                  icon="pi pi-ellipsis-v"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="menu.toggle($event); setCurrentCurrency(currency)"
+                />
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Mobile Cards -->
+      <div class="block md:hidden">
+        @if (currencyService.isLoading()) {
+          <div class="flex flex-col gap-4">
+            @for (item of [1, 2, 3]; track item) {
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                <p-skeleton width="100%" height="10rem" />
               </div>
-            </td>
+            }
+          </div>
+        } @else {
+          @if (currencies().length === 0) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+              <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                <i class="pi pi-inbox text-4xl mb-3"></i>
+                <p class="text-lg font-medium">No se encontraron monedas</p>
+              </div>
+            </div>
+          }
+          @if (currencies().length > 0) {
+            <div class="flex flex-col gap-4">
+              @for (currency of currencies(); track currency.id) {
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                  <!-- Header: País con bandera + Estado -->
+                  <div class="flex items-start gap-3 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                      <img
+                        [src]="currency.flag"
+                        [alt]="currency.name"
+                        class="w-8 h-6 object-cover rounded flex-shrink-0"
+                      />
+                      <div class="font-semibold text-gray-900 dark:text-white">{{ currency.name }}</div>
+                    </div>
+                    <div class="flex-shrink-0">
+                      <p-tag
+                        [value]="currency.status ? 'Activo' : 'Inactivo'"
+                        [severity]="currency.status ? 'success' : 'danger'"
+                      />
+                    </div>
+                  </div>
 
-            <!-- Moneda -->
-            <td>
-              <span class="font-medium text-gray-700 dark:text-gray-300">
-                {{ currency.title }}
-              </span>
-            </td>
+                  <!-- Información de la moneda -->
+                  <div class="space-y-3 mb-3">
+                    <!-- Nombre de la moneda -->
+                    <div>
+                      <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">Moneda</label>
+                      <div class="font-medium text-gray-900 dark:text-white">{{ currency.title }}</div>
+                    </div>
 
-            <!-- Acrónimo -->
-            <td>
-              <span class="font-mono font-semibold text-gray-900 dark:text-white">
-                {{ currency.code }}
-              </span>
-            </td>
+                    <!-- Código y Símbolo en grid -->
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">Código</label>
+                        <div class="font-mono font-semibold text-gray-900 dark:text-white">{{ currency.code }}</div>
+                      </div>
+                      <div>
+                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">Símbolo</label>
+                        <div class="font-mono font-bold text-xl text-gray-900 dark:text-white">{{ currency.symbolLeft }}</div>
+                      </div>
+                    </div>
+                  </div>
 
-            <!-- Símbolo -->
-            <td>
-              <span class="font-mono font-bold text-lg text-gray-900 dark:text-white">
-                {{ currency.symbolLeft }}
-              </span>
-            </td>
+                  <!-- Acciones -->
+                  <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <p-button
+                      label="Editar"
+                      icon="pi pi-pencil"
+                      size="small"
+                      [outlined]="true"
+                      severity="info"
+                      (onClick)="setCurrentCurrency(currency); editCurrency()"
+                      styleClass="flex-1"
+                    />
+                    @if (currency.status) {
+                      <p-button
+                        label="Desactivar"
+                        icon="pi pi-times-circle"
+                        size="small"
+                        [outlined]="true"
+                        severity="danger"
+                        (onClick)="setCurrentCurrency(currency); toggleCurrencyStatus(false)"
+                        styleClass="flex-1"
+                      />
+                    } @else {
+                      <p-button
+                        label="Activar"
+                        icon="pi pi-check-circle"
+                        size="small"
+                        [outlined]="true"
+                        severity="success"
+                        (onClick)="setCurrentCurrency(currency); toggleCurrencyStatus(true)"
+                        styleClass="flex-1"
+                      />
+                    }
+                  </div>
+                </div>
+              }
+            </div>
 
-            <!-- Estado -->
-            <td>
-              <p-tag
-                [value]="currency.status ? 'Activo' : 'Inactivo'"
-                [severity]="currency.status ? 'success' : 'danger'"
+            <!-- Paginador Mobile -->
+            <div class="mt-4">
+              <p-paginator
+                [first]="(currentPage() - 1) * pageSize()"
+                [rows]="pageSize()"
+                [totalRecords]="totalRecords()"
+                [rowsPerPageOptions]="[5, 10, 15, 20]"
+                (onPageChange)="onLazyLoad({first: $event.first, rows: $event.rows})"
               />
-            </td>
-
-            <!-- Acciones -->
-            <td>
-              <p-button
-                icon="pi pi-ellipsis-v"
-                [text]="true"
-                [rounded]="true"
-                (onClick)="menu.toggle($event); setCurrentCurrency(currency)"
-              />
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+            </div>
+          }
+        }
+      </div>
 
       <!-- Menu de acciones -->
       <p-menu #menu [model]="menuItems" [popup]="true" />

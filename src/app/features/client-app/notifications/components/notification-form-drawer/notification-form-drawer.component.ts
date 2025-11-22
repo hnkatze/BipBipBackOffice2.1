@@ -28,7 +28,6 @@ import { SmsAuthorizationDialogComponent } from '../sms-authorization-dialog/sms
     InputTextModule,
     TextareaModule,
     SelectModule,
-    RadioButton,
     CheckboxModule,
     DatePickerModule,
     MultiSelectModule,
