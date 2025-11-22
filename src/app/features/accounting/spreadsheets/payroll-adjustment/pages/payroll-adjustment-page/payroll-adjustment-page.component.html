@@ -197,6 +197,7 @@
             <th>Nombre Driver</th>
             <th>Valor Comanda</th>
             <th>Cliente</th>
+            <th>Acciones</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-command>
@@ -212,6 +213,17 @@
               </span>
             </td>
             <td>{{ command.customerName }}</td>
+            <td>
+              <button
+                pButton
+                icon="pi pi-ellipsis-v"
+                [text]="true"
+                size="small"
+                (click)="toggleCommandActionsPopover($event, command)"
+                pTooltip="Acciones"
+                tooltipPosition="top"
+              ></button>
+            </td>
           </tr>
         </ng-template>
       </p-table>
@@ -418,5 +430,171 @@
         ></button>
       </div>
     </ng-template>
+  }
+</p-dialog>
+
+<!-- Command Actions Popover -->
+<p-popover #commandActionsPopover>
+  <div class="flex flex-col gap-2 p-2 min-w-[200px]">
+    <button
+      pButton
+      label="Ver Orden"
+      icon="pi pi-eye"
+      severity="secondary"
+      [text]="true"
+      class="w-full justify-start"
+      (click)="viewOrderDetailFromPopover()"
+    ></button>
+    <button
+      pButton
+      label="Ajustar Valor"
+      icon="pi pi-pencil"
+      severity="warn"
+      [text]="true"
+      class="w-full justify-start"
+      (click)="openCommandAdjustmentFromPopover()"
+    ></button>
+  </div>
+</p-popover>
+
+<!-- Command Value Adjustment Modal -->
+<p-dialog
+  header="Ajustar Valor de Comanda"
+  [(visible)]="showCommandAdjustmentModal"
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [style]="{ width: '90vw', maxWidth: '600px', maxHeight: '90vh' }"
+  [contentStyle]="{ overflow: 'auto', maxHeight: 'calc(90vh - 180px)' }"
+  appendTo="body"
+>
+  @if (adjustingCommand() && commandAdjustmentForm) {
+    <form [formGroup]="commandAdjustmentForm" class="py-4">
+      <!-- Info de la orden -->
+      <div class="bg-surface-50 dark:bg-surface-800 p-4 rounded-lg mb-6">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <span class="text-sm text-surface-600 dark:text-surface-400 block mb-1">ID Orden:</span>
+            <span class="font-semibold">{{ adjustingCommand()!.orderId }}</span>
+          </div>
+          <div>
+            <span class="text-sm text-surface-600 dark:text-surface-400 block mb-1">Driver:</span>
+            <span class="font-semibold">{{ adjustingCommand()!.driverName }}</span>
+          </div>
+          <div>
+            <span class="text-sm text-surface-600 dark:text-surface-400 block mb-1">Cliente:</span>
+            <span class="font-semibold">{{ adjustingCommand()!.customerName }}</span>
+          </div>
+          <div>
+            <span class="text-sm text-surface-600 dark:text-surface-400 block mb-1">Valor Actual:</span>
+            <span class="font-semibold text-green-600 dark:text-green-400">
+              {{ formatCurrency(adjustingCommand()!.comandaValue) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nuevo valor -->
+      <div class="mb-4">
+        <label for="newValue" class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 block">
+          Nuevo Valor
+          <span class="text-red-500 dark:text-red-400">*</span>
+        </label>
+        <p-inputnumber
+          inputId="newValue"
+          formControlName="newValue"
+          mode="currency"
+          currency="HNL"
+          locale="es-HN"
+          [min]="0"
+          [max]="999999"
+          [minFractionDigits]="2"
+          [maxFractionDigits]="2"
+          styleClass="w-full"
+        ></p-inputnumber>
+        @if (commandAdjustmentForm.get('newValue')?.touched && commandAdjustmentForm.get('newValue')?.errors) {
+          <small class="text-red-500 dark:text-red-400 mt-1 block">
+            Este campo es obligatorio
+          </small>
+        }
+      </div>
+
+      <!-- Diferencia -->
+      @if (hasCommandValueChanges) {
+        <div class="mb-4 p-3 rounded-lg"
+          [class.bg-green-50]="commandValueDifference > 0"
+          [class.dark:bg-green-900/20]="commandValueDifference > 0"
+          [class.bg-red-50]="commandValueDifference < 0"
+          [class.dark:bg-red-900/20]="commandValueDifference < 0"
+        >
+          <div class="flex justify-between items-center">
+            <span class="text-sm font-medium">Diferencia:</span>
+            <span class="font-semibold"
+              [class.text-green-600]="commandValueDifference > 0"
+              [class.dark:text-green-400]="commandValueDifference > 0"
+              [class.text-red-600]="commandValueDifference < 0"
+              [class.dark:text-red-400]="commandValueDifference < 0"
+            >
+              {{ commandValueDifference > 0 ? '+' : '' }}{{ formatCurrency(commandValueDifference) }}
+            </span>
+          </div>
+        </div>
+      }
+
+      <!-- Motivo -->
+      <div class="mb-4">
+        <label for="reason" class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 block">
+          Motivo del Ajuste
+          <span class="text-red-500 dark:text-red-400">*</span>
+        </label>
+        <textarea
+          pTextarea
+          inputId="reason"
+          formControlName="reason"
+          rows="4"
+          placeholder="Describe el motivo del ajuste (mínimo 10 caracteres)"
+          class="w-full"
+        ></textarea>
+        <div class="flex justify-between items-center mt-1">
+          @if (commandAdjustmentForm.get('reason')?.touched && commandAdjustmentForm.get('reason')?.errors) {
+            <small class="text-red-500 dark:text-red-400">
+              @if (commandAdjustmentForm.get('reason')?.errors?.['required']) {
+                Este campo es obligatorio
+              }
+              @if (commandAdjustmentForm.get('reason')?.errors?.['minlength']) {
+                Mínimo 10 caracteres
+              }
+            </small>
+          } @else {
+            <small class="text-surface-500 dark:text-surface-400">
+              Mínimo 10 caracteres
+            </small>
+          }
+          <small class="text-surface-500 dark:text-surface-400">
+            {{ commandAdjustmentForm.get('reason')?.value?.length || 0 }} / 500
+          </small>
+        </div>
+      </div>
+    </form>
+
+      <div class="flex justify-end gap-3">
+        <button
+          pButton
+          label="Cancelar"
+          severity="secondary"
+          [text]="true"
+          (click)="closeCommandAdjustmentModal()"
+          [disabled]="isAdjustingCommand()"
+        ></button>
+        <button
+          pButton
+          label="Ajustar Valor"
+          severity="warn"
+          icon="pi pi-pencil"
+          (click)="submitCommandAdjustment()"
+          [loading]="isAdjustingCommand()"
+          [disabled]="!hasCommandValueChanges || commandAdjustmentForm.invalid"
+        ></button>
+      </div>
   }
 </p-dialog>

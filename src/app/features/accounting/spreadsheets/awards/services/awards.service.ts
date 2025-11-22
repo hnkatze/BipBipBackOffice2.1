@@ -47,6 +47,6 @@ export class AwardsService {
       queryParams.ciudades.push(cityId.toString());
     });
 
-    return this.dataService.get$<string>('Reports/Awards/Excel', queryParams, 'apiURLReports');
+    return this.dataService.get$<string>('Reports/Awards/Excel', queryParams);
   }
 }

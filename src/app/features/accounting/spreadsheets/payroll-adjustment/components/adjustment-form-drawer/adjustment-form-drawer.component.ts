@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, input, output, signal, inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, input, output, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -49,6 +49,18 @@ export class AdjustmentFormDrawerComponent implements OnInit {
   // State
   form!: FormGroup;
   saving = signal<boolean>(false);
+
+  constructor() {
+    // Re-inicializar el form cuando cambie el adjustment o mode
+    effect(() => {
+      const adj = this.adjustment();
+      const currentMode = this.mode();
+      // Trigger re-initialization
+      if (this.form) {
+        this.initializeForm();
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.initializeForm();

@@ -1,5 +1,6 @@
-import { Component, OnInit, ChangeDetectionStrategy, signal, computed, inject, DestroyRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, signal, computed, inject, DestroyRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { MenuItem, MessageService } from 'primeng/api';
@@ -21,6 +22,7 @@ import { DrawerModule } from 'primeng/drawer';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { Textarea } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
+import { Popover } from 'primeng/popover';
 
 // Services & Models
 import { PayrollAdjustmentService } from '../../services/payroll-adjustment.service';
@@ -65,6 +67,10 @@ import { formatDate } from '../../../../../../shared/utils/date.utils';
     SelectModule,
     InputTextModule,
     DrawerModule,
+    InputNumberModule,
+    Textarea,
+    TooltipModule,
+    Popover,
     AdjustmentFormDrawerComponent
   ],
   providers: [MessageService]
@@ -75,6 +81,9 @@ export class PayrollAdjustmentPageComponent implements OnInit {
   private messageService = inject(MessageService);
   private fb = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
+  private router = inject(Router);
+
+  @ViewChild('commandActionsPopover') commandActionsPopover!: Popover;
 
   // State signals - Data
   commands = signal<PayrollCommand[]>([]);
@@ -103,6 +112,7 @@ export class PayrollAdjustmentPageComponent implements OnInit {
   adjustingCommand = signal<PayrollCommand | null>(null);
   commandAdjustmentForm!: FormGroup;
   isAdjustingCommand = signal<boolean>(false);
+  selectedCommandForPopover = signal<PayrollCommand | null>(null);
 
   // Pagination - Commands
   currentPageCommands = signal<number>(1);
@@ -144,14 +154,6 @@ export class PayrollAdjustmentPageComponent implements OnInit {
     const dateRange = values.dateRange;
     const hasDates = !!(dateRange && dateRange[0] && dateRange[1]);
 
-    console.log('🔍 canSearch validation:', {
-      cityId,
-      driverId,
-      dateRange,
-      hasDates,
-      result: !!(cityId && (driverId || hasDates))
-    });
-
     return !!(cityId && (driverId || hasDates));
   });
 
@@ -173,8 +175,6 @@ export class PayrollAdjustmentPageComponent implements OnInit {
       dateRange: [[today, today]],
       generalSearch: ['']
     });
-
-    console.log('📝 Form initialized with values:', this.filterForm.value);
 
     // Update formValue signal whenever form changes
     this.filterForm.valueChanges
@@ -747,6 +747,36 @@ export class PayrollAdjustmentPageComponent implements OnInit {
    * Navega al detalle de la orden
    */
   viewOrderDetail(orderId: string | number): void {
-    window.open(`/sac/order-tracking/order-detail/${orderId}`, '_blank');
+    this.router.navigate(['/sac/order-tracking', orderId]);
+  }
+
+  /**
+   * Abre/cierra el popover de acciones de comanda
+   */
+  toggleCommandActionsPopover(event: Event, command: PayrollCommand): void {
+    this.selectedCommandForPopover.set(command);
+    this.commandActionsPopover.toggle(event);
+  }
+
+  /**
+   * Ver orden desde el popover
+   */
+  viewOrderDetailFromPopover(): void {
+    const command = this.selectedCommandForPopover();
+    if (command) {
+      this.commandActionsPopover.hide();
+      this.viewOrderDetail(command.orderId);
+    }
+  }
+
+  /**
+   * Abrir modal de ajuste desde el popover
+   */
+  openCommandAdjustmentFromPopover(): void {
+    const command = this.selectedCommandForPopover();
+    if (command) {
+      this.commandActionsPopover.hide();
+      this.openCommandAdjustmentModal(command);
+    }
   }
 }
