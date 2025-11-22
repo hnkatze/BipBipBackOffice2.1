@@ -189,6 +189,8 @@ export interface SpecialPermission {
 export interface CreateSpecialPermissionForm {
   customerId: number;
   storeId: number;
+  quantityOrders: number;
+  cashSpent: number;
 }
 
 export interface Brand {

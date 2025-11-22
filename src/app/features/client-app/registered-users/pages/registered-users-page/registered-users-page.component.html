@@ -399,10 +399,3 @@
   (visibleChange)="showFiltersDrawer.set($event)"
   (onApplyFilters)="onFiltersApplied($event)"
 />
-
-<!-- User Details Drawer -->
-<app-user-details-drawer
-  [visible]="showUserDetailsDrawer()"
-  [userId]="selectedUserId()"
-  (visibleChange)="showUserDetailsDrawer.set($event)"
-/>

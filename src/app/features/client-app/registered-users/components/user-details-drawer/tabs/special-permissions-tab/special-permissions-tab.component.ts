@@ -7,6 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TableModule } from 'primeng/table';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { Subscription } from 'rxjs';
 
 import { RegisteredUsersService } from '../../../../services';
@@ -23,7 +24,8 @@ import { City, Brand, Store, SpecialPermission, CreateSpecialPermissionForm } fr
     ButtonModule,
     MessageModule,
     ProgressSpinnerModule,
-    TableModule
+    TableModule,
+    InputNumberModule
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './special-permissions-tab.component.html',
@@ -50,7 +52,9 @@ export class SpecialPermissionsTabComponent implements OnDestroy {
     this.fb.group({
       cityId: [null, Validators.required],
       brandId: [null, Validators.required],
-      storeId: [null, Validators.required]
+      storeId: [null, Validators.required],
+      quantityOrders: [0, [Validators.required, Validators.min(0)]],
+      cashSpent: [0, [Validators.required, Validators.min(0)]]
     })
   );
 
@@ -161,7 +165,9 @@ export class SpecialPermissionsTabComponent implements OnDestroy {
     const formValue = this.permissionForm().value;
     const data: CreateSpecialPermissionForm = {
       customerId,
-      storeId: formValue.storeId
+      storeId: formValue.storeId,
+      quantityOrders: formValue.quantityOrders,
+      cashSpent: formValue.cashSpent
     };
 
     this.registeredUsersService.createSpecialPermission(data).subscribe({
@@ -205,5 +211,12 @@ export class SpecialPermissionsTabComponent implements OnDestroy {
     this.stores.set([]);
     this.errorForm.set(null);
     this.successForm.set(null);
+  }
+
+  /**
+   * Formatea un valor numérico como moneda con el prefijo "L. "
+   */
+  formatCurrency(value: number): string {
+    return `L. ${value.toFixed(2)}`;
   }
 }

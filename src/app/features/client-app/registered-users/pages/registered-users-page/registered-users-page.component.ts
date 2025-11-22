@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -19,7 +20,6 @@ import { MessageService, MenuItem } from 'primeng/api';
 import { RegisteredUsersService } from '../../services';
 import { RegisteredUserRecord, RegisteredUsersFilters } from '../../models';
 import { FiltersSidebarComponent } from '../../components/filters-sidebar/filters-sidebar.component';
-import { UserDetailsDrawerComponent } from '../../components/user-details-drawer/user-details-drawer.component';
 
 @Component({
   selector: 'app-registered-users-page',
@@ -40,8 +40,7 @@ import { UserDetailsDrawerComponent } from '../../components/user-details-drawer
     TooltipModule,
     PopoverModule,
     TableModule,
-    FiltersSidebarComponent,
-    UserDetailsDrawerComponent
+    FiltersSidebarComponent
   ],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,12 +49,11 @@ import { UserDetailsDrawerComponent } from '../../components/user-details-drawer
 export class RegisteredUsersPageComponent implements OnInit {
   readonly registeredUsersService = inject(RegisteredUsersService);
   private readonly messageService = inject(MessageService);
+  private readonly router = inject(Router);
 
   readonly searchTerm = signal('');
   readonly statusFilter = signal<'all' | 'active' | 'inactive' | 'blocked'>('all');
   readonly showFiltersDrawer = signal(false);
-  readonly showUserDetailsDrawer = signal(false);
-  readonly selectedUserId = signal<number | null>(null);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
 
@@ -174,8 +172,7 @@ export class RegisteredUsersPageComponent implements OnInit {
   }
 
   viewUserDetails(user: RegisteredUserRecord): void {
-    this.selectedUserId.set(user.customerId);
-    this.showUserDetailsDrawer.set(true);
+    this.router.navigate(['/client-app/user-registry', user.customerId]);
   }
 
   togglePenalize(user: RegisteredUserRecord): void {

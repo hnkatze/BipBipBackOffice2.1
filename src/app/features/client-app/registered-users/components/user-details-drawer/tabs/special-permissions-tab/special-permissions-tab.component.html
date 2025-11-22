@@ -33,8 +33,8 @@
           id="brand"
           formControlName="brandId"
           [options]="brands()"
-          optionLabel="brandName"
-          optionValue="brandId"
+          optionLabel="nameBrand"
+          optionValue="idBrand"
           placeholder="Seleccione una marca"
           styleClass="w-full"
           [disabled]="!permissionForm().get('cityId')?.value"
@@ -52,14 +52,53 @@
           id="store"
           formControlName="storeId"
           [options]="stores()"
-          optionLabel="storeName"
-          optionValue="storeId"
+          optionLabel="shortName"
+          optionValue="restId"
           placeholder="Seleccione una tienda"
           styleClass="w-full"
           [disabled]="!permissionForm().get('brandId')?.value"
         />
         @if (permissionForm().get('storeId')?.invalid && permissionForm().get('storeId')?.touched) {
           <small class="text-red-600">La tienda es requerida</small>
+        }
+      </div>
+
+      <!-- Quantity Orders -->
+      <div>
+        <label for="quantityOrders" class="block text-sm font-medium mb-2">Cantidad de Órdenes</label>
+        <p-inputnumber
+          id="quantityOrders"
+          formControlName="quantityOrders"
+          placeholder="Ingrese cantidad de órdenes"
+          styleClass="w-full"
+          [min]="0"
+          [showButtons]="true"
+          buttonLayout="horizontal"
+          incrementButtonIcon="pi pi-plus"
+          decrementButtonIcon="pi pi-minus"
+        />
+        @if (permissionForm().get('quantityOrders')?.invalid && permissionForm().get('quantityOrders')?.touched) {
+          <small class="text-red-600">La cantidad de órdenes es requerida y debe ser mayor o igual a 0</small>
+        }
+      </div>
+
+      <!-- Cash Spent -->
+      <div>
+        <label for="cashSpent" class="block text-sm font-medium mb-2">Monto Gastado</label>
+        <p-inputnumber
+          id="cashSpent"
+          formControlName="cashSpent"
+          placeholder="Ingrese monto gastado"
+          styleClass="w-full"
+          mode="currency"
+          currency="HNL"
+          locale="es-HN"
+          [min]="0"
+          [minFractionDigits]="2"
+          [maxFractionDigits]="2"
+        />
+        @if (permissionForm().get('cashSpent')?.invalid && permissionForm().get('cashSpent')?.touched) {
+          <small class="text-red-600">El monto gastado es requerido y debe ser mayor o igual a 0</small>
         }
       </div>
 
@@ -114,19 +153,23 @@
       <p-table [value]="permissions()!" styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
-            <th>Ciudad</th>
-            <th>Marca</th>
             <th>Tienda</th>
-            <th>Fecha de Creación</th>
+            <th>Cantidad de Órdenes</th>
+            <th>Monto Gastado</th>
             <th>Acciones</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-permission>
           <tr>
-            <td>{{ permission.cityName }}</td>
-            <td>{{ permission.brandName }}</td>
             <td>{{ permission.storeName }}</td>
-            <td>{{ permission.createdDate }}</td>
+            <td>
+              <span class="font-semibold">{{ permission.quantityOrders }}</span>
+            </td>
+            <td>
+              <span class="font-semibold text-green-600 dark:text-green-400">
+                {{ formatCurrency(permission.cashSpent) }}
+              </span>
+            </td>
             <td>
               <p-button
                 icon="pi pi-trash"

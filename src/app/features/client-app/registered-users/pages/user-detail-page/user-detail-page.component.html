@@ -1,0 +1,88 @@
+<!-- Breadcrumb -->
+<p-breadcrumb [model]="breadcrumbs" styleClass="mb-4" />
+
+<!-- Header Card -->
+<p-card styleClass="mb-4">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <button
+        pButton
+        icon="pi pi-arrow-left"
+        severity="secondary"
+        [text]="true"
+        (click)="goBack()"
+        pTooltip="Volver"
+        tooltipPosition="top"
+      ></button>
+      <h1 class="text-2xl font-bold m-0">Detalles del Usuario</h1>
+    </div>
+  </div>
+</p-card>
+
+<!-- Tabs Card -->
+<p-card>
+  @if (userId()) {
+    <p-tabs [(value)]="activeTabIndex">
+      <p-tablist>
+        <!-- Tab Headers -->
+        <p-tab value="0">General</p-tab>
+        <p-tab value="1">Órdenes</p-tab>
+        <p-tab value="2">Lealtad</p-tab>
+        <p-tab value="3">Bitácoras Bip</p-tab>
+        <p-tab value="4">Incidencias</p-tab>
+
+        <!-- Admin/SSAC Only Tab Headers -->
+        @if (canAccessAdminTabs()) {
+          <p-tab value="5">Otorgar Bips</p-tab>
+          <p-tab value="6">Otorgar Beneficios</p-tab>
+          <p-tab value="7">Permisos Especiales</p-tab>
+        }
+      </p-tablist>
+
+      <p-tabpanels>
+        <!-- Tab 1: General -->
+        <p-tabpanel value="0">
+          <app-general-tab [userId]="userId()!" />
+        </p-tabpanel>
+
+        <!-- Tab 2: Órdenes -->
+        <p-tabpanel value="1">
+          <app-orders-tab [userId]="userId()!" />
+        </p-tabpanel>
+
+        <!-- Tab 3: Lealtad -->
+        <p-tabpanel value="2">
+          <app-loyalty-tab [userId]="userId()!" />
+        </p-tabpanel>
+
+        <!-- Tab 4: Bitácoras Bip -->
+        <p-tabpanel value="3">
+          <app-bip-logs-tab [userId]="userId()!" />
+        </p-tabpanel>
+
+        <!-- Tab 5: Incidencias -->
+        <p-tabpanel value="4">
+          <app-incidents-tab [userId]="userId()!" />
+        </p-tabpanel>
+
+        <!-- Admin/SSAC Only Tab Panels -->
+        @if (canAccessAdminTabs()) {
+          <!-- Tab 6: Otorgar Bips -->
+          <p-tabpanel value="5">
+            <app-grant-bips-tab [userId]="userId()!" />
+          </p-tabpanel>
+
+          <!-- Tab 7: Otorgar Beneficios -->
+          <p-tabpanel value="6">
+            <app-grant-benefits-tab [userId]="userId()!" />
+          </p-tabpanel>
+
+          <!-- Tab 8: Permisos Especiales -->
+          <p-tabpanel value="7">
+            <app-special-permissions-tab [userId]="userId()!" />
+          </p-tabpanel>
+        }
+      </p-tabpanels>
+    </p-tabs>
+  }
+</p-card>
