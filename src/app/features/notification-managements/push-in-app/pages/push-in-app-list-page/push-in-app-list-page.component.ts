@@ -18,6 +18,8 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { PopoverModule } from 'primeng/popover';
 import { TooltipModule } from 'primeng/tooltip';
+import { PaginatorModule } from 'primeng/paginator';
+import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 import { ConfirmationService } from 'primeng/api';
 
@@ -42,7 +44,9 @@ import { formatDateForDisplay, getBannerIntervalLabel } from '../../utils/push-i
     ToastModule,
     ConfirmDialogModule,
     PopoverModule,
-    TooltipModule
+    TooltipModule,
+    PaginatorModule,
+    SkeletonModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './push-in-app-list-page.component.html',

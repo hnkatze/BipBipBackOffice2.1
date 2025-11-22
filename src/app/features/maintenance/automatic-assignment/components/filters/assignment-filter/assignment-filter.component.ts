@@ -45,7 +45,7 @@ import { type City } from '@core/models/global-data.model';
     <p-drawer
       [(visible)]="visible"
       position="right"
-      [style]="{ width: '450px' }"
+      styleClass="!w-full md:!w-[450px]"
       header="Filtros de Búsqueda"
     >
       <form [formGroup]="filterForm" class="w-full flex flex-col gap-4">

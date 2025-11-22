@@ -23,6 +23,8 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DrawerModule } from 'primeng/drawer';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { PaginatorModule } from 'primeng/paginator';
+import { SkeletonModule } from 'primeng/skeleton';
 import { ConfirmationService, MessageService, MenuItem } from 'primeng/api';
 import { AppLinkService } from '../../services';
 import { DynamicLinkProduct, STATUS_FILTER_OPTIONS } from '../../models';
@@ -46,6 +48,8 @@ import { AppLinkFormComponent } from '../../components';
     ConfirmDialogModule,
     DrawerModule,
     BreadcrumbModule,
+    PaginatorModule,
+    SkeletonModule,
     AppLinkFormComponent,
   ],
   providers: [ConfirmationService, MessageService],
@@ -126,6 +130,15 @@ export class AppLinksListPageComponent implements OnInit {
 
   onLazyLoad(event: TableLazyLoadEvent): void {
     // Calculate page from event.first (0-based index) and event.rows (page size)
+    const page = Math.floor((event.first || 0) / (event.rows || 10)) + 1;
+    const pageSize = event.rows || 10;
+
+    this.page.set(page);
+    this.pageSize.set(pageSize);
+    this.loadData();
+  }
+
+  onPageChange(event: any): void {
     const page = Math.floor((event.first || 0) / (event.rows || 10)) + 1;
     const pageSize = event.rows || 10;
 

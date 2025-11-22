@@ -46,8 +46,8 @@
     </div>
   </div>
 
-  <!-- Tabla -->
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+  <!-- Table (Desktop/Tablet) -->
+  <div class="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-sm">
     <p-table
       [value]="pushInApps()"
       [loading]="isLoading()"
@@ -220,6 +220,184 @@
         </tr>
       </ng-template>
     </p-table>
+  </div>
+
+  <!-- Cards (Mobile) -->
+  <div class="block md:hidden">
+    @if (isLoading()) {
+      <!-- Loading Skeleton -->
+      <div class="flex flex-col gap-4">
+        @for (item of [1, 2, 3]; track item) {
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <p-skeleton width="100%" height="16rem" />
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Empty State -->
+      @if (pushInApps().length === 0) {
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+          <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <i class="pi pi-inbox text-4xl mb-3"></i>
+            <p class="text-lg font-medium">No hay notificaciones</p>
+            <p class="text-sm mt-1">Crea tu primera notificación push in app</p>
+            <p-button
+              label="Crear Push In App"
+              icon="pi pi-plus"
+              [outlined]="true"
+              size="small"
+              (onClick)="goToCreate()"
+              styleClass="mt-3"
+            />
+          </div>
+        </div>
+      }
+
+      <!-- Cards List -->
+      @if (pushInApps().length > 0) {
+        <div class="flex flex-col gap-4">
+          @for (pushInApp of pushInApps(); track pushInApp.id) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+              <!-- Header: ID + Nombre + Estado -->
+              <div class="flex items-start gap-3 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                <!-- ID Badge -->
+                <div class="flex-shrink-0 w-10 h-10 bg-primary-100 dark:bg-primary-900/20 rounded-lg flex items-center justify-center">
+                  <span class="text-sm font-bold text-primary-600 dark:text-primary-400">#{{ pushInApp.id }}</span>
+                </div>
+
+                <!-- Nombre -->
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-gray-900 dark:text-white">{{ pushInApp.bannerName }}</div>
+                </div>
+
+                <!-- Estado -->
+                <div class="flex-shrink-0">
+                  <p-tag
+                    [value]="getStatusLabel(pushInApp.isActive)"
+                    [severity]="getStatusSeverity(pushInApp.isActive)"
+                  />
+                </div>
+              </div>
+
+              <!-- Fechas -->
+              <div class="mb-3">
+                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                  Vigencia
+                </label>
+                <div class="flex flex-col gap-1">
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="pi pi-calendar-plus text-green-600 dark:text-green-400"></i>
+                    <span class="text-gray-600 dark:text-gray-400">{{ formatDate(pushInApp.startDate) }}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="pi pi-calendar-minus text-red-600 dark:text-red-400"></i>
+                    <span class="text-gray-600 dark:text-gray-400">{{ formatDate(pushInApp.endDate) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Intervalo -->
+              <div class="mb-3">
+                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                  Intervalo
+                </label>
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-clock text-blue-600 dark:text-blue-400"></i>
+                  <span class="text-sm text-gray-900 dark:text-white">{{ getIntervalLabel(pushInApp.interval) }}</span>
+                </div>
+              </div>
+
+              <!-- Marcas -->
+              <div class="mb-3">
+                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                  Marcas
+                </label>
+                <div class="flex flex-wrap gap-1">
+                  @for (brandId of getVisibleBrands(pushInApp.availableBrands); track brandId) {
+                    <div class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full text-xs">
+                      @if (getBrandLogo(brandId)) {
+                        <img
+                          [src]="getBrandLogo(brandId)"
+                          [alt]="getBrandName(brandId)"
+                          class="w-4 h-4 rounded-full object-cover"
+                        />
+                      }
+                      <span>{{ getBrandName(brandId) }}</span>
+                    </div>
+                  }
+                  @if (getRemainingBrandsCount(pushInApp.availableBrands) > 0) {
+                    <div
+                      class="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs cursor-help"
+                      [pTooltip]="getAllBrandsTooltip(pushInApp.availableBrands)"
+                      tooltipPosition="top"
+                    >
+                      +{{ getRemainingBrandsCount(pushInApp.availableBrands) }} más
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Ciudades -->
+              <div class="mb-3">
+                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                  Ciudades
+                </label>
+                <div class="flex flex-wrap gap-1">
+                  @for (cityId of getVisibleCities(pushInApp.availableCities); track cityId) {
+                    <div class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs">
+                      {{ getCityName(cityId) }}
+                    </div>
+                  }
+                  @if (getRemainingCitiesCount(pushInApp.availableCities) > 0) {
+                    <div
+                      class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs cursor-help"
+                      [pTooltip]="getAllCitiesTooltip(pushInApp.availableCities)"
+                      tooltipPosition="top"
+                    >
+                      +{{ getRemainingCitiesCount(pushInApp.availableCities) }} más
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <p-button
+                  label="Editar"
+                  icon="pi pi-pencil"
+                  size="small"
+                  [outlined]="true"
+                  severity="info"
+                  (onClick)="goToEdit(pushInApp.id)"
+                  styleClass="flex-1"
+                />
+                <p-button
+                  [label]="pushInApp.isActive ? 'Desactivar' : 'Activar'"
+                  [icon]="pushInApp.isActive ? 'pi pi-times-circle' : 'pi pi-check-circle'"
+                  size="small"
+                  [outlined]="true"
+                  [severity]="pushInApp.isActive ? 'danger' : 'success'"
+                  (onClick)="toggleStatus(pushInApp)"
+                  styleClass="flex-1"
+                />
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Paginador Mobile -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mt-4">
+          <p-paginator
+            [rows]="pageSizeSignal()"
+            [totalRecords]="metadata().totalCount"
+            [rowsPerPageOptions]="[5, 10, 25, 50]"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+            (onPageChange)="onPageChange($event)"
+          />
+        </div>
+      }
+    }
   </div>
 </div>
 

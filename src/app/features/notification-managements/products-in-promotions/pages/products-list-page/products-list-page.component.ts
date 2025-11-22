@@ -27,6 +27,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { PaginatorModule } from 'primeng/paginator';
 import { PopoverModule } from 'primeng/popover';
+import { SkeletonModule } from 'primeng/skeleton';
 import { MenuItem, MessageService } from 'primeng/api';
 
 // Services & Models
@@ -56,7 +57,8 @@ import { Brand } from '@core/models/global-data.model';
     InputIconModule,
     ProgressSpinnerModule,
     PaginatorModule,
-    PopoverModule
+    PopoverModule,
+    SkeletonModule
   ],
   providers: [MessageService],
   templateUrl: './products-list-page.component.html',
@@ -296,7 +298,7 @@ export class ProductsListPageComponent implements OnInit {
    */
   getBrandLogo(brandId: string): string {
     const brand = this.brandsList().find(b => b.id.toString() === brandId);
-    return brand?.logo || '/assets/brand/default-logo.svg';
+    return brand?.logo || '';
   }
 
   /**

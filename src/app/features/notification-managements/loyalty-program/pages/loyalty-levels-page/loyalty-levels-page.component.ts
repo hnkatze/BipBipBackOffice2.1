@@ -13,6 +13,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { PaginatorModule } from 'primeng/paginator';
 import { MenuItem, MessageService } from 'primeng/api';
 
 import { LoyaltyService } from '../../services';
@@ -33,7 +34,8 @@ import { LoyaltyLevel } from '../../models';
     IconFieldModule,
     InputIconModule,
     ToastModule,
-    TooltipModule
+    TooltipModule,
+    PaginatorModule
   ],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,

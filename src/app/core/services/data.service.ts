@@ -158,13 +158,15 @@ export class DataService {
    *
    * @param path - API path (relative to baseUrl)
    * @param params - Query parameters
+   * @param apiType - Optional: specify which API base URL to use ('apiURL' or 'apiURLReports')
    * @returns Observable<T>
    *
    * @example
    * this.dataService.get$<User[]>('users').subscribe(users => console.log(users));
+   * this.dataService.get$<string>('backoffice/report', {}, 'apiURLReports').subscribe(...);
    */
-  get$<T>(path: string, params?: QueryParams): Observable<T> {
-    const url = this.buildUrl(path);
+  get$<T>(path: string, params?: QueryParams, apiType: 'apiURL' | 'apiURLReports' = 'apiURL'): Observable<T> {
+    const url = this.buildUrl(path, apiType);
     const httpParams = this.buildParams(params);
 
     return this.http.get<T>(url, { params: httpParams });
@@ -247,13 +249,17 @@ export class DataService {
 
   /**
    * Build full URL from path
+   * @param apiType - Optional: specify which API base URL to use
    */
-  private buildUrl(path: string): string {
+  private buildUrl(path: string, apiType: 'apiURL' | 'apiURLReports' = 'apiURL'): string {
     // Remove leading slash if present
     const cleanPath = path.startsWith('/') ? path.slice(1) : path;
 
+    // Select the appropriate base URL
+    const baseUrl = apiType === 'apiURLReports' ? environment.apiURLReports : this.baseUrl;
+
     // baseUrl already ends with '/' from environment
-    return `${this.baseUrl}${cleanPath}`;
+    return `${baseUrl}${cleanPath}`;
   }
 
   /**

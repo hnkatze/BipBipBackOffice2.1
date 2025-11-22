@@ -8,6 +8,8 @@ import { PopoverModule } from 'primeng/popover';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
+import { SkeletonModule } from 'primeng/skeleton';
+import { PaginatorModule } from 'primeng/paginator';
 import { type RoleWithPermissionCount, type RoleFilterCriteria } from '../../../models';
 import { RoleService } from '../../../services/role.service';
 import { RoleFormComponent } from '../../forms/role-form/role-form.component';
@@ -36,65 +38,70 @@ import { Subject, takeUntil } from 'rxjs';
     IconFieldModule,
     InputIconModule,
     InputTextModule,
+    SkeletonModule,
+    PaginatorModule,
     RoleFormComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="roles-tab">
       <!-- Search and Filter Section -->
-      <div class="mb-4 space-y-4">
+      <div class="mb-6">
         <!-- Search Input -->
-        <p-iconfield iconPosition="left" class="w-full sm:w-96">
-          <p-inputicon styleClass="pi pi-search" />
-          <input
-            pInputText
-            type="text"
-            [formControl]="searchControl"
-            placeholder="Buscar por nombre de rol..."
-            class="w-full"
-          />
-        </p-iconfield>
-
-        <!-- Status Filters and Actions -->
-        <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <!-- Status Filters -->
-          <div class="flex gap-2">
-          <p-button
-            label="Todos ({{ totalRecords() }})"
-            [outlined]="selectedStatus() !== null"
-            severity="secondary"
-            size="small"
-            (onClick)="onStatusFilter(null)"
-          />
-          <p-button
-            label="Activos ({{ activeCount() }})"
-            [outlined]="selectedStatus() !== true"
-            severity="success"
-            size="small"
-            (onClick)="onStatusFilter(true)"
-          />
-          <p-button
-            label="Inactivos ({{ inactiveCount() }})"
-            [outlined]="selectedStatus() !== false"
-            severity="danger"
-            size="small"
-            (onClick)="onStatusFilter(false)"
-          />
+        <div class="mb-4">
+          <p-iconfield iconPosition="left" class="w-full md:w-96">
+            <p-inputicon styleClass="pi pi-search" />
+            <input
+              pInputText
+              type="text"
+              [formControl]="searchControl"
+              placeholder="Buscar por nombre de rol..."
+              class="w-full"
+            />
+          </p-iconfield>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="flex gap-2">
-          <p-button
-            label="Nuevo Rol"
-            icon="pi pi-plus"
-            size="small"
-            (onClick)="onCreateRole()"
-          />
+        <!-- Status Filters and Actions -->
+        <div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <!-- Status Filters -->
+          <div class="flex flex-wrap gap-2">
+            <p-button
+              label="Todos ({{ totalRecords() }})"
+              [outlined]="selectedStatus() !== null"
+              severity="secondary"
+              size="small"
+              (onClick)="onStatusFilter(null)"
+            />
+            <p-button
+              label="Activos ({{ activeCount() }})"
+              [outlined]="selectedStatus() !== true"
+              severity="success"
+              size="small"
+              (onClick)="onStatusFilter(true)"
+            />
+            <p-button
+              label="Inactivos ({{ inactiveCount() }})"
+              [outlined]="selectedStatus() !== false"
+              severity="danger"
+              size="small"
+              (onClick)="onStatusFilter(false)"
+            />
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-2">
+            <p-button
+              label="Nuevo Rol"
+              icon="pi pi-plus"
+              size="small"
+              (onClick)="onCreateRole()"
+            />
+          </div>
         </div>
       </div>
 
       <!-- Desktop Table View -->
-      <div class="hidden sm:block">
+      <div class="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-sm">
         <p-table
           [value]="roles()"
           [loading]="loading()"
@@ -106,7 +113,7 @@ import { Subject, takeUntil } from 'rxjs';
           [showCurrentPageReport]="true"
           currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} roles"
           (onLazyLoad)="onPageChange($event)"
-          styleClass="p-datatable-sm"
+          [pt]="{ root: { class: 'p-datatable-sm' } }"
         >
           <ng-template #header>
             <tr>
@@ -188,83 +195,101 @@ import { Subject, takeUntil } from 'rxjs';
       </div>
 
       <!-- Mobile Cards View -->
-      <div class="block sm:hidden">
+      <div class="block md:hidden">
         @if (loading()) {
-          <div class="text-center py-8">
-            <i class="pi pi-spin pi-spinner text-3xl text-primary"></i>
-            <p class="mt-2 text-gray-600">Cargando...</p>
-          </div>
-        } @else if (roles().length === 0) {
-          <div class="text-center py-8">
-            <i class="pi pi-key text-4xl text-gray-400"></i>
-            <p class="mt-2 text-gray-600">No se encontraron roles</p>
-          </div>
-        } @else {
-          <div class="space-y-4">
-            @for (role of roles(); track role.roleId) {
-              <div class="bg-white border rounded-lg p-4 shadow-sm">
-                <!-- Header -->
-                <div class="flex items-start justify-between mb-3">
-                  <div class="flex items-center gap-2">
-                    <i class="pi pi-key text-primary text-xl"></i>
-                    <div>
-                      <h3 class="font-semibold">{{ role.roleName }}</h3>
-                      <p class="text-sm text-gray-500">{{ role.roleDescription }}</p>
-                    </div>
-                  </div>
-                  <p-button
-                    icon="pi pi-ellipsis-v"
-                    [text]="true"
-                    [rounded]="true"
-                    size="small"
-                    (click)="mobilePopover.toggle($event)"
-                  />
-                  <p-popover #mobilePopover>
-                    <div class="flex flex-col gap-1 p-1 min-w-[180px]">
-                      <button
-                        class="flex items-center gap-3 px-3 py-2 text-left hover:surface-hover rounded transition-colors"
-                        (click)="onEditRole(role); mobilePopover.hide()"
-                      >
-                        <i class="pi pi-pencil"></i>
-                        <span>Editar</span>
-                      </button>
-                      <div class="border-t my-1"></div>
-                      <button
-                        class="flex items-center gap-3 px-3 py-2 text-left hover:surface-hover rounded transition-colors"
-                        [class.text-red-600]="role.roleActive"
-                        [class.text-green-600]="!role.roleActive"
-                        (click)="onToggleStatus(role); mobilePopover.hide()"
-                      >
-                        <i class="pi" [class.pi-ban]="role.roleActive" [class.pi-check]="!role.roleActive"></i>
-                        <span>{{ role.roleActive ? 'Desactivar' : 'Activar' }}</span>
-                      </button>
-                    </div>
-                  </p-popover>
-                </div>
-
-                <!-- Details -->
-                <div class="space-y-2 text-sm">
-                  <div class="flex justify-between">
-                    <span class="text-gray-600">Estado:</span>
-                    <p-tag
-                      [value]="role.roleActive ? 'Activo' : 'Inactivo'"
-                      [severity]="role.roleActive ? 'success' : 'danger'"
-                    />
-                  </div>
-                </div>
+          <!-- Loading Skeleton -->
+          <div class="flex flex-col gap-4">
+            @for (item of [1, 2, 3]; track item) {
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                <p-skeleton width="100%" height="10rem" />
               </div>
             }
           </div>
+        } @else {
+          <!-- Empty State -->
+          @if (roles().length === 0) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+              <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                <i class="pi pi-key text-4xl mb-3"></i>
+                <p class="text-lg font-medium">No se encontraron roles</p>
+              </div>
+            </div>
+          }
 
-          <!-- Mobile Pagination -->
-          <div class="mt-4 flex justify-center">
-            <p-button
-              label="Cargar más"
-              icon="pi pi-refresh"
-              [disabled]="roles().length >= totalRecords()"
-              (onClick)="loadMore()"
-            />
-          </div>
+          <!-- Cards List -->
+          @if (roles().length > 0) {
+            <div class="flex flex-col gap-4">
+              @for (role of roles(); track role.roleId) {
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+                  <!-- Header: Icono + Nombre + Estado -->
+                  <div class="flex items-start gap-3 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                    <!-- Icon -->
+                    <div class="flex-shrink-0">
+                      <div class="w-10 h-10 bg-primary-100 dark:bg-primary-900/20 rounded-lg flex items-center justify-center">
+                        <i class="pi pi-key text-primary-600 dark:text-primary-400"></i>
+                      </div>
+                    </div>
+
+                    <!-- Nombre -->
+                    <div class="flex-1 min-w-0">
+                      <div class="font-semibold text-gray-900 dark:text-white">{{ role.roleName }}</div>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="flex-shrink-0">
+                      <p-tag
+                        [value]="role.roleActive ? 'Activo' : 'Inactivo'"
+                        [severity]="role.roleActive ? 'success' : 'danger'"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Descripción -->
+                  <div class="mb-3">
+                    <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                      Descripción
+                    </label>
+                    <span class="text-sm text-gray-900 dark:text-white">{{ role.roleDescription }}</span>
+                  </div>
+
+                  <!-- Acciones -->
+                  <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <p-button
+                      label="Editar"
+                      icon="pi pi-pencil"
+                      size="small"
+                      [outlined]="true"
+                      severity="secondary"
+                      (onClick)="onEditRole(role)"
+                      styleClass="flex-1"
+                    />
+                    <p-button
+                      [label]="role.roleActive ? 'Desactivar' : 'Activar'"
+                      [icon]="role.roleActive ? 'pi pi-ban' : 'pi pi-check'"
+                      size="small"
+                      [outlined]="true"
+                      [severity]="role.roleActive ? 'danger' : 'success'"
+                      (onClick)="onToggleStatus(role)"
+                      styleClass="flex-1"
+                    />
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Paginador Mobile -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mt-4">
+              <p-paginator
+                [rows]="pageSize()"
+                [totalRecords]="totalRecords()"
+                [first]="currentPage() * pageSize()"
+                [rowsPerPageOptions]="[5, 10, 15, 20]"
+                [showCurrentPageReport]="true"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+                (onPageChange)="onPageChange($event)"
+              />
+            </div>
+          }
         }
       </div>
 

@@ -1,0 +1,235 @@
+<div class="w-full min-h-screen bg-surface-50 dark:bg-surface-950 p-4 md:p-6">
+  <!-- Toast Notifications -->
+  <p-toast />
+
+  <!-- Breadcrumb Navigation -->
+  <p-breadcrumb [model]="breadcrumbs" styleClass="mb-4 md:mb-6"></p-breadcrumb>
+
+  <!-- Header -->
+  <div class="mb-6 md:mb-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-surface-900 dark:text-surface-50">
+          Alimentación Deliveries
+        </h1>
+        <p class="mt-2 text-xs md:text-sm text-surface-600 dark:text-surface-400">
+          Genera reportes de alimentación filtrados por marca, tienda y rango de fechas
+        </p>
+      </div>
+
+      <!-- Export Buttons (Desktop) -->
+      <div class="hidden md:flex items-center gap-3">
+        <button
+          pButton
+          label="Generar PDF"
+          icon="pi pi-file-pdf"
+          severity="danger"
+          (click)="exportPDF()"
+          [disabled]="!isFormValid() || isExporting()"
+          [loading]="exportingPDF()"
+        ></button>
+
+        <button
+          pButton
+          label="Generar Excel"
+          icon="pi pi-file-excel"
+          severity="success"
+          (click)="exportExcel()"
+          [disabled]="!isFormValid() || isExporting()"
+          [loading]="exportingExcel()"
+        ></button>
+      </div>
+
+      <!-- Export Buttons (Mobile) -->
+      <div class="flex md:hidden items-center gap-3">
+        <button
+          pButton
+          icon="pi pi-file-pdf"
+          severity="danger"
+          (click)="exportPDF()"
+          [disabled]="!isFormValid() || isExporting()"
+          [loading]="exportingPDF()"
+        ></button>
+
+        <button
+          pButton
+          icon="pi pi-file-excel"
+          severity="success"
+          (click)="exportExcel()"
+          [disabled]="!isFormValid() || isExporting()"
+          [loading]="exportingExcel()"
+        ></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Card -->
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="border-l-4 border-[#fb0021] pl-4 py-4">
+        <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50">
+          Filtros de Búsqueda
+        </h3>
+        <p class="text-sm text-surface-600 dark:text-surface-400 mt-1">
+          Selecciona la marca, la tienda y el rango de fechas para generar el reporte
+        </p>
+      </div>
+    </ng-template>
+
+    <!-- Loading State -->
+    @if (loading()) {
+      <div class="flex flex-col items-center justify-center py-16">
+        <i class="pi pi-spin pi-spinner text-6xl text-blue-600 mb-4"></i>
+        <p class="text-surface-600 dark:text-surface-400">Cargando datos...</p>
+      </div>
+    }
+
+    <!-- Error State -->
+    @else if (error() && !loading()) {
+      <div class="p-6 text-center">
+        <div class="inline-flex flex-col items-center gap-3 px-6 py-4 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded-lg">
+          <i class="pi pi-exclamation-circle text-4xl"></i>
+          <span class="text-sm">{{ error() }}</span>
+          <button
+            pButton
+            label="Reintentar"
+            icon="pi pi-refresh"
+            severity="danger"
+            (click)="loadBrands()"
+            class="mt-2"
+          ></button>
+        </div>
+      </div>
+    }
+
+    <!-- Filters Form -->
+    @else {
+      <form [formGroup]="filterForm" class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Rango de Fechas -->
+          <div class="flex flex-col gap-2">
+            <label
+              for="dateRange"
+              class="text-sm font-medium text-surface-700 dark:text-surface-300 flex items-center gap-1"
+            >
+              <i class="pi pi-calendar text-[#fb0021]"></i>
+              <span>Rango de Fechas</span>
+              <span class="text-red-500 dark:text-red-400">*</span>
+            </label>
+            <p-datepicker
+              inputId="dateRange"
+              formControlName="dateRange"
+              [showIcon]="true"
+              dateFormat="dd/mm/yy"
+              placeholder="Selecciona rango de fechas"
+              selectionMode="range"
+              [readonlyInput]="true"
+              styleClass="w-full"
+            ></p-datepicker>
+            @if (filterForm.get('dateRange')?.invalid && filterForm.get('dateRange')?.touched) {
+              <span class="text-xs text-red-500 dark:text-red-400">
+                El rango de fechas es requerido
+              </span>
+            }
+            <p class="text-xs text-surface-500 dark:text-surface-400">
+              Selecciona desde - hasta
+            </p>
+          </div>
+
+          <!-- Marca -->
+          <div class="flex flex-col gap-2">
+            <label
+              for="brand"
+              class="text-sm font-medium text-surface-700 dark:text-surface-300 flex items-center gap-1"
+            >
+              <i class="pi pi-tag text-[#fb0021]"></i>
+              <span>Marca</span>
+              <span class="text-red-500 dark:text-red-400">*</span>
+            </label>
+            <p-select
+              inputId="brand"
+              formControlName="brand"
+              [options]="brands()"
+              optionLabel="nameBrand"
+              placeholder="Selecciona una marca"
+              [filter]="true"
+              [showClear]="true"
+              styleClass="w-full"
+              (onChange)="onBrandChange($event.value)"
+            ></p-select>
+            @if (filterForm.get('brand')?.invalid && filterForm.get('brand')?.touched) {
+              <span class="text-xs text-red-500 dark:text-red-400">
+                La marca es requerida
+              </span>
+            }
+          </div>
+
+          <!-- Tienda -->
+          <div class="flex flex-col gap-2">
+            <label
+              for="store"
+              class="text-sm font-medium text-surface-700 dark:text-surface-300 flex items-center gap-1"
+            >
+              <i class="pi pi-building text-[#fb0021]"></i>
+              <span>Tienda</span>
+              <span class="text-red-500 dark:text-red-400">*</span>
+            </label>
+            <p-select
+              inputId="store"
+              formControlName="store"
+              [options]="stores()"
+              optionLabel="shortName"
+              placeholder="Selecciona una tienda"
+              [filter]="true"
+              [showClear]="true"
+              [disabled]="!filterForm.get('brand')?.value || loadingStores()"
+              [loading]="loadingStores()"
+              styleClass="w-full"
+            >
+              <ng-template pTemplate="selectedItem" let-option>
+                @if (option) {
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-building text-[#fb0021]"></i>
+                    <span>{{ option.shortName }}</span>
+                  </div>
+                }
+              </ng-template>
+              <ng-template pTemplate="item" let-option>
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-building text-surface-500"></i>
+                  <span>{{ option.shortName }}</span>
+                </div>
+              </ng-template>
+            </p-select>
+            @if (!filterForm.get('brand')?.value) {
+              <span class="text-xs text-surface-500 dark:text-surface-400">
+                Primero selecciona una marca
+              </span>
+            }
+            @if (filterForm.get('store')?.invalid && filterForm.get('store')?.touched) {
+              <span class="text-xs text-red-500 dark:text-red-400">
+                La tienda es requerida
+              </span>
+            }
+          </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-700 rounded-lg p-4 mt-6">
+          <div class="flex items-start gap-2">
+            <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 mt-0.5"></i>
+            <div class="flex-1">
+              <p class="text-xs font-medium text-surface-900 dark:text-surface-50">Información</p>
+              <ul class="text-xs text-surface-600 dark:text-surface-400 mt-1 space-y-0.5 list-disc list-inside">
+                <li>Selecciona primero una marca para cargar las tiendas disponibles</li>
+                <li>Busca la tienda por su nombre corto</li>
+                <li>Selecciona el rango de fechas para el reporte de alimentación</li>
+                <li>Los reportes se generan en formato PDF o Excel según tu preferencia</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </form>
+    }
+  </p-card>
+</div>

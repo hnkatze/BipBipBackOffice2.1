@@ -15,7 +15,12 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { SkeletonModule } from 'primeng/skeleton';
+import { TooltipModule } from 'primeng/tooltip';
+import { ConfirmationService, MessageService, MenuItem } from 'primeng/api';
 import { PersonalizedAlertsService } from '../../services';
 import { PersonalizedAlert, COMMON_ALERT_ICONS } from '../../models';
 
@@ -31,6 +36,11 @@ import { PersonalizedAlert, COMMON_ALERT_ICONS } from '../../models';
     InputTextModule,
     ConfirmDialogModule,
     ToastModule,
+    BreadcrumbModule,
+    IconFieldModule,
+    InputIconModule,
+    SkeletonModule,
+    TooltipModule,
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './alerts-list-page.component.html',
@@ -42,6 +52,13 @@ export class AlertsListPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+
+  // Breadcrumb
+  readonly breadcrumbItems: MenuItem[] = [
+    { label: 'Gest. Notificaciones' },
+    { label: 'Alertas Personalizadas' }
+  ];
+  readonly home: MenuItem = { icon: 'pi pi-home', routerLink: '/' };
 
   readonly alerts = this.alertsService.alerts;
   readonly isLoading = this.alertsService.isLoading;

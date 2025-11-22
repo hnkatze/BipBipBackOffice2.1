@@ -55,8 +55,8 @@
     </div>
   </div>
 
-  <!-- Tabla -->
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+  <!-- Table (Desktop/Tablet) -->
+  <div class="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-sm">
     <p-table
         [value]="appLinks()"
         [loading]="isLoading()"
@@ -181,6 +181,162 @@
           </tr>
         </ng-template>
       </p-table>
+  </div>
+
+  <!-- Cards (Mobile) -->
+  <div class="block md:hidden">
+    @if (isLoading()) {
+      <!-- Loading Skeleton -->
+      <div class="flex flex-col gap-4">
+        @for (item of [1, 2, 3]; track item) {
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <p-skeleton width="100%" height="12rem" />
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Empty State -->
+      @if (appLinks().length === 0) {
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+          <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <i class="pi pi-inbox text-4xl mb-3"></i>
+            <p class="text-lg font-medium">
+              @if (searchTerm()) {
+                No se encontraron app links que coincidan con "{{ searchTerm() }}"
+              } @else {
+                No hay app links creados
+              }
+            </p>
+            @if (!searchTerm()) {
+              <p-button
+                label="Crear Primer App Link"
+                icon="pi pi-plus"
+                [outlined]="true"
+                size="small"
+                (onClick)="onCreateAppLink()"
+                styleClass="mt-3"
+              />
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Cards List -->
+      @if (appLinks().length > 0) {
+        <div class="flex flex-col gap-4">
+          @for (appLink of appLinks(); track appLink.dynamicLinkXProductId) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+              <!-- Header: Imagen + Toggle -->
+              <div class="flex items-start gap-3 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                <!-- Imagen -->
+                <div class="flex-shrink-0">
+                  <img
+                    [src]="appLink.imageUrl"
+                    [alt]="appLink.title"
+                    class="w-16 h-16 object-cover rounded-lg"
+                  />
+                </div>
+
+                <!-- Campaña -->
+                <div class="flex-1 min-w-0">
+                  <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                    Campaña
+                  </label>
+                  <code class="bg-surface-100 dark:bg-surface-800 px-2 py-1 rounded text-xs">
+                    {{ appLink.campaignName || 'N/A' }}
+                  </code>
+                </div>
+
+                <!-- Estado Toggle -->
+                <div class="flex-shrink-0">
+                  <p-toggleswitch
+                    [(ngModel)]="appLink.isActive"
+                    (onChange)="onToggleStatus(appLink, appLink.isActive)"
+                  />
+                </div>
+              </div>
+
+              <!-- Producto -->
+              <div class="mb-3">
+                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                  Producto
+                </label>
+                @if (appLink.productName) {
+                  <div>
+                    <div class="font-medium text-sm text-gray-900 dark:text-white">{{ appLink.productName }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 font-mono mt-1">{{ appLink.productCode }}</div>
+                  </div>
+                } @else {
+                  <span class="text-sm text-gray-500 dark:text-gray-400">-</span>
+                }
+              </div>
+
+              <!-- Grid: Marca + Fecha -->
+              <div class="grid grid-cols-2 gap-3 mb-3">
+                <!-- Marca -->
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                    Marca
+                  </label>
+                  <div class="flex items-center gap-2">
+                    @if (appLink.urlBrandLogo) {
+                      <img
+                        [src]="appLink.urlBrandLogo"
+                        [alt]="appLink.brandName || ''"
+                        class="w-6 h-6 object-contain"
+                      />
+                    }
+                    <span class="text-sm">{{ appLink.brandName || 'N/A' }}</span>
+                  </div>
+                </div>
+
+                <!-- Fecha -->
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                    Fecha
+                  </label>
+                  <span class="text-sm text-gray-900 dark:text-white">{{ formatDate(appLink.createdAt) }}</span>
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <p-button
+                  label="Editar"
+                  icon="pi pi-pencil"
+                  size="small"
+                  [outlined]="true"
+                  severity="secondary"
+                  (onClick)="onEditAppLink(appLink)"
+                  styleClass="flex-1"
+                />
+                <p-button
+                  label="Copiar Link"
+                  icon="pi pi-copy"
+                  size="small"
+                  [outlined]="true"
+                  severity="info"
+                  (onClick)="onCopyDeepLink(appLink)"
+                  styleClass="flex-1"
+                />
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Paginador Mobile -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mt-4">
+          <p-paginator
+            [rows]="pageSize()"
+            [totalRecords]="pagination().totalCount"
+            [rowsPerPageOptions]="[5, 10, 15, 20]"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+            (onPageChange)="onPageChange($event)"
+          />
+        </div>
+      }
+    }
   </div>
 </div>
 

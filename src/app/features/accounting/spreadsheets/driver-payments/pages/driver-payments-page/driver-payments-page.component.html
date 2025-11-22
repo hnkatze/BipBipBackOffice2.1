@@ -1,0 +1,367 @@
+<div class="w-full min-h-screen bg-surface-50 dark:bg-surface-950 p-4 md:p-6">
+  <!-- Toast Notifications -->
+  <p-toast />
+
+  <!-- Breadcrumb Navigation -->
+  <p-breadcrumb [model]="breadcrumbs" styleClass="mb-4 md:mb-6"></p-breadcrumb>
+
+  <!-- Header -->
+  <div class="mb-6 md:mb-8">
+    <h1 class="text-2xl md:text-3xl font-bold text-surface-900 dark:text-surface-50">
+      Pagos a Drivers
+    </h1>
+    <p class="mt-2 text-xs md:text-sm text-surface-600 dark:text-surface-400">
+      Consulta pagos a conductores y genera reportes PDF, Excel o formato bancario
+    </p>
+  </div>
+
+  <!-- Filters Card -->
+  <p-card styleClass="mb-6">
+    <ng-template pTemplate="header">
+      <div class="flex items-center justify-between border-l-4 border-[#fb0021] pl-4 py-4">
+        <div>
+          <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50">
+            Filtros de Búsqueda
+          </h3>
+          <p class="text-sm text-surface-600 dark:text-surface-400 mt-1">
+            Selecciona los filtros y haz clic en "Aplicar Filtros" para consultar
+          </p>
+        </div>
+        <button
+          pButton
+          [icon]="filtersVisible() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+          severity="secondary"
+          [text]="true"
+          (click)="toggleFilters()"
+        ></button>
+      </div>
+    </ng-template>
+
+    @if (filtersVisible()) {
+      <form [formGroup]="filterForm" class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Rango de Fechas -->
+          <div class="flex flex-col gap-2">
+            <label
+              for="dateRange"
+              class="text-sm font-medium text-surface-700 dark:text-surface-300 flex items-center gap-1"
+            >
+              <i class="pi pi-calendar text-[#fb0021]"></i>
+              <span>Rango de Fechas</span>
+              <span class="text-red-500 dark:text-red-400">*</span>
+            </label>
+            <p-datepicker
+              inputId="dateRange"
+              formControlName="dateRange"
+              [showIcon]="true"
+              dateFormat="dd/mm/yy"
+              placeholder="Selecciona rango"
+              selectionMode="range"
+              [readonlyInput]="true"
+              styleClass="w-full"
+            ></p-datepicker>
+          </div>
+
+          <!-- Países -->
+          <div class="flex flex-col gap-2">
+            <label
+              for="countries"
+              class="text-sm font-medium text-surface-700 dark:text-surface-300 flex items-center gap-1"
+            >
+              <i class="pi pi-flag text-[#fb0021]"></i>
+              <span>Países</span>
+            </label>
+            <p-multiselect
+              inputId="countries"
+              formControlName="countries"
+              [options]="countries()"
+              optionLabel="nameCountry"
+              placeholder="Todos los países"
+              [showClear]="true"
+              [filter]="true"
+              styleClass="w-full"
+              (onChange)="onCountriesChange($event.value)"
+            ></p-multiselect>
+          </div>
+
+          <!-- Ciudades -->
+          <div class="flex flex-col gap-2">
+            <label
+              for="cities"
+              class="text-sm font-medium text-surface-700 dark:text-surface-300 flex items-center gap-1"
+            >
+              <i class="pi pi-map-marker text-[#fb0021]"></i>
+              <span>Ciudades</span>
+            </label>
+            <p-multiselect
+              inputId="cities"
+              formControlName="cities"
+              [options]="cities()"
+              optionLabel="nameCity"
+              placeholder="Todas las ciudades"
+              [showClear]="true"
+              [filter]="true"
+              [disabled]="cities().length === 0 || loadingCities()"
+              [loading]="loadingCities()"
+              styleClass="w-full"
+            ></p-multiselect>
+          </div>
+
+          <!-- Bases de Operación -->
+          <div class="flex flex-col gap-2">
+            <label
+              for="headquarters"
+              class="text-sm font-medium text-surface-700 dark:text-surface-300 flex items-center gap-1"
+            >
+              <i class="pi pi-building text-[#fb0021]"></i>
+              <span>Bases de Operación</span>
+            </label>
+            <p-multiselect
+              inputId="headquarters"
+              formControlName="headquarters"
+              [options]="headquarters()"
+              optionLabel="nameHeadquarter"
+              placeholder="Todas las bases"
+              [showClear]="true"
+              [filter]="true"
+              styleClass="w-full"
+            ></p-multiselect>
+          </div>
+        </div>
+
+        <!-- Apply Filters Button -->
+        <div class="flex justify-end mt-6">
+          <button
+            pButton
+            label="Aplicar Filtros"
+            icon="pi pi-filter"
+            (click)="applyFilters()"
+            [disabled]="!hasDateRange()"
+          ></button>
+        </div>
+      </form>
+    }
+  </p-card>
+
+  <!-- Data Table Card -->
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="border-l-4 border-[#fb0021] pl-4 py-4">
+        <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50">
+          Resultados
+        </h3>
+        <p class="text-sm text-surface-600 dark:text-surface-400 mt-1">
+          Lista de pagos a conductores
+        </p>
+      </div>
+    </ng-template>
+
+    <!-- Loading State -->
+    @if (loading()) {
+      <div class="flex flex-col items-center justify-center py-16">
+        <i class="pi pi-spin pi-spinner text-6xl text-blue-600 mb-4"></i>
+        <p class="text-surface-600 dark:text-surface-400">Cargando datos...</p>
+      </div>
+    }
+
+    <!-- Error State -->
+    @else if (error() && !loading()) {
+      <div class="p-6 text-center">
+        <div class="inline-flex flex-col items-center gap-3 px-6 py-4 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded-lg">
+          <i class="pi pi-exclamation-circle text-4xl"></i>
+          <span class="text-sm">{{ error() }}</span>
+        </div>
+      </div>
+    }
+
+    <!-- Data Table -->
+    @else if (payments().length > 0) {
+      <p-table
+        [value]="payments()"
+        [paginator]="true"
+        [rows]="pageSize()"
+        [totalRecords]="totalRecords()"
+        [lazy]="true"
+        (onLazyLoad)="onPageChange($event)"
+        [rowsPerPageOptions]="[5, 10, 15, 20]"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        styleClass="p-datatable-sm"
+        [tableStyle]="{'min-width': '80rem'}"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>País y Ciudad</th>
+            <th>Nombre</th>
+            <th>Código</th>
+            <th>Base de Ops</th>
+            <th>Identidad</th>
+            <th class="text-right">Ord. Comp.</th>
+            <th class="text-right">Gan. Prop.</th>
+            <th class="text-right">Gan. Coman.</th>
+            <th class="text-right">Gan. Totales</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-payment>
+          <tr>
+            <td>
+              <div class="flex flex-col">
+                <span class="font-medium">{{ payment.nameCountry }}</span>
+                <span class="text-sm text-surface-500">{{ payment.nameCity }}</span>
+              </div>
+            </td>
+            <td>{{ payment.driverName }}</td>
+            <td>
+              <p-tag [value]="payment.driverCode" severity="info"></p-tag>
+            </td>
+            <td>{{ payment.headquarterName }}</td>
+            <td>{{ payment.documentId }}</td>
+            <td class="text-right">{{ payment.completedOrders }}</td>
+            <td class="text-right">L {{ payment.ownTips | number:'1.2-2' }}</td>
+            <td class="text-right">L {{ payment.ordersTips | number:'1.2-2' }}</td>
+            <td class="text-right font-semibold">L {{ payment.totalTips | number:'1.2-2' }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+
+    <!-- Empty State -->
+    @else {
+      <div class="p-6 text-center">
+        <div class="inline-flex flex-col items-center gap-3 px-6 py-4 bg-surface-100 dark:bg-surface-800 rounded-lg">
+          <i class="pi pi-inbox text-4xl text-surface-400"></i>
+          <span class="text-sm text-surface-600 dark:text-surface-400">No hay datos para mostrar</span>
+          <span class="text-xs text-surface-500 dark:text-surface-400">Selecciona filtros y haz clic en "Aplicar Filtros"</span>
+        </div>
+      </div>
+    }
+  </p-card>
+
+  <!-- Export Reports Card -->
+  <p-card styleClass="mt-6">
+    <ng-template pTemplate="header">
+      <div class="border-l-4 border-[#fb0021] pl-4 py-4">
+        <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50">
+          Generar Reportes
+        </h3>
+        <p class="text-sm text-surface-600 dark:text-surface-400 mt-1">
+          Selecciona el tipo de reporte y formato de exportación
+        </p>
+      </div>
+    </ng-template>
+
+    <form [formGroup]="filterForm" class="p-6">
+      <!-- Report Type Selection -->
+      <div class="mb-6">
+        <label class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-3 block">
+          Tipo de Reporte
+        </label>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <div class="flex items-center">
+            <p-radiobutton
+              inputId="general"
+              formControlName="reportType"
+              name="reportType"
+              value="general"
+            />
+            <label for="general" class="ml-2 text-sm text-surface-700 dark:text-surface-300 cursor-pointer">
+              Reporte General
+            </label>
+          </div>
+          <div class="flex items-center">
+            <p-radiobutton
+              inputId="detail"
+              formControlName="reportType"
+              name="reportType"
+              value="detail"
+            />
+            <label for="detail" class="ml-2 text-sm text-surface-700 dark:text-surface-300 cursor-pointer">
+              Reporte Detalle
+            </label>
+          </div>
+          <div class="flex items-center">
+            <p-radiobutton
+              inputId="baseOps"
+              formControlName="reportType"
+              name="reportType"
+              value="baseOps"
+            />
+            <label for="baseOps" class="ml-2 text-sm text-surface-700 dark:text-surface-300 cursor-pointer">
+              Base de Operaciones
+            </label>
+          </div>
+          <div class="flex items-center">
+            <p-radiobutton
+              inputId="bac"
+              formControlName="reportType"
+              name="reportType"
+              value="bac"
+            />
+            <label for="bac" class="ml-2 text-sm text-surface-700 dark:text-surface-300 cursor-pointer">
+              Formato BAC (TXT)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Buttons -->
+      <div class="border-t border-surface-200 dark:border-surface-700 pt-6">
+        <label class="text-sm font-medium text-surface-700 dark:text-surface-300 mb-3 block">
+          Descargar Reporte
+        </label>
+        <div class="flex flex-wrap gap-3">
+          @if (selectedReportType() !== 'bac') {
+            <button
+              pButton
+              label="Generar PDF"
+              icon="pi pi-file-pdf"
+              severity="danger"
+              (click)="exportPDF()"
+              [disabled]="!hasDateRange() || isExporting()"
+              [loading]="exportingPDF()"
+            ></button>
+
+            <button
+              pButton
+              label="Generar Excel"
+              icon="pi pi-file-excel"
+              severity="success"
+              (click)="exportExcel()"
+              [disabled]="!hasDateRange() || isExporting()"
+              [loading]="exportingExcel()"
+            ></button>
+          }
+
+          @if (selectedReportType() === 'bac') {
+            <button
+              pButton
+              label="Generar TXT BAC"
+              icon="pi pi-file"
+              severity="secondary"
+              (click)="exportBAC()"
+              [disabled]="!hasDateRange() || isExporting()"
+              [loading]="exportingTXT()"
+            ></button>
+          }
+        </div>
+      </div>
+
+      <!-- Info Card -->
+      <div class="bg-surface-0 dark:bg-surface-950 border border-surface-200 dark:border-surface-700 rounded-lg p-4 mt-6">
+        <div class="flex items-start gap-2">
+          <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 mt-0.5"></i>
+          <div class="flex-1">
+            <p class="text-xs font-medium text-surface-900 dark:text-surface-50">Información</p>
+            <ul class="text-xs text-surface-600 dark:text-surface-400 mt-1 space-y-0.5 list-disc list-inside">
+              <li><strong>Reporte General:</strong> Resumen de pagos por conductor</li>
+              <li><strong>Reporte Detalle:</strong> Desglose completo con todas las transacciones</li>
+              <li><strong>Base de Operaciones:</strong> Agrupado por bases de operación</li>
+              <li><strong>Formato BAC:</strong> Archivo TXT para integración bancaria (Banco de América Central)</li>
+              <li>Todos los reportes requieren seleccionar un rango de fechas</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </form>
+  </p-card>
+</div>

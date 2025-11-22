@@ -23,6 +23,7 @@ import { PopoverModule } from 'primeng/popover';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { MessageService, MenuItem } from 'primeng/api';
 import { DividerModule } from 'primeng/divider';
+import { SkeletonModule } from 'primeng/skeleton';
 
 import { RestaurantService } from '../../services/restaurant.service';
 import { RestaurantFiltersComponent } from '../../components/restaurant-filters/restaurant-filters.component';
@@ -45,6 +46,7 @@ import type { RestaurantFilters } from '../../models/restaurant.model';
     PopoverModule,
     BreadcrumbModule,
     DividerModule,
+    SkeletonModule,
     RestaurantFiltersComponent
   ],
   templateUrl: './restaurants-list.component.html',

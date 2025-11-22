@@ -198,6 +198,6 @@ export class AssignmentListTableComponent {
    * Navigate to order detail page
    */
   viewOrderDetail(orderId: number): void {
-    this.router.navigate(['/sac/order-tracking/order-detail', orderId]);
+    this.router.navigate(['/sac/order-tracking', orderId]);
   }
 }

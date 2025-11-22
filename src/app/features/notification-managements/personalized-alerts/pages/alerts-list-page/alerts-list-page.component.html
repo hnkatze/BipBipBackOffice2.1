@@ -1,123 +1,285 @@
-<div class="grid">
-  <div class="col-12">
-    <p-card>
+<div class="p-6">
+  <!-- Breadcrumb -->
+  <div class="mb-4">
+    <p-breadcrumb
+      [model]="breadcrumbItems"
+      [home]="home"
+    />
+  </div>
+
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+        Alertas Personalizadas
+      </h1>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        Gestiona las alertas personalizadas que se muestran en la aplicación
+      </p>
+    </div>
+
+    <p-button
+      label="Nueva Alerta"
+      icon="pi pi-plus"
+      (onClick)="onCreateAlert()"
+    />
+  </div>
+
+  <!-- Search -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5 mb-6">
+    <p-iconfield iconPosition="left" class="w-full md:w-1/2">
+      <p-inputicon>
+        <i class="pi pi-search"></i>
+      </p-inputicon>
+      <input
+        type="text"
+        pInputText
+        placeholder="Buscar por código, título o subtítulo..."
+        class="w-full"
+        [value]="searchTerm()"
+        (input)="onSearch($event)"
+      />
+    </p-iconfield>
+  </div>
+
+  <!-- Table (Desktop/Tablet) -->
+  <div class="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+    <p-table
+      [value]="filteredAlerts()"
+      [loading]="isLoading()"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      [pt]="{ root: { class: 'p-datatable-sm' } }"
+    >
       <ng-template pTemplate="header">
-        <div class="flex justify-between items-center p-4">
-          <h2 class="text-2xl font-bold m-0">Alertas Personalizadas</h2>
-          <p-button
-            label="Nueva Alerta"
-            icon="pi pi-plus"
-            (onClick)="onCreateAlert()"
-          />
-        </div>
+        <tr>
+          <th>Preview</th>
+          <th>Código</th>
+          <th>Icono</th>
+          <th>Título</th>
+          <th>Subtítulo</th>
+          <th>Colores</th>
+          <th style="width: 150px">Acciones</th>
+        </tr>
       </ng-template>
-
-      <!-- Search -->
-      <div class="mb-4">
-        <span class="p-input-icon-left w-full md:w-1/2">
-          <i class="pi pi-search"></i>
-          <input
-            type="text"
-            pInputText
-            placeholder="Buscar por código, título o subtítulo..."
-            class="w-full"
-            [value]="searchTerm()"
-            (input)="onSearch($event)"
-          />
-        </span>
-      </div>
-
-      <!-- Table -->
-      <p-table
-        [value]="filteredAlerts()"
-        [loading]="isLoading()"
-        [tableStyle]="{ 'min-width': '50rem' }"
-        styleClass="p-datatable-sm"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th>Preview</th>
-            <th>Código</th>
-            <th>Icono</th>
-            <th>Título</th>
-            <th>Subtítulo</th>
-            <th>Colores</th>
-            <th style="width: 150px">Acciones</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-alert>
-          <tr>
-            <td>
+      <ng-template pTemplate="body" let-alert>
+        <tr>
+          <td>
+            <div
+              class="inline-flex items-center gap-2 rounded px-3 py-2 text-sm"
+              [style.background-color]="'#' + alert.backgroundColor"
+              [style.color]="'#' + alert.textColor"
+            >
+              <img [src]="getIconImage(alert.codePointIcon)" [alt]="alert.title" class="w-5 h-5" />
+              <span>{{ alert.title }}</span>
+            </div>
+          </td>
+          <td>
+            <code class="bg-surface-100 dark:bg-surface-800 px-2 py-1 rounded text-sm">{{
+              alert.code
+            }}</code>
+          </td>
+          <td>
+            <img [src]="getIconImage(alert.codePointIcon)" [alt]="alert.codePointIcon" class="w-8 h-8" />
+          </td>
+          <td>{{ alert.title }}</td>
+          <td class="text-color-secondary">{{ alert.subtitle }}</td>
+          <td>
+            <div class="flex gap-2 items-center">
               <div
-                class="inline-flex items-center gap-2 rounded px-3 py-2 text-sm"
+                class="w-6 h-6 rounded border border-surface"
+                [style.background-color]="'#' + alert.textColor"
+                [title]="'Texto: #' + alert.textColor"
+              ></div>
+              <div
+                class="w-6 h-6 rounded border border-surface"
                 [style.background-color]="'#' + alert.backgroundColor"
-                [style.color]="'#' + alert.textColor"
-              >
-                <img [src]="getIconImage(alert.codePointIcon)" [alt]="alert.title" class="w-5 h-5" />
-                <span>{{ alert.title }}</span>
-              </div>
-            </td>
-            <td>
-              <code class="bg-surface-100 dark:bg-surface-800 px-2 py-1 rounded text-sm">{{
-                alert.code
-              }}</code>
-            </td>
-            <td>
-              <img [src]="getIconImage(alert.codePointIcon)" [alt]="alert.codePointIcon" class="w-8 h-8" />
-            </td>
-            <td>{{ alert.title }}</td>
-            <td class="text-color-secondary">{{ alert.subtitle }}</td>
-            <td>
-              <div class="flex gap-2 items-center">
+                [title]="'Fondo: #' + alert.backgroundColor"
+              ></div>
+            </div>
+          </td>
+          <td>
+            <div class="flex gap-2">
+              <p-button
+                icon="pi pi-pencil"
+                severity="secondary"
+                [text]="true"
+                [rounded]="true"
+                (onClick)="onEditAlert(alert)"
+                pTooltip="Editar"
+              />
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [text]="true"
+                [rounded]="true"
+                (onClick)="onDeleteAlert(alert)"
+                pTooltip="Eliminar"
+              />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center p-4">
+            <p class="text-color-secondary m-0">
+              @if (searchTerm()) {
+                No se encontraron alertas que coincidan con "{{ searchTerm() }}"
+              } @else {
+                No hay alertas personalizadas creadas
+              }
+            </p>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Cards (Mobile) -->
+  <div class="block md:hidden">
+    @if (isLoading()) {
+      <!-- Loading Skeleton -->
+      <div class="flex flex-col gap-4">
+        @for (item of [1, 2, 3]; track item) {
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <p-skeleton width="100%" height="12rem" />
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Empty State -->
+      @if (filteredAlerts().length === 0) {
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+          <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <i class="pi pi-inbox text-4xl mb-3"></i>
+            <p class="text-lg font-medium">
+              @if (searchTerm()) {
+                No se encontraron alertas que coincidan con "{{ searchTerm() }}"
+              } @else {
+                No hay alertas personalizadas creadas
+              }
+            </p>
+            @if (!searchTerm()) {
+              <p-button
+                label="Crear Primera Alerta"
+                icon="pi pi-plus"
+                [outlined]="true"
+                size="small"
+                (onClick)="onCreateAlert()"
+                styleClass="mt-3"
+              />
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Cards List -->
+      @if (filteredAlerts().length > 0) {
+        <div class="flex flex-col gap-4">
+          @for (alert of filteredAlerts(); track alert.code) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+              <!-- Header: Preview de la alerta -->
+              <div class="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 block">
+                  Vista Previa
+                </label>
                 <div
-                  class="w-6 h-6 rounded border border-surface"
-                  [style.background-color]="'#' + alert.textColor"
-                  [title]="'Texto: #' + alert.textColor"
-                ></div>
-                <div
-                  class="w-6 h-6 rounded border border-surface"
+                  class="inline-flex items-center gap-2 rounded px-4 py-3 text-sm font-medium"
                   [style.background-color]="'#' + alert.backgroundColor"
-                  [title]="'Fondo: #' + alert.backgroundColor"
-                ></div>
+                  [style.color]="'#' + alert.textColor"
+                >
+                  <img [src]="getIconImage(alert.codePointIcon)" [alt]="alert.title" class="w-6 h-6" />
+                  <div>
+                    <div class="font-semibold">{{ alert.title }}</div>
+                    <div class="text-xs opacity-90">{{ alert.subtitle }}</div>
+                  </div>
+                </div>
               </div>
-            </td>
-            <td>
-              <div class="flex gap-2">
+
+              <!-- Código -->
+              <div class="mb-3">
+                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                  Código
+                </label>
+                <code class="bg-surface-100 dark:bg-surface-800 px-2 py-1 rounded text-sm">
+                  {{ alert.code }}
+                </code>
+              </div>
+
+              <!-- Grid: Título + Subtítulo -->
+              <div class="grid grid-cols-1 gap-3 mb-3">
+                <!-- Título -->
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                    Título
+                  </label>
+                  <span class="text-sm text-gray-900 dark:text-white">{{ alert.title }}</span>
+                </div>
+
+                <!-- Subtítulo -->
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                    Subtítulo
+                  </label>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">{{ alert.subtitle }}</span>
+                </div>
+              </div>
+
+              <!-- Colores -->
+              <div class="mb-3">
+                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 block">
+                  Colores
+                </label>
+                <div class="flex gap-3">
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="w-8 h-8 rounded border-2 border-gray-300 dark:border-gray-600"
+                      [style.background-color]="'#' + alert.textColor"
+                    ></div>
+                    <div class="text-xs">
+                      <div class="text-gray-500 dark:text-gray-400">Texto</div>
+                      <code class="text-gray-900 dark:text-white">#{{ alert.textColor }}</code>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="w-8 h-8 rounded border-2 border-gray-300 dark:border-gray-600"
+                      [style.background-color]="'#' + alert.backgroundColor"
+                    ></div>
+                    <div class="text-xs">
+                      <div class="text-gray-500 dark:text-gray-400">Fondo</div>
+                      <code class="text-gray-900 dark:text-white">#{{ alert.backgroundColor }}</code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Acciones -->
+              <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
                 <p-button
+                  label="Editar"
                   icon="pi pi-pencil"
+                  size="small"
+                  [outlined]="true"
                   severity="secondary"
-                  [text]="true"
-                  [rounded]="true"
                   (onClick)="onEditAlert(alert)"
-                  pTooltip="Editar"
+                  styleClass="flex-1"
                 />
                 <p-button
+                  label="Eliminar"
                   icon="pi pi-trash"
+                  size="small"
+                  [outlined]="true"
                   severity="danger"
-                  [text]="true"
-                  [rounded]="true"
                   (onClick)="onDeleteAlert(alert)"
-                  pTooltip="Eliminar"
+                  styleClass="flex-1"
                 />
               </div>
-            </td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="7" class="text-center p-4">
-              <p class="text-color-secondary m-0">
-                @if (searchTerm()) {
-                  No se encontraron alertas que coincidan con "{{ searchTerm() }}"
-                } @else {
-                  No hay alertas personalizadas creadas
-                }
-              </p>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </p-card>
+            </div>
+          }
+        </div>
+      }
+    }
   </div>
 </div>
 

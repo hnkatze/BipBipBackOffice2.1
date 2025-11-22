@@ -74,146 +74,308 @@
     </div>
   </div>
 
-  <!-- Tabla -->
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+  <!-- Tabla (Desktop/Tablet) -->
+  <div class="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-sm">
     <p-table
-    [value]="restaurants()"
-    [loading]="isLoading()"
-    [tableStyle]="{ 'min-width': '60rem' }"
-    styleClass="p-datatable-sm"
-  >
-    <ng-template pTemplate="header">
-      <tr>
-        <th style="width: 60px">Logo</th>
-        <th>Nombre</th>
-        <th>País</th>
-        <th>Marca</th>
-        <th>Nombre Corto</th>
-        <th style="width: 120px">Estado</th>
-        <th style="width: 80px; text-align: center">Acciones</th>
-      </tr>
-    </ng-template>
+      [value]="restaurants()"
+      [loading]="isLoading()"
+      [tableStyle]="{ 'min-width': '60rem' }"
+      [pt]="{ root: { class: 'p-datatable-sm' } }"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 60px">Logo</th>
+          <th>Nombre</th>
+          <th>País</th>
+          <th>Marca</th>
+          <th>Nombre Corto</th>
+          <th style="width: 120px">Estado</th>
+          <th style="width: 80px; text-align: center">Acciones</th>
+        </tr>
+      </ng-template>
 
-    <ng-template pTemplate="body" let-restaurant>
-      <tr>
-        <!-- Logo (más pequeño) -->
-        <td>
-          @if (restaurant.restUrllogo) {
-            <img
-              [src]="restaurant.restUrllogo"
-              [alt]="restaurant.restName"
-              class="border-circle"
-              style="width: 2rem; height: 2rem; object-fit: cover"
+      <ng-template pTemplate="body" let-restaurant>
+        <tr>
+          <!-- Logo (más pequeño) -->
+          <td>
+            @if (restaurant.restUrllogo) {
+              <img
+                [src]="restaurant.restUrllogo"
+                [alt]="restaurant.restName"
+                class="border-circle"
+                style="width: 2rem; height: 2rem; object-fit: cover"
+              />
+            } @else {
+              <div
+                class="border-circle bg-primary-100 flex align-items-center justify-content-center"
+                style="width: 2rem; height: 2rem"
+              >
+                <i class="pi pi-building text-primary" style="font-size: 0.875rem"></i>
+              </div>
+            }
+          </td>
+
+          <!-- Name -->
+          <td>
+            <div class="font-semibold">{{ restaurant.restName }}</div>
+            <div class="text-sm text-500">{{ restaurant.restAddress }}</div>
+          </td>
+
+          <!-- Country -->
+          <td>{{ restaurant.restCountryName }}</td>
+
+          <!-- Brand -->
+          <td>{{ restaurant.restBrandName }}</td>
+
+          <!-- Short Name -->
+          <td>{{ restaurant.restShortName }}</td>
+
+          <!-- Status -->
+          <td>
+            <p-tag
+              [value]="getStatusLabel(restaurant.restStatus)"
+              [severity]="getStatusSeverity(restaurant.restStatus)"
             />
-          } @else {
-            <div
-              class="border-circle bg-primary-100 flex align-items-center justify-content-center"
-              style="width: 2rem; height: 2rem"
-            >
-              <i class="pi pi-building text-primary" style="font-size: 0.875rem"></i>
-            </div>
-          }
-        </td>
+          </td>
 
-        <!-- Name -->
-        <td>
-          <div class="font-semibold">{{ restaurant.restName }}</div>
-          <div class="text-sm text-500">{{ restaurant.restAddress }}</div>
-        </td>
+          <!-- Actions (vertical dots with popover) -->
+          <td style="text-align: center">
+            <p-button
+              icon="pi pi-ellipsis-v"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              size="small"
+              (onClick)="popover.toggle($event)"
+            />
+            <p-popover #popover>
+              <div class="flex flex-col gap-2" style="min-width: 150px">
+                <p-button
+                  label="Ver Detalles"
+                  icon="pi pi-eye"
+                  variant="text"
+                  (click)="onViewRestaurantWithClose(restaurant.restId, popover)"
+                ></p-button>
+                <p-button
+                  label="Editar"
+                  icon="pi pi-pencil"
+                  severity="info"
+                  variant="text"
+                  (click)="onEditRestaurant(restaurant.restId, popover)"
+                ></p-button>
+                <p-divider />
+                 <p-button
+                  [label]="restaurant.publish ? 'Desactivar Domicilio' : 'Activar Domicilio'"
+                  icon="pi pi-delete-left"
+                  severity="warn"
+                  variant="text"
+                  (click)="onToggleDeliveryStatus(restaurant.restId, popover)"
+                ></p-button>
+                 <p-button
+                  [label]="isActiveDelivery(restaurant.active, restaurant.publish) ? 'Desactivar General' : 'Activar General'"
+                  icon="pi pi-trash"
+                  severity="danger"
+                  variant="text"
+                  (click)="onToggleStoreStatus(restaurant.restId, popover)"
+                ></p-button>
+              </div>
+            </p-popover>
+          </td>
+        </tr>
+      </ng-template>
 
-        <!-- Country -->
-        <td>{{ restaurant.restCountryName }}</td>
-
-        <!-- Brand -->
-        <td>{{ restaurant.restBrandName }}</td>
-
-        <!-- Short Name -->
-        <td>{{ restaurant.restShortName }}</td>
-
-        <!-- Status -->
-        <td>
-          <p-tag
-            [value]="getStatusLabel(restaurant.restStatus)"
-            [severity]="getStatusSeverity(restaurant.restStatus)"
-          />
-        </td>
-
-        <!-- Actions (vertical dots with popover) -->
-        <td style="text-align: center">
-          <p-button
-            icon="pi pi-ellipsis-v"
-            [text]="true"
-            [rounded]="true"
-            severity="secondary"
-            size="small"
-            (onClick)="popover.toggle($event)"
-          />
-          <p-popover #popover>
-            <div class="flex flex-col gap-2" style="min-width: 150px">
-              <p-button
-                label="Ver Detalles"
-                icon="pi pi-eye"
-                variant="text"
-                (click)="onViewRestaurantWithClose(restaurant.restId, popover)"
-              ></p-button>
-              <p-button
-                label="Editar"
-                icon="pi pi-pencil"
-                severity="info"
-                variant="text"
-                (click)="onEditRestaurant(restaurant.restId, popover)"
-              ></p-button>
-              <p-divider />
-               <p-button
-                [label]="restaurant.publish ? 'Desactivar Domicilio' : 'Activar Domicilio'"
-                icon="pi pi-delete-left"
-                severity="warn"
-                variant="text"
-                (click)="onToggleDeliveryStatus(restaurant.restId, popover)"
-              ></p-button>
-               <p-button
-                [label]="isActiveDelivery(restaurant.active, restaurant.publish) ? 'Desactivar General' : 'Activar General'"
-                icon="pi pi-trash"
-                severity="danger"
-                variant="text"
-                (click)="onToggleStoreStatus(restaurant.restId, popover)"
-              ></p-button>
-            </div>
-          </p-popover>
-        </td>
-      </tr>
-    </ng-template>
-
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="7" class="text-center py-6">
-          @if (isLoading()) {
-            <div class="flex flex-column align-items-center gap-3">
-              <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
-              <p class="text-500">Cargando restaurantes...</p>
-            </div>
-          } @else {
-            <div class="flex flex-column align-items-center gap-3">
-              <i class="pi pi-inbox text-4xl text-400"></i>
-              <p class="text-500">No se encontraron restaurantes</p>
-            </div>
-          }
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center py-6">
+            @if (isLoading()) {
+              <div class="flex flex-column align-items-center gap-3">
+                <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+                <p class="text-500">Cargando restaurantes...</p>
+              </div>
+            } @else {
+              <div class="flex flex-column align-items-center gap-3">
+                <i class="pi pi-inbox text-4xl text-400"></i>
+                <p class="text-500">No se encontraron restaurantes</p>
+              </div>
+            }
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
   </div>
 
-  <!-- Paginator -->
+  <!-- Cards (Mobile) -->
+  <div class="block md:hidden">
+    @if (isLoading()) {
+      <!-- Loading Skeleton -->
+      <div class="flex flex-col gap-4">
+        @for (item of [1, 2, 3]; track item) {
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <p-skeleton width="100%" height="14rem" />
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Empty State -->
+      @if (restaurants().length === 0) {
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+          <div class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <i class="pi pi-inbox text-4xl mb-3"></i>
+            <p class="text-lg font-medium">No se encontraron restaurantes</p>
+            @if (!hasFilters()) {
+              <p-button
+                label="Crear Primer Restaurante"
+                icon="pi pi-plus"
+                [outlined]="true"
+                size="small"
+                (onClick)="onCreateRestaurant()"
+                styleClass="mt-3"
+              />
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Cards List -->
+      @if (restaurants().length > 0) {
+        <div class="flex flex-col gap-4">
+          @for (restaurant of restaurants(); track restaurant.restId) {
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+              <!-- Header: Logo + Nombre + Estado -->
+              <div class="flex items-start gap-3 mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                  @if (restaurant.restUrllogo) {
+                    <img
+                      [src]="restaurant.restUrllogo"
+                      [alt]="restaurant.restName"
+                      class="w-12 h-12 rounded-full object-cover"
+                    />
+                  } @else {
+                    <div class="w-12 h-12 bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center">
+                      <i class="pi pi-building text-primary-600 dark:text-primary-400 text-xl"></i>
+                    </div>
+                  }
+                </div>
+
+                <!-- Nombre -->
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-gray-900 dark:text-white">{{ restaurant.restName }}</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ restaurant.restAddress }}</div>
+                </div>
+
+                <!-- Estado -->
+                <div class="flex-shrink-0">
+                  <p-tag
+                    [value]="getStatusLabel(restaurant.restStatus)"
+                    [severity]="getStatusSeverity(restaurant.restStatus)"
+                  />
+                </div>
+              </div>
+
+              <!-- Grid: País + Marca -->
+              <div class="grid grid-cols-2 gap-3 mb-3">
+                <!-- País -->
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                    País
+                  </label>
+                  <span class="text-sm text-gray-900 dark:text-white">{{ restaurant.restCountryName }}</span>
+                </div>
+
+                <!-- Marca -->
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                    Marca
+                  </label>
+                  <span class="text-sm text-gray-900 dark:text-white">{{ restaurant.restBrandName }}</span>
+                </div>
+              </div>
+
+              <!-- Nombre Corto -->
+              <div class="mb-3">
+                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 block">
+                  Nombre Corto
+                </label>
+                <span class="text-sm text-gray-900 dark:text-white">{{ restaurant.restShortName }}</span>
+              </div>
+
+              <!-- Acciones -->
+              <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <p-button
+                  label="Ver Detalles"
+                  icon="pi pi-eye"
+                  size="small"
+                  [outlined]="true"
+                  severity="secondary"
+                  (onClick)="onViewRestaurant(restaurant.restId)"
+                  styleClass="flex-1"
+                />
+                <p-button
+                  icon="pi pi-ellipsis-v"
+                  size="small"
+                  [outlined]="true"
+                  severity="secondary"
+                  (onClick)="mobilePopover.toggle($event)"
+                />
+                <p-popover #mobilePopover>
+                  <div class="flex flex-col gap-2" style="min-width: 180px">
+                    <p-button
+                      label="Editar"
+                      icon="pi pi-pencil"
+                      severity="info"
+                      variant="text"
+                      (click)="onEditRestaurant(restaurant.restId, mobilePopover)"
+                    ></p-button>
+                    <p-divider />
+                    <p-button
+                      [label]="restaurant.publish ? 'Desactivar Domicilio' : 'Activar Domicilio'"
+                      icon="pi pi-delete-left"
+                      severity="warn"
+                      variant="text"
+                      (click)="onToggleDeliveryStatus(restaurant.restId, mobilePopover)"
+                    ></p-button>
+                    <p-button
+                      [label]="isActiveDelivery(restaurant.active, restaurant.publish) ? 'Desactivar General' : 'Activar General'"
+                      icon="pi pi-trash"
+                      severity="danger"
+                      variant="text"
+                      (click)="onToggleStoreStatus(restaurant.restId, mobilePopover)"
+                    ></p-button>
+                  </div>
+                </p-popover>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Paginador Mobile -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mt-4">
+          <p-paginator
+            [rows]="pageSize()"
+            [totalRecords]="totalRecords()"
+            [first]="currentPage() * pageSize()"
+            [rowsPerPageOptions]="[5, 10, 20, 50]"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+            (onPageChange)="onPageChange($event)"
+          />
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Paginator (Desktop/Tablet) -->
   @if (totalRecords() > 0) {
-    <p-paginator
-      [rows]="pageSize()"
-      [totalRecords]="totalRecords()"
-      [first]="currentPage() * pageSize()"
-      [rowsPerPageOptions]="[5, 10, 20, 50]"
-      (onPageChange)="onPageChange($event)"
-      styleClass="mt-3"
-    />
+    <div class="hidden md:block mt-3">
+      <p-paginator
+        [rows]="pageSize()"
+        [totalRecords]="totalRecords()"
+        [first]="currentPage() * pageSize()"
+        [rowsPerPageOptions]="[5, 10, 20, 50]"
+        (onPageChange)="onPageChange($event)"
+      />
+    </div>
   }
 </div>
 
