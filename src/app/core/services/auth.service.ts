@@ -61,9 +61,10 @@ export class AuthService {
   readonly tokensData = signal<Tokens | null>(null);
   readonly currentUser = signal<User | null>(this.getUser());
   readonly routesLoaded = signal<boolean>(false);
+  private readonly _authToken = signal<string | null>(this.getJwtToken());
 
   // 🔥 COMPUTED - Estado derivado
-  readonly isLoggedIn = computed(() => !!this.getJwtToken());
+  readonly isLoggedIn = computed(() => !!this._authToken());
   readonly userName = computed(() => this.currentUser()?.userName ?? '');
   readonly userFullName = computed(() => this.currentUser()?.fullName ?? '');
   readonly userRole = computed(() => this.currentUser()?.rolName ?? '');
@@ -160,22 +161,17 @@ export class AuthService {
    */
   private async processLoginSuccess(result: Tokens): Promise<Tokens> {
     try {
-      console.log('✅ Login exitoso - iniciando proceso de autenticación');
-
       // 1. Limpiar storage ANTES de guardar nueva data
       await this.clearStorageOnLogin();
-      console.log('✅ Storage limpiado');
 
       // 2. Guardar datos de autenticación (esperamos a que termine)
       this.routeBackend.set(result.modules);
       this.routesAllow.set(result.modules as any);
       await this.authSave(result);
-      console.log('✅ Token guardado en localStorage');
 
       // 3. Actualizar signals después de guardar
       this.tokensData.set(result);
       this.currentUser.set(this.getUser());
-      console.log('✅ Signals actualizados');
 
       // 4. Cache routes for the user
       const userId = this.getUserId();
@@ -187,16 +183,13 @@ export class AuthService {
           navigationItems,
           roleData.UserRole
         );
-        console.log('✅ Rutas guardadas en cache');
       }
 
       // 5. Obtener rutas completas del servidor (ESPERAMOS a que termine)
       await this.loadCompleteRoutesPromise(result.modules);
-      console.log('✅ Rutas completas cargadas');
 
       // 6. Marcar que las rutas están listas
       this.routesLoaded.set(true);
-      console.log('✅ Sistema listo para navegación');
 
       // Retornar result para que el componente sepa que todo salió bien
       return result;
@@ -335,6 +328,7 @@ export class AuthService {
     this.routeBackend.set([]);
     this.tokensData.set(null);
     this.currentUser.set(null);
+    this._authToken.set(null); // ✅ Limpiar el token signal
 
     // Clear sessionStorage routes
     sessionStorage.removeItem('routesAllow');
@@ -448,6 +442,9 @@ export class AuthService {
 
         localStorage.setItem(this.USER, JSON.stringify(user));
 
+        // ✅ CRÍTICO: Actualizar el signal del token para que isLoggedIn() se reactive
+        this._authToken.set(tokens.token);
+
         // Forzar que el navegador complete las operaciones de localStorage
         // antes de resolver la Promise
         requestAnimationFrame(() => {
@@ -471,6 +468,8 @@ export class AuthService {
       tap((tokens: Tokens) => {
         localStorage.setItem(this.JWT_TOKEN, tokens.token);
         localStorage.setItem(this.REFRESH_TOKEN, tokens.refreshToken);
+        // ✅ Actualizar el signal del token
+        this._authToken.set(tokens.token);
       })
     );
   }

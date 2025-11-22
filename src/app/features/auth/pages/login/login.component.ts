@@ -137,10 +137,7 @@ export class LoginComponent {
         // El guard ya tiene todo lo necesario para validar
         this.router.navigate(['/home']).then(
           (success) => {
-            if (success) {
-              console.log('✅ Navegación exitosa a /home');
-            } else {
-              console.error('⚠️ La navegación a /home fue cancelada o falló');
+            if (!success) {
               this.messageService.add({
                 severity: 'warn',
                 summary: 'Problema de navegación',
